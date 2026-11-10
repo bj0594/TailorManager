@@ -54,6 +54,240 @@ Later / bonus (NOT NOW):
 - Advanced reporting and business analytics.
 
 
+## 3 Flow
+
+
+
+## 4 Interface
+
+Customer:
+- Id (Guid)
+- Name (string)
+- Email (string?)
+- Phone (string?)
+
+OrderType:
+- NewGarment
+- Repair
+
+OrderStatus:
+- Submitted
+- InProgress
+- WaitingForCustomer
+- WaitingForFitting
+- ReadyForPickup
+- Delivered
+
+Order:
+- Id (Guid)
+- CustomerId (Guid)
+- Type (OrderType)
+- WorkDescription (string)
+- InitialAgreedPrice (decimal)
+- ApprovedPriceAdjustments (collection)
+- CurrentAgreedPrice (calculated decimal)
+- Status (OrderStatus)
+- CreatedAt (DateTimeOffset)
+- RelatedOrderId (Guid?)
+- History (collection)
+- Fittings (collection)
+- CustomerDecisionRequests (collection)
+- Communications (collection)
+- Payments (collection)
+
+OrderHistoryEntry:
+- Id (Guid)
+- Type (ActivityType)
+- OccurredAt (DateTimeOffset)
+- ActorId (Guid?)
+- Relevant activity details
+
+FittingAppointment:
+- Id (Guid)
+- ScheduledAt (DateTimeOffset)
+- CompletedAt (DateTimeOffset?)
+- Outcome (string?)
+
+CustomerDecisionRequest:
+- Id (Guid)
+- Description (string)
+- ProposedPriceAdjustment (decimal?)
+- Status (Pending / Approved / Rejected / Answered)
+- ResponseCommunicationId (Guid?)
+- RespondedAt (DateTimeOffset?)
+
+CommunicationEntry:
+- Id (Guid)
+- Channel (Email / SMS)
+- Direction (Incoming / Outgoing)
+- Source (Manual / Automated / Customer)
+- Content (string)
+- Outcome (Sent / Received / Failed)
+- OccurredAt (DateTimeOffset)
+
+Payment:
+- Id (Guid)
+- Amount (decimal)
+- ReceivedAt (DateTimeOffset)
+- TransactionReference (string)
+
+CustomerService
+
+- Customer AddCustomer(string name, string? email, string? phone)
+  → the new customer
+  Invalid name or contact details: ArgumentException
+
+- Customer GetCustomer(Guid customerId)
+  → the customer
+  Missing customer: CustomerNotFoundException
+
+
+OrderService
+
+- Order CreateOrder(Guid customerId, OrderType type, string workDescription, decimal agreedPrice, Guid? relatedOrderId)
+  → new order with status Submitted and initial history entry
+  Missing customer: CustomerNotFoundException
+  Invalid details or price: ArgumentException
+  Invalid related order: OrderNotFoundException / InvalidOperationException
+
+- IReadOnlyList<Order> ListOrders(OrderStatus? status, Guid? customerId)
+  → matching orders
+
+- Order GetOrder(Guid orderId)
+  → order including its history
+  Missing order: OrderNotFoundException
+
+- Order StartWork(Guid orderId)
+  → changes status from Submitted to InProgress
+  Invalid status: InvalidOrderStatusException
+
+- Order AddWorkNote(Guid orderId, string note)
+  → records work performed
+  Invalid status: InvalidOrderStatusException
+  Invalid note: ArgumentException
+
+- Order RequestCustomerDecision(Guid orderId, string description, decimal? proposedPriceAdjustment)
+  → records the request and changes status to WaitingForCustomer
+  Invalid status: InvalidOrderStatusException
+
+- Order RecordCustomerDecision(Guid orderId, Guid requestId, Guid communicationId, bool approved)
+  → records the written decision, applies an approved price adjustment, and resumes work
+  Missing written response: InvalidOperationException
+
+- Order ScheduleFitting(Guid orderId, DateTimeOffset scheduledAt)
+  → creates a fitting appointment and changes status to WaitingForFitting
+  Invalid status or fitting date: InvalidOperationException
+
+- Order CompleteFitting(Guid orderId, Guid fittingId, string outcome)
+  → records the fitting result and resumes work
+  Invalid fitting or status: InvalidOperationException
+
+- Order RecordCommunication(Guid orderId, CommunicationEntry communication)
+  → records incoming or outgoing communication
+  Invalid communication: ArgumentException
+
+- Order MarkReadyForPickup(Guid orderId)
+  → changes status to ReadyForPickup
+  Invalid status: InvalidOrderStatusException
+
+- Order RegisterPayment(Guid orderId, decimal amount, string transactionReference)
+  → registers the payment, records history and changes status to Delivered
+  Invalid status: InvalidOrderStatusException
+  Incorrect amount: PaymentAmountMismatchException
+  Duplicate transaction: DuplicatePaymentException
+
+
+Dependencies:
+- Repository interfaces for customers and orders, with in-memory implementations for tests.
+- No HTTP, frontend, database or external provider dependencies in Core.
+
+
+## 5 Test list
+
+### Add a customer
+
+- [ ] Core: AddCustomer_ValidDetails_ReturnsCustomer
+- [ ] Core: AddCustomer_EmptyName_ThrowsArgumentException
+
+### Create an order
+
+- [ ] Core: CreateOrder_NewGarment_CreatesSubmittedOrder
+- [ ] Core: CreateOrder_Repair_CreatesSubmittedOrder
+- [ ] Core: CreateOrder_ValidPrice_StoresInitialAgreedPrice
+- [ ] Core: CreateOrder_UnknownCustomer_ThrowsCustomerNotFoundException
+- [ ] Core: CreateOrder_NegativePrice_ThrowsArgumentException
+- [ ] Core: CreateOrder_LinkedOrder_StoresRelatedOrderId
+- [ ] Core: CreateOrder_LinkToDifferentCustomerOrder_IsRejected
+
+### List and find orders
+
+- [ ] Core: ListOrders_NoFilter_ReturnsAllOrders
+- [ ] Core: ListOrders_WithStatus_ReturnsMatchingOrders
+- [ ] Core: ListOrders_WithCustomer_ReturnsMatchingOrders
+- [ ] Core: GetOrder_ExistingOrder_ReturnsOrderWithHistory
+- [ ] Core: GetOrder_UnknownId_ThrowsOrderNotFoundException
+
+### Start work
+
+- [ ] Core: StartWork_SubmittedOrder_ChangesStatusToInProgress
+- [ ] Core: StartWork_SubmittedOrder_AddsHistoryEntry
+- [ ] Core: StartWork_InvalidStatus_ThrowsInvalidOrderStatusException
+
+### Record work
+
+- [ ] Core: AddWorkNote_InProgressOrder_AddsHistoryEntry
+- [ ] Core: AddWorkNote_InvalidStatus_ThrowsInvalidOrderStatusException
+- [ ] Core: AddWorkNote_EmptyNote_ThrowsArgumentException
+
+### Customer decisions
+
+- [ ] Core: RequestCustomerDecision_InProgressOrder_ChangesStatusToWaitingForCustomer
+- [ ] Core: RequestCustomerDecision_AddsHistoryEntry
+- [ ] Core: RecordCustomerDecision_ApprovedRequest_RecordsApproval
+- [ ] Core: RecordCustomerDecision_ApprovedPriceAdjustment_UpdatesAgreedPrice
+- [ ] Core: RecordCustomerDecision_RejectedPriceAdjustment_KeepsOriginalPrice
+- [ ] Core: RecordCustomerDecision_WithoutWrittenResponse_IsRejected
+- [ ] Core: RecordCustomerDecision_ResolvedRequest_ResumesWork
+
+### Fittings
+
+- [ ] Core: ScheduleFitting_InProgressOrder_ChangesStatusToWaitingForFitting
+- [ ] Core: ScheduleFitting_StoresScheduledDate
+- [ ] Core: ScheduleFitting_AddsHistoryEntry
+- [ ] Core: CompleteFitting_ValidFitting_RecordsOutcome
+- [ ] Core: CompleteFitting_CompletedFitting_ResumesWork
+- [ ] Core: CompleteFitting_InvalidStatus_ThrowsInvalidOrderStatusException
+
+### Communication
+
+- [ ] Core: RecordCommunication_OutgoingEmail_AddsHistoryEntry
+- [ ] Core: RecordCommunication_OutgoingSms_AddsHistoryEntry
+- [ ] Core: RecordCommunication_IncomingMessage_AddsHistoryEntry
+- [ ] Core: RecordCommunication_FailedMessage_RecordsFailureWithoutChangingStatus
+
+### Mark ready for pickup
+
+- [ ] Core: MarkReadyForPickup_InProgressOrder_ChangesStatus
+- [ ] Core: MarkReadyForPickup_AddsHistoryEntry
+- [ ] Core: MarkReadyForPickup_WaitingForCustomer_IsRejected
+- [ ] Core: MarkReadyForPickup_WaitingForFitting_IsRejected
+
+### Register payment and deliver order
+
+- [ ] Core: RegisterPayment_ReadyOrderAndCorrectAmount_RecordsPayment
+- [ ] Core: RegisterPayment_ReadyOrderAndCorrectAmount_ChangesStatusToDelivered
+- [ ] Core: RegisterPayment_ReadyOrderAndCorrectAmount_AddsHistoryEntries
+- [ ] Core: RegisterPayment_IncorrectAmount_ThrowsPaymentAmountMismatchException
+- [ ] Core: RegisterPayment_NotReady_ThrowsInvalidOrderStatusException
+- [ ] Core: RegisterPayment_DuplicateTransaction_ThrowsDuplicatePaymentException
+- [ ] Core: RegisterPayment_InvalidPayment_DoesNotChangeOrderStatus
+
+### Order history
+
+- [ ] Core: OrderHistory_ContainsAllRecordedActivities
+- [ ] Core: OrderHistory_EntriesAreReturnedChronologically
+- [ ] Core: OrderHistory_PreviousEntriesAreNotOverwritten
+
 ## 6 Questions, assumptions and decisions
 
 Decisions:
