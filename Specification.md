@@ -56,7 +56,104 @@ Later / bonus (NOT NOW):
 
 ## 3 Flow
 
+```mermaid
+flowchart TD
+    START(["Employee opens TailorManager"])
 
+    subgraph FD1["FrontDesk"]
+        CUSTOMER{"Customer already registered?"}
+        CUSTOMER -- No --> ADDCUSTOMER["Register new customer"]
+        CUSTOMER -- Yes --> FINDCUSTOMER["Find existing customer"]
+        ADDCUSTOMER --> CREATE
+        FINDCUSTOMER --> CREATE
+
+        CREATE["Create order: NewGarment or Repair<br/>Register work description and agreed price<br/>Optionally link previous order"]
+        SUBMIT["Submit order<br/>Status: Submitted"]
+    end
+
+    subgraph WS["Workshop"]
+        RECEIVE["Retrieve submitted order"]
+        STARTWORK["Start work<br/>Status: InProgress"]
+        WORK["Perform work and record work notes"]
+
+        DECISION{"Customer decision required?"}
+        REQUEST["Record decision request<br/>Optionally propose price adjustment"]
+        WAITCUSTOMER["Status: WaitingForCustomer"]
+        RESPONSE["Receive and record written customer response"]
+        PRICE{"Price adjustment proposed?"}
+        APPROVED{"Customer approved in writing?"}
+        UPDATEPRICE["Update agreed price<br/>Record approval in history"]
+        KEEPPRICE["Keep existing agreed price<br/>Record rejection in history"]
+        RESUME1["Resolve request<br/>Resume work: InProgress"]
+
+        FITTING{"Fitting required?"}
+        SCHEDULE["Schedule fitting<br/>Record appointment and date"]
+        WAITFITTING["Status: WaitingForFitting"]
+        CONDUCT["Conduct fitting<br/>Record fitting result"]
+        RESUME2["Resume work: InProgress"]
+
+        COMPLETE["Work completed"]
+        READY["Mark order ReadyForPickup<br/>Record status change"]
+
+        COMM["Send or receive email/SMS<br/>Record communication result in history"]
+    end
+
+    subgraph FD2["FrontDesk"]
+        COLLECT["Customer arrives for collection"]
+        TERMINAL["Existing payment terminal processes payment"]
+        CONFIRMED{"Full payment confirmed?"}
+        FAILED["Order remains ReadyForPickup"]
+        PAYMENT["Register confirmed payment<br/>Record payment in history"]
+        DELIVERED["Mark order Delivered"]
+        FINISH(["Order completed"])
+    end
+
+    START --> CUSTOMER
+    CREATE --> SUBMIT
+    SUBMIT --> RECEIVE
+    RECEIVE --> STARTWORK
+    STARTWORK --> WORK
+
+    WORK --> DECISION
+
+    DECISION -- Yes --> REQUEST
+    REQUEST --> WAITCUSTOMER
+    WAITCUSTOMER --> RESPONSE
+    RESPONSE --> PRICE
+
+    PRICE -- Yes --> APPROVED
+    PRICE -- No --> RESUME1
+    APPROVED -- Yes --> UPDATEPRICE
+    APPROVED -- No --> KEEPPRICE
+    UPDATEPRICE --> RESUME1
+    KEEPPRICE --> RESUME1
+    RESUME1 --> WORK
+
+    DECISION -- No --> FITTING
+    FITTING -- Yes --> SCHEDULE
+    SCHEDULE --> WAITFITTING
+    WAITFITTING --> CONDUCT
+    CONDUCT --> RESUME2
+    RESUME2 --> WORK
+
+    FITTING -- No --> COMPLETE
+    COMPLETE --> READY
+    READY --> COLLECT
+    COLLECT --> TERMINAL
+    TERMINAL --> CONFIRMED
+    CONFIRMED -- No --> FAILED
+    FAILED --> COLLECT
+    CONFIRMED -- Yes --> PAYMENT
+    PAYMENT --> DELIVERED
+    DELIVERED --> FINISH
+
+    WORK -. "When needed" .-> COMM
+    COMM -. "Return to work" .-> WORK
+```
+
+All relevant order activities are recorded in an append-only history.
+This includes status changes, work notes, customer decisions, fittings,
+communication events, price adjustments and payments.
 
 ## 4 Interface
 
