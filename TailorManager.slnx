@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="TailorManager.Core/TailorManager.Core.csproj" />
+  <Project Path="TailorManager.Tests/TailorManager.Tests.csproj" />
+</Solution>
