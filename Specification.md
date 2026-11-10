@@ -54,4 +54,42 @@ Later / bonus (NOT NOW):
 - Advanced reporting and business analytics.
 
 
+## 6 Questions, assumptions and decisions
 
+Decisions:
+
+- Decision: FrontDesk and Workshop are two work areas within the same application, sharing the same orders and customer information (this avoids unnecessary separation of the business workflow).
+- Decision: New garments and repairs are represented as the same Order entity, differentiated by OrderType (both represent paid work performed by the workshop).
+- Decision: Every order maintains an append-only history of relevant activities, including status changes, work notes, customer communication, fittings, approvals and payments (this preserves the complete order history).
+- Decision: The initially agreed price is registered when the order is created. Changes to agreed work or price require written customer approval recorded in the order history (this provides traceability of customer consent).
+- Decision: The first version supports one full payment per order. The data model should allow multiple payments in the future, but partial payment functionality is not part of the initial scope.
+- Decision: Delivered orders cannot be reopened. Reclamation work is registered as a new order linked to the original order (this preserves the original order history).
+- Decision: Order cancellation is outside the initial scope (cancellation requires additional rules for approval, fees and payment handling).
+- Decision: The Core has no direct dependencies on frontend, HTTP, database, email, SMS or payment terminal implementations (this keeps business logic independently testable).
+
+Assumptions:
+
+- Assumption: Customers do not log in to TailorManager. All operations are performed by employees.
+- Assumption: An order can be either a new garment order or a repair order.
+- Assumption: WaitingForCustomer and WaitingForFitting are temporary statuses. Both return to InProgress when their respective conditions are resolved.
+- Assumption: An order can have multiple fitting appointments throughout its lifecycle.
+- Assumption: Customer communication and written approvals are associated with the relevant order and preserved in its history.
+- Assumption: Dummy data will represent plausible tailoring orders and repairs, without claiming to define every real business requirement.
+- Assumption: The frontend will be employee-facing, but its technology and hosting model remain undecided.
+
+Questions:
+
+- Question: Which details are required for a new garment order, and which are required for a repair order?
+- Question: Which customer details are mandatory when registering a customer?
+- Question: Which forms of written customer approval are accepted (email, SMS or other documented forms)?
+- Question: How should customer approval be represented and linked to a proposed work or price change?
+- Question: Can the agreed price be changed after an order has entered WaitingForCustomer, and must the customer approve every change to the agreed work?
+- Question: What information must be recorded for each fitting appointment, including its outcome?
+- Question: Can multiple fitting appointments or customer decision requests be active on the same order?
+- Question: Must linked orders always belong to the same customer?
+- Question: How should employees be identified in the order history?
+- Question: Which existing payment terminal solution will be integrated, and how does it expose confirmed payment information?
+- Question: What should happen when a payment is received for an incorrect amount or a payment confirmation cannot be verified?
+- Question: Should a reclamation always be free, or can it result in a new paid repair order?
+- Question: Which order status changes should trigger automated customer notifications?
+- Question: Which email and SMS providers should be used, and how should incoming replies be associated with the correct order?
