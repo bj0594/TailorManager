@@ -6,10 +6,9 @@ TailorManager is an order management system for tailoring businesses that handle
 
 Employees can register customers and orders, track workshop progress, schedule fittings, communicate with customers, register payments and see the complete history of each order.
 
-Delivered as a .NET backend with an employee-facing interface, from a GitHub repo. The frontend technology and the deployment are not decided yet (see §6).
+Delivered as a .NET Web API and a Blazor Server website for the employees, with PostgreSQL in Docker Compose, from a GitHub repo.
 
-Categories: Core, Docs, Mermaid
-
+Categories: Core, API, Web, EF, Docker, Workflows, Docs, Mermaid
 
 ## 2 Requirements
 
@@ -73,156 +72,98 @@ Later / bonus (NOT NOW):
 - Payment terminal integration
 - Advanced reporting and business analytics
 
-
 ## 3 Flow
 
 ```mermaid
 flowchart TD
     START(["Employee opens TailorManager"])
-
     subgraph FD1["FrontDesk"]
         CUSTOMER{"Customer already registered?"}
         CUSTOMER -- No --> ADDCUSTOMER["Register new customer"]
         CUSTOMER -- Yes --> FINDCUSTOMER["Find existing customer"]
-
         ADDCUSTOMER --> CREATE
         FINDCUSTOMER --> CREATE
-
         CREATE["Create order: NewGarment or Repair<br/>Register work description and agreed price<br/>Optionally link previous order for same customer"]
-
         INITIAL["Record initial agreement<br/>Support signed intake form<br/>Record any agreed inspection fee"]
-
         SUBMIT["Submit order<br/>Status: Submitted"]
     end
-
     subgraph WS["Workshop"]
         RECEIVE["Retrieve submitted order"]
-
         STARTWORK["Start work<br/>Status: InProgress"]
-
         WORK["Perform work and record work notes"]
-
         DECISION{"Customer decision required?"}
-
         REQUEST["Record proposed work or price change"]
-
         WAITCUSTOMER["Status: WaitingForCustomer"]
-
         NOTIFYCUSTOMER["Raise automated email notification request"]
-
         RESPONSE["Receive and record written customer response<br/>Email or SMS"]
-
         APPROVED{"Customer approved?"}
-
         APPLY["Apply approved work and price changes<br/>Record approval in history"]
-
         REJECT["Record rejection<br/>Keep existing agreed work and price"]
-
         PENDINGDECISION{"Any outstanding customer requests?"}
-
         RESUME1["All requests resolved<br/>Resume work: InProgress"]
-
         FITTING{"Fitting required?"}
-
         SCHEDULE["Schedule fitting appointment<br/>Record agreed date and time"]
-
         WAITFITTING["Status: WaitingForFitting"]
-
         CONDUCT["Conduct fitting<br/>Record fitting result"]
-
         PENDINGFITTING{"Any outstanding fitting appointments?"}
-
         RESUME2["All fittings completed<br/>Resume work: InProgress"]
-
         COMPLETE["Work completed"]
-
         READY["Mark order ReadyForPickup<br/>Record status change"]
-
         NOTIFYREADY["Raise automated email notification request"]
-
         COMM["Record incoming or outgoing email/SMS<br/>Record communication result in history"]
     end
-
     subgraph FD2["FrontDesk"]
         COLLECT["Customer arrives for collection"]
-
         PAYMENT_REQUIRED{"Payment outstanding?"}
-
         TERMINAL["Existing payment terminal confirms payment"]
-
         CONFIRMED{"Payment confirmed and correct?"}
-
         FAILED["Show error<br/>Order remains ReadyForPickup"]
-
         PAYMENT["Register confirmed full payment<br/>Record payment in history"]
-
         NO_PAYMENT["Confirm no payment is due"]
-
         DELIVERED["Mark order Delivered"]
-
         FINISH(["Order completed"])
     end
-
     START --> CUSTOMER
-
     CREATE --> INITIAL
     INITIAL --> SUBMIT
-
     SUBMIT --> RECEIVE
     RECEIVE --> STARTWORK
     STARTWORK --> WORK
-
     WORK --> DECISION
-
     DECISION -- Yes --> REQUEST
     REQUEST --> WAITCUSTOMER
     WAITCUSTOMER --> NOTIFYCUSTOMER
     NOTIFYCUSTOMER --> RESPONSE
     RESPONSE --> APPROVED
-
     APPROVED -- Yes --> APPLY
     APPROVED -- No --> REJECT
-
     APPLY --> PENDINGDECISION
     REJECT --> PENDINGDECISION
-
     PENDINGDECISION -- Yes --> WAITCUSTOMER
     PENDINGDECISION -- No --> RESUME1
     RESUME1 --> WORK
-
     DECISION -- No --> FITTING
-
     FITTING -- Yes --> SCHEDULE
     SCHEDULE --> WAITFITTING
     WAITFITTING --> CONDUCT
     CONDUCT --> PENDINGFITTING
-
     PENDINGFITTING -- Yes --> WAITFITTING
     PENDINGFITTING -- No --> RESUME2
     RESUME2 --> WORK
-
     FITTING -- No --> COMPLETE
     COMPLETE --> READY
-
     READY --> NOTIFYREADY
     NOTIFYREADY --> COLLECT
-
     COLLECT --> PAYMENT_REQUIRED
-
     PAYMENT_REQUIRED -- Yes --> TERMINAL
     TERMINAL --> CONFIRMED
-
     CONFIRMED -- No --> FAILED
     FAILED --> COLLECT
-
     CONFIRMED -- Yes --> PAYMENT
     PAYMENT --> DELIVERED
-
     PAYMENT_REQUIRED -- No --> NO_PAYMENT
     NO_PAYMENT --> DELIVERED
-
     DELIVERED --> FINISH
-
     WORK -. "When needed" .-> COMM
     COMM -. "Return to work" .-> WORK
 ```
@@ -246,142 +187,39 @@ stateDiagram-v2
     Delivered --> [*]
 ```
 
-
 ## 4 Interface
 
+| Type | Fields |
+| --- | --- |
+| Customer | Id (Guid), Name (string), Phone (string), Email (string), Address (string) |
+| Order | Id (Guid), CustomerId (Guid), Type (OrderType), WorkDescription (string), InitialAgreedPrice (decimal), ApprovedPriceAdjustments (collection), CurrentAgreedPrice (calculated decimal), OutstandingBalance (calculated decimal), Status (OrderStatus), CreatedAt (DateTimeOffset), RelatedOrderId (Guid?), History (collection), Fittings (collection), CustomerDecisionRequests (collection), CustomerApprovals (collection), Communications (collection), Payments (collection) |
+| OrderHistoryEntry | Id (Guid), Type (ActivityType), OccurredAt (DateTimeOffset), ActorId (Guid?), ActorDisplayName (string?), RelatedEntityId (Guid?) |
+| FittingAppointment | Id (Guid), ScheduledAt (DateTimeOffset), CompletedAt (DateTimeOffset?), Outcome (string?) |
+| CustomerDecisionRequest | Id (Guid), ProposedWorkChange (string), ProposedPriceAdjustment (decimal?), Status (Pending / Approved / Rejected), ResponseCommunicationId (Guid?), RespondedAt (DateTimeOffset?) |
+| CustomerApproval | Id (Guid), Scope (ApprovalScope), Method (ApprovalMethod), ApprovedAt (DateTimeOffset), RelatedDecisionRequestId (Guid?), CommunicationId (Guid?), DocumentReference (string?), ApprovedAmount (decimal?), ApprovedTerms (string?) |
+| PriceAdjustment | Id (Guid), Description (string), Amount (decimal), ApprovedAt (DateTimeOffset), CustomerApprovalId (Guid) |
+| CommunicationEntry | Id (Guid), Channel (Email / SMS), Direction (Incoming / Outgoing), Source (Manual / Automated / Customer), Content (string), Outcome (Sent / Received / Failed), OccurredAt (DateTimeOffset) |
+| Payment | Id (Guid), Amount (decimal), ReceivedAt (DateTimeOffset), TransactionReference (string) |
+
+| Enum | Values |
+| --- | --- |
+| OrderType | NewGarment, Repair |
+| OrderStatus | Submitted, InProgress, WaitingForCustomer, WaitingForFitting, ReadyForPickup, Delivered |
+| ActivityType | OrderCreated, InitialApprovalRecorded, StatusChanged, WorkNoteAdded, CustomerDecisionRequested, CustomerDecisionRecorded, FittingScheduled, FittingCompleted, CommunicationRecorded, PriceAdjusted, InspectionFeeAgreementRecorded, NotificationRequested, PaymentReceived |
+| ApprovalMethod | SignedForm, Email, SMS |
+| ApprovalScope | InitialOrder, WorkChange, InspectionFee |
+
 ```text
-Customer:
-- Id (Guid)
-- Name (string)
-- Phone (string)
-- Email (string)
-- Address (string)
-
-OrderType:
-- NewGarment
-- Repair
-
-OrderStatus:
-- Submitted
-- InProgress
-- WaitingForCustomer
-- WaitingForFitting
-- ReadyForPickup
-- Delivered
-
-ActivityType:
-- OrderCreated
-- InitialApprovalRecorded
-- StatusChanged
-- WorkNoteAdded
-- CustomerDecisionRequested
-- CustomerDecisionRecorded
-- FittingScheduled
-- FittingCompleted
-- CommunicationRecorded
-- PriceAdjusted
-- InspectionFeeAgreementRecorded
-- NotificationRequested
-- PaymentReceived
-
-ApprovalMethod:
-- SignedForm
-- Email
-- SMS
-
-ApprovalScope:
-- InitialOrder
-- WorkChange
-- InspectionFee
-
-Order:
-- Id (Guid)
-- CustomerId (Guid)
-- Type (OrderType)
-- WorkDescription (string)
-- InitialAgreedPrice (decimal)
-- ApprovedPriceAdjustments (collection)
-- CurrentAgreedPrice (calculated decimal)
-- OutstandingBalance (calculated decimal)
-- Status (OrderStatus)
-- CreatedAt (DateTimeOffset)
-- RelatedOrderId (Guid?)
-- History (collection)
-- Fittings (collection)
-- CustomerDecisionRequests (collection)
-- CustomerApprovals (collection)
-- Communications (collection)
-- Payments (collection)
-
-OrderHistoryEntry:
-- Id (Guid)
-- Type (ActivityType)
-- OccurredAt (DateTimeOffset)
-- ActorId (Guid?)
-- ActorDisplayName (string?)
-- RelatedEntityId (Guid?)
-
-FittingAppointment:
-- Id (Guid)
-- ScheduledAt (DateTimeOffset)
-- CompletedAt (DateTimeOffset?)
-- Outcome (string?)
-
-CustomerDecisionRequest:
-- Id (Guid)
-- ProposedWorkChange (string)
-- ProposedPriceAdjustment (decimal?)
-- Status (Pending / Approved / Rejected)
-- ResponseCommunicationId (Guid?)
-- RespondedAt (DateTimeOffset?)
-
-CustomerApproval:
-- Id (Guid)
-- Scope (ApprovalScope)
-- Method (ApprovalMethod)
-- ApprovedAt (DateTimeOffset)
-- RelatedDecisionRequestId (Guid?)
-- CommunicationId (Guid?)
-- DocumentReference (string?)
-- ApprovedAmount (decimal?)
-- ApprovedTerms (string?)
-
-PriceAdjustment:
-- Id (Guid)
-- Description (string)
-- Amount (decimal)
-- ApprovedAt (DateTimeOffset)
-- CustomerApprovalId (Guid)
-
-CommunicationEntry:
-- Id (Guid)
-- Channel (Email / SMS)
-- Direction (Incoming / Outgoing)
-- Source (Manual / Automated / Customer)
-- Content (string)
-- Outcome (Sent / Received / Failed)
-- OccurredAt (DateTimeOffset)
-
-Payment:
-- Id (Guid)
-- Amount (decimal)
-- ReceivedAt (DateTimeOffset)
-- TransactionReference (string)
-
-
 CustomerService
 
 - Customer AddCustomer(string name, string phone, string email, string address)
   → the new customer
   Empty name, phone, email or address: ArgumentException
-
 - IReadOnlyList<Customer> FindCustomers(string searchTerm)
   → customers whose name, phone or email matches
-
 - Customer GetCustomer(Guid customerId)
   → the customer
   Unknown customer: CustomerNotFoundException
-
 
 OrderService
 
@@ -391,70 +229,56 @@ OrderService
   Negative price or empty work description: ArgumentException
   Unknown related order: OrderNotFoundException
   Related order belongs to another customer: InvalidOperationException
-
 - CustomerApproval RecordInitialApproval(Guid orderId, ApprovalMethod method, string? documentReference)
   → records the customer's initial agreement
   Unknown order: OrderNotFoundException
   Invalid approval: ArgumentException
-
 - CustomerApproval RecordInspectionFeeAgreement(Guid orderId, decimal amount, string documentReference)
   → records the written agreement to a possible inspection fee
   Unknown order: OrderNotFoundException
   Negative amount or missing document reference: ArgumentException
-
 - IReadOnlyList<Order> ListOrders(OrderStatus? status, Guid? customerId)
   → the orders that match, all orders when both are null
-
 - Order GetOrder(Guid orderId)
   → the order with its history
   Unknown order: OrderNotFoundException
-
 - Order StartWork(Guid orderId)
   → status Submitted → InProgress, and a history entry
   Not Submitted: InvalidOrderStatusException
-
 - Order AddWorkNote(Guid orderId, string note)
   → the note is added to the history
   Not InProgress: InvalidOrderStatusException
   Empty note: ArgumentException
-
 - Order RequestCustomerDecision(Guid orderId, string proposedWorkChange, decimal? proposedPriceAdjustment)
   → a pending request, status WaitingForCustomer, and a notification request when entering WaitingForCustomer
   → can add further requests while already WaitingForCustomer
   Not InProgress or WaitingForCustomer: InvalidOrderStatusException
   Empty work change: ArgumentException
-
 - Order RecordCustomerDecision(Guid orderId, Guid requestId, Guid communicationId, bool approved)
   → records the written response, creates a CustomerApproval when approved, applies an approved price adjustment
   → InProgress again when no request is pending
   No recorded written response: InvalidOperationException
-
 - Order ScheduleFitting(Guid orderId, DateTimeOffset scheduledAt)
   → a fitting appointment, and status WaitingForFitting
   → can add further appointments while already WaitingForFitting
   Not InProgress or WaitingForFitting: InvalidOrderStatusException
   Invalid fitting date: ArgumentException
-
 - Order CompleteFitting(Guid orderId, Guid fittingId, string outcome)
   → records the outcome
   → InProgress again when every fitting is completed
   Unknown fitting: KeyNotFoundException
   Not WaitingForFitting: InvalidOrderStatusException
-
 - Order RecordCommunication(Guid orderId, CommunicationEntry communication)
   → records incoming or outgoing communication, and a history entry that references it
   Invalid communication: ArgumentException
-
 - Order MarkReadyForPickup(Guid orderId)
   → status ReadyForPickup, a history entry and a notification request
   Not InProgress: InvalidOrderStatusException
-
 - Order RegisterPayment(Guid orderId, decimal amount, string transactionReference)
   → records the full payment, adds history entries, and status Delivered
   Not ReadyForPickup: InvalidOrderStatusException
   Amount is not the outstanding balance: PaymentAmountMismatchException
   Transaction already registered: DuplicatePaymentException
-
 - Order MarkDelivered(Guid orderId)
   → status Delivered when nothing is due
   Not ReadyForPickup: InvalidOrderStatusException
@@ -493,8 +317,7 @@ Notes:
 - Reclamation work is registered as a new order linked to the original order. It has no OrderType of its own yet.
 - CustomerApproval can record an agreed inspection fee, but how the fee is assessed and applied is not clarified yet.
 - OrderStatus holds one status at a time. An order that waits for a customer decision and a fitting at the same time is not defined yet (§6).
-- The methods do not say which employee performs them yet (§6).
-
+- Employees log in (§6). Each method that adds a history entry gets the logged-in employee as its last parameter in the Innlogging module. Until then, ActorId and ActorDisplayName are empty.
 
 ## 5 Test list
 
@@ -675,11 +498,16 @@ Later questions:
 - [ ] When is the inspection fee charged, and how is it calculated?
 - [ ] Which fitting dates are invalid: in the past, or outside opening hours?
 
-
 ## 6 Questions, assumptions and decisions
 
 Decisions:
 
+- Decision: a website for the employees, with Blazor Server and one menu per part (they work in the browser at the counter and in the workshop).
+- Decision: an own Web API that the website calls (both parts share the orders, and payment, email and SMS can connect to it later).
+- Decision: PostgreSQL with EF Core (orders, history and payments must survive a restart).
+- Decision: Docker Compose for the API, the website and PostgreSQL (the same setup locally and in production).
+- Decision: CI on GitHub Actions (every push is built and tested).
+- Decision: employees log in with JWT, with one role per part, FrontDesk and Workshop (the history shows who did what).
 - Decision: FrontDesk and Workshop are two parts of the same application, sharing the same orders and customers.
 - Decision: a status flow for orders: Submitted, InProgress, WaitingForCustomer, WaitingForFitting, ReadyForPickup, Delivered (the diagram in §3).
 - Decision: two types, Customer and Order, and an order points to its customer with CustomerId.
@@ -719,12 +547,8 @@ Assumptions:
 
 Questions:
 
-- Question: should employees use the system in the browser, or in another kind of app? (me)
-- Question: an own Web API with a separate frontend, or a Blazor app that uses Core directly? (me)
-- Question: should the data be stored in a database (PostgreSQL or SQLite)? (me)
-- Question: should it run in Docker, and should GitHub build and test it (CI)? (me)
-- Question: do employees log in, and does someone give them access? It decides how Core knows who did what in the history. (me and the shop)
-- Question: should milestone 1 be the main flow only (customer, order, start, ready, deliver), with customer decisions and fittings in milestone 2? (me)
+- Question: does someone give employees access while the system runs (an admin), or are the users set up once? (the shop)
+- Question: where should the system run in production? (the shop)
 - Question: which details are required for a new garment order, and which for a repair? (the shop)
 - Question: should the address be one field, or street, postal code and city? (the shop)
 - Question: can an order wait for a customer decision and a fitting at the same time? (the shop)
