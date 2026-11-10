@@ -209,6 +209,13 @@ stateDiagram-v2
 | ApprovalMethod | SignedForm, Email, SMS |
 | ApprovalScope | InitialOrder, WorkChange, InspectionFee |
 
+Examples (the values the tests use):
+
+- Customer: "Anna Hansen", "98765432", "anna@example.com", "Storgata 1, 0155 Oslo"
+- Order: NewGarment, "Shorten the trousers by 3 cm", 450m
+- Fitting: two days after the order is created, at 10:00
+- Payment: 450m, "TX-1001"
+
 ```text
 CustomerService
 
