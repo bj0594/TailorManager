@@ -1,10 +1,11 @@
 using TailorManager.Core;
+using TailorManager.Core.Repository;
 
 namespace TailorManager.Tests;
 
 public class CustomerServiceTests
 {
-    private readonly CustomerService _service = new();
+    private readonly CustomerService _service = new(new FakeCustomerRepository());
 
     [Fact]
     public void AddCustomer_ValidInput_ReturnsTheCustomer()

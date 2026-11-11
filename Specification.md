@@ -330,7 +330,7 @@ Notes:
 
 ### (FrontDesk) Add a customer
 
-- [ ] Core: a new customer can be added with name, phone number, email and address
+- [x] Core: a new customer can be added with name, phone number, email and address
 
 ### (FrontDesk) Create an order
 

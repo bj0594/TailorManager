@@ -1,8 +1,15 @@
+using TailorManager.Core.Repository;
+
 namespace TailorManager.Core;
 
 public class CustomerService
 {
-    private readonly List<Customer> _customer = new();
+    private readonly ICustomerRepository _repository;
+
+    public CustomerService(ICustomerRepository repository)
+    {
+        _repository = repository;
+    }
     public Customer AddCustomer(string name, string phone, string email, string address)
     {
         var customer = new Customer
@@ -13,13 +20,13 @@ public class CustomerService
             Email = email,
             Address = address
         };
-        _customer.Add(customer);
+        _repository.Add(customer);
 
         return customer;
     }
 
     public List<Customer> GetCustomers()
     {
-        return _customer.ToList();
+        return _repository.GetAll();
     }
 }
