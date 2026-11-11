@@ -74,7 +74,7 @@ Request: { "method": "SignedForm", "documentReference": "FORM-1001" }
 Response: 201 Created + { "id": "9b2d5f3a-6c1e-4f8a-b7d2-3e4f5a6b7c8d", "scope": "InitialOrder", "method": "SignedForm", "approvedAt": "2026-01-01T09:00:00+00:00", "relatedDecisionRequestId": null, "communicationId": null, "documentReference": "FORM-1001", "approvedAmount": 450 }
 Errors: 401 Unauthorized (no valid token)
         403 Forbidden (not FrontDesk)
-        400 Bad Request (invalid approval)
+        400 Bad Request (signed form without a document reference)
         404 Not Found (order does not exist)
 
 POST /orders/{orderId}/inspection-fee-agreements
@@ -136,6 +136,7 @@ Response: 200 OK + the order, with the decision recorded, a new approval and pri
 Errors: 401 Unauthorized (no valid token)
         403 Forbidden (not Workshop)
         404 Not Found (order does not exist)
+        404 Not Found (decision request does not exist)
         409 Conflict (no recorded written response)
 
 POST /orders/{orderId}/fittings
@@ -144,7 +145,7 @@ Request: { "scheduledAt": "2026-01-03T10:00:00+00:00" }
 Response: 200 OK + the order, with the appointment in "fittings" and "status": "WaitingForFitting"
 Errors: 401 Unauthorized (no valid token)
         403 Forbidden (not Workshop)
-        400 Bad Request (invalid fitting date)
+        400 Bad Request (the date is before the current time)
         404 Not Found (order does not exist)
         409 Conflict (order is not InProgress or WaitingForFitting)
 
@@ -164,7 +165,7 @@ Request: { "channel": "Email", "direction": "Incoming", "source": "Customer", "c
 Response: 200 OK + the order, with the entry in "communications" and a CommunicationRecorded entry in "history"
 Errors: 401 Unauthorized (no valid token)
         403 Forbidden (not Workshop)
-        400 Bad Request (invalid communication)
+        400 Bad Request (empty content)
         404 Not Found (order does not exist)
 
 PATCH /orders/{orderId}/ready-for-pickup

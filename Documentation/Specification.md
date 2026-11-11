@@ -57,7 +57,7 @@ Rules:
 - Reclamation work is free when valid reclamation grounds are established.
 - An inspection fee can only be charged when the customer agreed to it in writing at intake, no valid reclamation grounds are established, and no other work is performed.
 - Failed communication does not change the order status, but the failure is recorded in the history.
-- An automated email notification request is raised when an order enters WaitingForCustomer or ReadyForPickup. Sending it happens outside Core.
+- An automated notification request is raised when an order enters WaitingForCustomer or ReadyForPickup. It is a NotificationRequested entry in the history, and sending it happens outside Core.
 - Delivered orders cannot be reopened. Reclamation work is registered as a new order linked to the original order.
 - The order history is append-only: earlier activities are never overwritten or deleted.
 
@@ -195,10 +195,10 @@ stateDiagram-v2
 | Order | Id (Guid), CustomerId (Guid), Type (OrderType), WorkDescription (string), InitialAgreedPrice (decimal), ApprovedPriceAdjustments (List<PriceAdjustment>), CurrentAgreedPrice (decimal, calculated), OutstandingBalance (decimal, calculated), Status (OrderStatus), CreatedAt (DateTimeOffset), RelatedOrderId (Guid?), History (List<OrderHistoryEntry>), Fittings (List<FittingAppointment>), CustomerDecisionRequests (List<CustomerDecisionRequest>), CustomerApprovals (List<CustomerApproval>), Communications (List<CommunicationEntry>), Payments (List<Payment>) |
 | OrderHistoryEntry | Id (Guid), Type (ActivityType), OccurredAt (DateTimeOffset), ActorId (Guid?), ActorDisplayName (string?), RelatedEntityId (Guid?), Note (string?), FromStatus (OrderStatus?), ToStatus (OrderStatus?) |
 | FittingAppointment | Id (Guid), ScheduledAt (DateTimeOffset), CompletedAt (DateTimeOffset?), Outcome (string?) |
-| CustomerDecisionRequest | Id (Guid), ProposedWorkChange (string), ProposedPriceAdjustment (decimal?), Status (Pending / Approved / Rejected), ResponseCommunicationId (Guid?), RespondedAt (DateTimeOffset?) |
+| CustomerDecisionRequest | Id (Guid), ProposedWorkChange (string), ProposedPriceAdjustment (decimal?), Status (DecisionStatus), ResponseCommunicationId (Guid?), RespondedAt (DateTimeOffset?) |
 | CustomerApproval | Id (Guid), Scope (ApprovalScope), Method (ApprovalMethod), ApprovedAt (DateTimeOffset), RelatedDecisionRequestId (Guid?), CommunicationId (Guid?), DocumentReference (string?), ApprovedAmount (decimal?), ApprovedTerms (string?) |
 | PriceAdjustment | Id (Guid), Description (string), Amount (decimal), ApprovedAt (DateTimeOffset), CustomerApprovalId (Guid) |
-| CommunicationEntry | Id (Guid), Channel (Email / SMS), Direction (Incoming / Outgoing), Source (Manual / Automated / Customer), Content (string), Outcome (Sent / Received / Failed), OccurredAt (DateTimeOffset) |
+| CommunicationEntry | Id (Guid), Channel (CommunicationChannel), Direction (CommunicationDirection), Source (CommunicationSource), Content (string), Outcome (CommunicationOutcome), OccurredAt (DateTimeOffset) |
 | Payment | Id (Guid), Amount (decimal), ReceivedAt (DateTimeOffset), TransactionReference (string) |
 
 | Enum | Values |
@@ -208,13 +208,24 @@ stateDiagram-v2
 | ActivityType | OrderCreated, InitialApprovalRecorded, StatusChanged, WorkNoteAdded, CustomerDecisionRequested, CustomerDecisionRecorded, FittingScheduled, FittingCompleted, CommunicationRecorded, PriceAdjusted, InspectionFeeAgreementRecorded, NotificationRequested, PaymentReceived |
 | ApprovalMethod | SignedForm, Email, SMS |
 | ApprovalScope | InitialOrder, WorkChange, InspectionFee |
+| DecisionStatus | Pending, Approved, Rejected |
+| CommunicationChannel | Email, SMS |
+| CommunicationDirection | Incoming, Outgoing |
+| CommunicationSource | Manual, Automated, Customer |
+| CommunicationOutcome | Sent, Received, Failed |
 
-Examples (the values the tests use):
+Examples (the values the tests use, in the same order as the parameters of the method, after the ids):
 
 - Customer: "Anna Hansen", "98765432", "anna@example.com", "Storgata 1, 0155 Oslo"
-- Order: NewGarment, "Shorten the trousers by 3 cm", 450m
-- Fitting: two days after the order is created, at 10:00
+- Order: NewGarment, "Shorten the trousers by 3 cm", 450m, null
+- Initial approval: SignedForm, "FORM-1001"
+- Inspection fee agreement: 150m, "FORM-1002"
+- Work note: "Hem pinned, ready to sew"
+- Decision request: "Also take in the waist by 2 cm", 150m
+- Fitting: two days after the order is created, at 10:00, with the outcome "The length is right"
+- Communication: Email, Incoming, Customer, "Yes, please take in the waist as well.", Received
 - Payment: 450m, "TX-1001"
+- Employee: "Kari", "Nordmann", shown as "Kari N."
 
 ```text
 CustomerService
@@ -239,7 +250,7 @@ OrderService
 - CustomerApproval RecordInitialApproval(Guid orderId, ApprovalMethod method, string? documentReference)
   → records the customer's initial agreement
   Unknown order: OrderNotFoundException
-  Invalid approval: ArgumentException
+  Signed form without a document reference: ArgumentException
 - CustomerApproval RecordInspectionFeeAgreement(Guid orderId, decimal amount, string documentReference)
   → records the written agreement to a possible inspection fee
   Unknown order: OrderNotFoundException
@@ -251,43 +262,54 @@ OrderService
   Unknown order: OrderNotFoundException
 - Order StartWork(Guid orderId)
   → status Submitted → InProgress, and a history entry
+  Unknown order: OrderNotFoundException
   Not Submitted: InvalidOrderStatusException
 - Order AddWorkNote(Guid orderId, string note)
   → the note is added to the history
+  Unknown order: OrderNotFoundException
   Not InProgress: InvalidOrderStatusException
   Empty note: ArgumentException
 - Order RequestCustomerDecision(Guid orderId, string proposedWorkChange, decimal? proposedPriceAdjustment)
   → a pending request, status WaitingForCustomer, and a notification request when entering WaitingForCustomer
   → can add further requests while already WaitingForCustomer
+  Unknown order: OrderNotFoundException
   Not InProgress or WaitingForCustomer: InvalidOrderStatusException
   Empty work change: ArgumentException
 - Order RecordCustomerDecision(Guid orderId, Guid requestId, Guid communicationId, bool approved)
   → records the written response, creates a CustomerApproval when approved, applies an approved price adjustment
   → InProgress again when no request is pending
+  Unknown order: OrderNotFoundException
+  Unknown request: KeyNotFoundException
   No recorded written response: InvalidOperationException
 - Order ScheduleFitting(Guid orderId, DateTimeOffset scheduledAt)
   → a fitting appointment, and status WaitingForFitting
   → can add further appointments while already WaitingForFitting
+  Unknown order: OrderNotFoundException
   Not InProgress or WaitingForFitting: InvalidOrderStatusException
-  Invalid fitting date: ArgumentException
+  A date before the current time: ArgumentException
 - Order CompleteFitting(Guid orderId, Guid fittingId, string outcome)
   → records the outcome
   → InProgress again when every fitting is completed
+  Unknown order: OrderNotFoundException
   Unknown fitting: KeyNotFoundException
   Not WaitingForFitting: InvalidOrderStatusException
 - Order RecordCommunication(Guid orderId, CommunicationEntry communication)
   → records incoming or outgoing communication, and a history entry that references it
-  Invalid communication: ArgumentException
+  Unknown order: OrderNotFoundException
+  Empty content: ArgumentException
 - Order MarkReadyForPickup(Guid orderId)
   → status ReadyForPickup, a history entry and a notification request
+  Unknown order: OrderNotFoundException
   Not InProgress: InvalidOrderStatusException
 - Order RegisterPayment(Guid orderId, decimal amount, string transactionReference)
   → records the full payment, adds history entries, and status Delivered
+  Unknown order: OrderNotFoundException
   Not ReadyForPickup: InvalidOrderStatusException
   Amount is not the outstanding balance: PaymentAmountMismatchException
   Transaction already registered: DuplicatePaymentException
 - Order MarkDelivered(Guid orderId)
   → status Delivered when nothing is due
+  Unknown order: OrderNotFoundException
   Not ReadyForPickup: InvalidOrderStatusException
   Outstanding balance: PaymentRequiredException
 ```
@@ -328,182 +350,424 @@ Notes:
 
 ## 5 Test list
 
+One heading per function, with one line per category. The API lines are the first line and status of the block in api.md.
+
 ### (FrontDesk) Add a customer
 
 - [x] Core: a new customer can be added with name, phone number, email and address
+- [ ] API: POST /customers → 201 Created
+- [ ] Web: the customer form adds a customer and shows it
+- [ ] Web client: AddCustomerAsync posts the customer to /customers
+- [ ] EF: an added customer can be read back by id
 
 ### (FrontDesk) Create an order
 
 - [ ] Core: a new order for a garment or a repair is Submitted, with its agreed price and a history entry
+- [ ] API: POST /orders → 201 Created
+- [ ] Web: the order form creates an order for the chosen customer
+- [ ] Web client: CreateOrderAsync posts the order to /orders
+- [ ] EF: a created order is read back with its history
 
 ### (Workshop) Start work
 
 - [ ] Core: starting a submitted order sets InProgress and adds a history entry
+- [ ] API: PATCH /orders/{orderId}/start → 200 OK
+- [ ] Web: clicking Start shows the order as InProgress
+- [ ] Web client: StartWorkAsync patches /orders/{orderId}/start
+- [ ] EF: the new status and the history entry are saved
 
 ### (Workshop) Record work
 
 - [ ] Core: a work note on an order in progress is added to the history
+- [ ] API: POST /orders/{orderId}/notes → 200 OK
+- [ ] Web: the note form adds the note to the order history
+- [ ] Web client: AddWorkNoteAsync posts the note to /orders/{orderId}/notes
 
 ### (Workshop) Mark ready for pickup
 
 - [ ] Core: marking an order in progress ReadyForPickup adds a history entry and a notification request
+- [ ] API: PATCH /orders/{orderId}/ready-for-pickup → 200 OK
+- [ ] Web: clicking Ready for pickup shows the order as ReadyForPickup
+- [ ] Web client: MarkReadyForPickupAsync patches /orders/{orderId}/ready-for-pickup
 
 ### (FrontDesk) Register payment and deliver
 
 - [ ] Core: a correct full payment is recorded, and the order is Delivered
+- [ ] API: POST /orders/{orderId}/payments → 200 OK
+- [ ] Web: the payment form registers the payment and shows the order as Delivered
+- [ ] Web client: RegisterPaymentAsync posts the payment to /orders/{orderId}/payments
+- [ ] EF: the payment is saved with the order
 
 ### (FrontDesk) Deliver an order with nothing to pay
 
 - [ ] Core: an order with no outstanding balance can be marked Delivered
+- [ ] API: PATCH /orders/{orderId}/delivered → 200 OK
+- [ ] Web: clicking Deliver shows the order as Delivered
+- [ ] Web client: MarkDeliveredAsync patches /orders/{orderId}/delivered
 
 ### (FrontDesk) Create a free order
 
 - [ ] Core: an order with price zero has no outstanding balance
+- [ ] API: POST /orders with agreedPrice 0 → 201 Created, with outstandingBalance 0
+- [ ] Web: the order page shows nothing to pay
 
 ### (FrontDesk) Find customers
 
 - [ ] Core: searching by name, phone number or email returns only the matching customers
+- [ ] API: GET /customers?searchTerm={searchTerm} → 200 OK
+- [ ] Web: the search box shows only the matching customers
+- [ ] Web client: FindCustomersAsync gets /customers?searchTerm={searchTerm}
+- [ ] EF: the search runs in the database
 
 ### (FrontDesk) Get a customer
 
 - [ ] Core: a customer can be found by id
+- [ ] API: GET /customers/{customerId} → 200 OK
+- [ ] Web: the customer page shows the customer
+- [ ] Web client: GetCustomerAsync gets /customers/{customerId}
 
 ### (Workshop) List orders
 
 - [ ] Core: orders can be listed, filtered by status and by customer
+- [ ] API: GET /orders?status={status}&customerId={customerId} → 200 OK
+- [ ] Web: the order list filters by status and by customer
+- [ ] Web client: ListOrdersAsync gets /orders with the filters
+- [ ] EF: the filter runs in the database
 
 ### (Workshop) Open an order
 
 - [ ] Core: an order can be found by id, with its history
+- [ ] API: GET /orders/{orderId} → 200 OK
+- [ ] Web: the order page shows the order with its history
+- [ ] Web client: GetOrderAsync gets /orders/{orderId}
 
 ### (FrontDesk) Record the initial approval
 
 - [ ] Core: the signed intake form is recorded as the initial approval
+- [ ] API: POST /orders/{orderId}/approvals → 201 Created
+- [ ] Web: the intake form records the reference to the signed form
+- [ ] Web client: RecordInitialApprovalAsync posts to /orders/{orderId}/approvals
+- [ ] EF: the approval is saved with the order
 
 ### (FrontDesk) Record an inspection fee agreement
 
 - [ ] Core: a written inspection fee agreement is recorded with its amount and document reference
+- [ ] API: POST /orders/{orderId}/inspection-fee-agreements → 201 Created
+- [ ] Web: the intake form records the inspection fee agreement
+- [ ] Web client: RecordInspectionFeeAgreementAsync posts to /orders/{orderId}/inspection-fee-agreements
 
 ### (FrontDesk) Link to an earlier order
 
 - [ ] Core: an order can be linked to an earlier order from the same customer
+- [ ] API: POST /orders with relatedOrderId → 201 Created
+- [ ] Web: the order form lets the employee pick an earlier order from the same customer
+- [ ] EF: the link to the earlier order is saved
 
 ### (Workshop) Ask for a customer decision
 
 - [ ] Core: asking for a change sets WaitingForCustomer and adds a notification request
+- [ ] API: POST /orders/{orderId}/decision-requests → 200 OK
+- [ ] Web: the decision form shows the order as WaitingForCustomer
+- [ ] Web client: RequestCustomerDecisionAsync posts to /orders/{orderId}/decision-requests
+- [ ] EF: the decision request is saved with the order
 
 ### (Workshop) Ask for a second decision while waiting
 
 - [ ] Core: a second request while WaitingForCustomer is added, and the order keeps waiting
+- [ ] API: POST /orders/{orderId}/decision-requests → 200 OK, still WaitingForCustomer
 
 ### (Workshop) Approve a change
 
 - [ ] Core: an approved change records the approval, and updates the agreed work and price
+- [ ] API: POST /orders/{orderId}/decision-requests/{requestId}/decision → 200 OK
+- [ ] Web: approving a change shows the new agreed price
+- [ ] Web client: RecordCustomerDecisionAsync posts to /orders/{orderId}/decision-requests/{requestId}/decision
+- [ ] EF: the approval and the price adjustment are saved with the order
 
 ### (Workshop) Reject a change
 
 - [ ] Core: a rejected change keeps the agreed work and price
+- [ ] API: POST /orders/{orderId}/decision-requests/{requestId}/decision with approved false → 200 OK, the price unchanged
+- [ ] Web: rejecting a change keeps the agreed price on the page
 
 ### (Workshop) Resume after the customer decisions
 
 - [ ] Core: the order returns to InProgress only when no request is pending
+- [ ] API: the last decision → 200 OK, with status InProgress
 
 ### (Workshop) Schedule a fitting
 
 - [ ] Core: scheduling a fitting stores the date and time, and sets WaitingForFitting
+- [ ] API: POST /orders/{orderId}/fittings → 200 OK
+- [ ] Web: the fitting form shows the appointment and WaitingForFitting
+- [ ] Web client: ScheduleFittingAsync posts to /orders/{orderId}/fittings
+- [ ] EF: the fitting is saved with the order
 
 ### (Workshop) Complete a fitting
 
 - [ ] Core: completing a fitting records its outcome
+- [ ] API: PATCH /orders/{orderId}/fittings/{fittingId}/complete → 200 OK
+- [ ] Web: completing a fitting shows its outcome
+- [ ] Web client: CompleteFittingAsync patches /orders/{orderId}/fittings/{fittingId}/complete
 
 ### (Workshop) Resume after the fittings
 
 - [ ] Core: the order returns to InProgress only when every fitting is completed
+- [ ] API: the last completed fitting → 200 OK, with status InProgress
 
 ### (Workshop) Record communication
 
 - [ ] Core: incoming and outgoing email and SMS are added to the history
+- [ ] API: POST /orders/{orderId}/communications → 200 OK
+- [ ] Web: the communication form adds the message to the order
+- [ ] Web client: RecordCommunicationAsync posts to /orders/{orderId}/communications
+- [ ] EF: the communication is saved with the order
 
 ### (Workshop) Failed communication
 
 - [ ] Core: a failed message is recorded without changing the order status
+- [ ] API: POST /orders/{orderId}/communications with outcome Failed → 200 OK, the status unchanged
+- [ ] Web: the order page shows the message as Failed
 
 ### Order history
 
 - [ ] Core: the history is returned oldest first, references the detailed records, and earlier entries are never changed
+- [ ] API: GET /orders/{orderId} → 200 OK, with the history oldest first
+- [ ] Web: the history list shows who did what and when, oldest first
+- [ ] EF: the history is read back oldest first
+
+### (Web) Empty list and errors
+
+- [ ] Web: the order list shows "No orders yet"
+- [ ] Web: the pages show "Could not load orders" when the API does not answer
 
 ### (Workshop) Start an order that is not submitted
 
 - [ ] Core: starting fails when the order is not Submitted
+- [ ] API: PATCH /orders/{orderId}/start → 409 Conflict
+- [ ] Web: the page shows "The order is not Submitted"
 
 ### (Workshop) Work note on an order not in progress
 
 - [ ] Core: adding a work note fails when the order is not InProgress
+- [ ] API: POST /orders/{orderId}/notes → 409 Conflict
+- [ ] Web: the page shows "The order is not in progress"
 
 ### (Workshop) Ready for pickup while waiting
 
 - [ ] Core: marking ReadyForPickup fails while the order waits for a customer decision or a fitting
+- [ ] API: PATCH /orders/{orderId}/ready-for-pickup → 409 Conflict
+- [ ] Web: the page shows "The order is waiting for a customer decision or a fitting"
+
+### (Workshop) Ask for a decision when not in progress
+
+- [ ] Core: asking for a change fails when the order is not InProgress or WaitingForCustomer
+- [ ] API: POST /orders/{orderId}/decision-requests → 409 Conflict
 
 ### (Workshop) Decision without a written response
 
 - [ ] Core: recording a decision fails when no written response is recorded
+- [ ] API: POST /orders/{orderId}/decision-requests/{requestId}/decision → 409 Conflict
+- [ ] Web: the page shows "Record the customer's written response first"
+
+### (Workshop) Schedule a fitting when not in progress
+
+- [ ] Core: scheduling a fitting fails when the order is not InProgress or WaitingForFitting
+- [ ] API: POST /orders/{orderId}/fittings → 409 Conflict
 
 ### (Workshop) Complete a fitting on an order that is not waiting
 
 - [ ] Core: completing a fitting fails when the order is not WaitingForFitting
+- [ ] API: PATCH /orders/{orderId}/fittings/{fittingId}/complete → 409 Conflict
 
 ### (FrontDesk) Pay before the order is ready
 
 - [ ] Core: payment fails when the order is not ReadyForPickup
+- [ ] API: POST /orders/{orderId}/payments → 409 Conflict
+- [ ] Web: the page shows "The order is not ready for pickup"
 
 ### (FrontDesk) Pay the wrong amount
 
 - [ ] Core: a payment with the wrong amount fails and changes nothing
+- [ ] API: POST /orders/{orderId}/payments → 409 Conflict
+- [ ] Web: the page shows "The amount is not the outstanding balance"
 
 ### (FrontDesk) Pay twice
 
 - [ ] Core: a second payment, or the same transaction twice, fails and changes nothing
+- [ ] API: POST /orders/{orderId}/payments → 409 Conflict
+
+### (FrontDesk) Deliver before the order is ready
+
+- [ ] Core: marking Delivered fails when the order is not ReadyForPickup
+- [ ] API: PATCH /orders/{orderId}/delivered → 409 Conflict
 
 ### (FrontDesk) Deliver with an outstanding balance
 
 - [ ] Core: marking Delivered fails while there is an outstanding balance
+- [ ] API: PATCH /orders/{orderId}/delivered → 409 Conflict
+- [ ] Web: the page shows "Register the payment first"
 
 ### (FrontDesk) Link to another customer's order
 
 - [ ] Core: linking fails when the earlier order belongs to another customer
+- [ ] API: POST /orders → 409 Conflict
+- [ ] Web: the order form shows "The earlier order belongs to another customer"
 
 ### (FrontDesk) Add a customer with missing details
 
 - [ ] Core: adding a customer fails when the name, phone number, email or address is empty
+- [ ] API: POST /customers → 400 Bad Request
+- [ ] Web: the customer form shows which field is missing
 
 ### (FrontDesk) Create an order with a negative price
 
 - [ ] Core: creating an order fails when the price is negative
+- [ ] API: POST /orders → 400 Bad Request
+- [ ] Web: the order form shows "The price cannot be negative"
+
+### (FrontDesk) Create an order without a work description
+
+- [ ] Core: creating an order fails when the work description is empty
+- [ ] API: POST /orders → 400 Bad Request
+- [ ] Web: the order form shows "The work description is required"
+
+### (FrontDesk) Initial approval without a document reference
+
+- [ ] Core: recording a signed form fails without a document reference
+- [ ] API: POST /orders/{orderId}/approvals → 400 Bad Request
 
 ### (FrontDesk) Inspection fee with a negative amount
 
 - [ ] Core: recording an inspection fee agreement fails when the amount is negative
+- [ ] API: POST /orders/{orderId}/inspection-fee-agreements → 400 Bad Request
+
+### (FrontDesk) Inspection fee without a document reference
+
+- [ ] Core: recording an inspection fee agreement fails without a document reference
+- [ ] API: POST /orders/{orderId}/inspection-fee-agreements → 400 Bad Request
 
 ### (Workshop) Empty work note
 
 - [ ] Core: adding an empty work note fails
+- [ ] API: POST /orders/{orderId}/notes → 400 Bad Request
+- [ ] Web: the note form shows "The note is required"
+
+### (Workshop) Ask for an empty change
+
+- [ ] Core: asking for a decision fails when the proposed work change is empty
+- [ ] API: POST /orders/{orderId}/decision-requests → 400 Bad Request
+
+### (Workshop) Schedule a fitting in the past
+
+- [ ] Core: scheduling a fitting fails when the date is before the current time
+- [ ] API: POST /orders/{orderId}/fittings → 400 Bad Request
+- [ ] Web: the fitting form shows "The date has passed"
+
+### (Workshop) Record a message without content
+
+- [ ] Core: recording communication fails when the content is empty
+- [ ] API: POST /orders/{orderId}/communications → 400 Bad Request
 
 ### (FrontDesk) Create an order for an unknown customer
 
 - [ ] Core: creating an order fails when the customer does not exist
+- [ ] API: POST /orders → 404 Not Found
+
+### (FrontDesk) Link to an unknown order
+
+- [ ] Core: creating an order fails when the earlier order does not exist
+- [ ] API: POST /orders → 404 Not Found
+
+### (FrontDesk) Get an unknown customer
+
+- [ ] Core: finding a customer fails when the id does not exist
+- [ ] API: GET /customers/{customerId} → 404 Not Found
+- [ ] Web: the customer page shows "Customer not found"
 
 ### (Workshop) Open an unknown order
 
 - [ ] Core: opening an order fails when the id does not exist
+- [ ] API: GET /orders/{orderId} → 404 Not Found
+- [ ] Web: the order page shows "Order not found"
+
+### (Workshop) Act on an unknown order
+
+- [ ] Core: every order action with an unknown order id fails with OrderNotFoundException (one test per method, as a Theory)
+- [ ] API: every endpoint under /orders/{orderId} → 404 Not Found
+
+### (Workshop) Complete an unknown fitting
+
+- [ ] Core: completing a fitting fails when the fitting id does not exist
+- [ ] API: PATCH /orders/{orderId}/fittings/{fittingId}/complete → 404 Not Found
+
+### (Workshop) Decision for an unknown request
+
+- [ ] Core: recording a decision fails when the request id does not exist
+- [ ] API: POST /orders/{orderId}/decision-requests/{requestId}/decision → 404 Not Found
+
+### Register an employee
+
+- [ ] API: POST /auth/register → 201 Created
+- [ ] Web: the register page creates an employee with a role
+- [ ] EF: an employee is saved with a hashed password
+
+### Register with a taken username
+
+- [ ] API: POST /auth/register → 409 Conflict
+
+### Register with missing details or an unknown role
+
+- [ ] API: POST /auth/register → 400 Bad Request
+
+### Log in
+
+- [ ] API: POST /auth/login → 200 OK, with a token
+- [ ] Web: the login page keeps the token and shows the menu for the role
+
+### Log in with the wrong password
+
+- [ ] API: POST /auth/login → 401 Unauthorized
+- [ ] Web: the login page shows "Wrong username or password"
+
+### Endpoints need a token
+
+- [ ] API: /customers without a token → 401 Unauthorized
+- [ ] API: /orders without a token → 401 Unauthorized
+
+### (FrontDesk) Only FrontDesk can do FrontDesk actions
+
+- [ ] API: the FrontDesk endpoints → 403 Forbidden for a Workshop employee
+
+### (Workshop) Only Workshop can do Workshop actions
+
+- [ ] API: the Workshop endpoints → 403 Forbidden for a FrontDesk employee
+
+### The history shows who did it
+
+- [ ] Core: a history entry stores the employee it gets
+- [ ] API: a history entry has the logged-in employee from the token, like "Kari N."
+
+### One menu per part
+
+- [ ] Web: the menu shows the FrontDesk pages or the Workshop pages for the logged-in role
+
+### Infrastructure
+
+- [ ] Docker: the api container answers /health with 200
+- [ ] Docker: the website container shows the login page
 
 Manual checks:
+
+- [ ] The workflow is green in Actions
+- [ ] Orders are still there after docker compose restart api
 
 Later questions:
 
 - [ ] Can an order wait for a customer decision and a fitting at the same time?
 - [ ] When is reclamation work free, and who decides that the grounds are valid?
 - [ ] When is the inspection fee charged, and how is it calculated?
-- [ ] Which fitting dates are invalid: in the past, or outside opening hours?
+- [ ] Is a fitting outside opening hours invalid?
 
 ## 6 Questions, assumptions and decisions
 
@@ -542,6 +806,10 @@ Decisions:
 - Decision: order cancellation is not in the first version.
 - Decision: the exceptions for unknown customers and orders derive from KeyNotFoundException, and the exceptions for rules derive from InvalidOperationException, so an API can map them to 404 and 409 later.
 - Decision: Core has no dependencies on frontend, HTTP, database, email, SMS or payment terminal code.
+- Decision: a notification request is a NotificationRequested entry in the history (no list of its own, and no sending in the first version).
+- Decision: until the admin question is answered, an employee chooses FrontDesk or Workshop when registering, with first and last name for the history.
+- Decision: a fitting date before the current time is invalid (opening hours are a later question).
+- Decision: an unknown order id gives OrderNotFoundException in every OrderService method, tested once per method in one Theory.
 
 Assumptions:
 
