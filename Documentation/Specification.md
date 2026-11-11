@@ -187,6 +187,48 @@ stateDiagram-v2
     Delivered --> [*]
 ```
 
+### From FrontDesk to Workshop and back
+
+What goes between the two parts through the API, for one order.
+
+```mermaid
+sequenceDiagram
+    actor fd as FrontDesk
+    participant api as API
+    actor ws as Workshop
+    fd->>api: POST /orders
+    api->>api: OrderService creates the order (Submitted)
+    api-->>fd: 201 Created + the order
+    ws->>api: GET /orders?status=Submitted
+    api-->>ws: 200 OK + the submitted orders
+    ws->>api: PATCH /orders/{orderId}/start
+    api-->>ws: 200 OK (InProgress)
+    opt a change needs the customer's approval
+        ws->>api: POST /orders/{orderId}/decision-requests
+        api->>api: WaitingForCustomer, and a notification request in the history
+        api-->>ws: 200 OK
+        ws->>api: POST /orders/{orderId}/decision-requests/{requestId}/decision
+        api-->>ws: 200 OK (InProgress when no request is pending)
+    end
+    opt a fitting is needed
+        ws->>api: POST /orders/{orderId}/fittings
+        api-->>ws: 200 OK (WaitingForFitting)
+        ws->>api: PATCH /orders/{orderId}/fittings/{fittingId}/complete
+        api-->>ws: 200 OK (InProgress when every fitting is completed)
+    end
+    ws->>api: PATCH /orders/{orderId}/ready-for-pickup
+    api->>api: ReadyForPickup, and a notification request in the history
+    api-->>ws: 200 OK
+    fd->>api: GET /orders?status=ReadyForPickup
+    api-->>fd: 200 OK + the orders ready for pickup
+    alt payment is due
+        fd->>api: POST /orders/{orderId}/payments
+    else nothing to pay
+        fd->>api: PATCH /orders/{orderId}/delivered
+    end
+    api-->>fd: 200 OK (Delivered)
+```
+
 ## 4 Interface
 
 | Type | Fields |
@@ -340,6 +382,7 @@ Dependencies:
 - Core receives confirmed payment data. Checking it against the payment terminal is a later integration.
 - Core records communication and raises notification requests, but does not send email or SMS.
 - No HTTP, frontend, database or external providers in Core.
+- The API (TailorManager.Api) calls CustomerService and OrderService, and only translates their results and exceptions to status codes. The contract is in api.md.
 
 Notes:
 
