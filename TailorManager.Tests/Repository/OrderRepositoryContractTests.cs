@@ -27,6 +27,23 @@ public abstract class OrderRepositoryContractTests
 
         Assert.Null(repository.GetById(Guid.NewGuid()));
     }
+
+    [Fact]
+    public void GetAllOrders_AfterTwoAdded_ContainsBoth()
+    {
+        var repository = CreateRepository();
+        var first = new Order { Id = Guid.NewGuid(), WorkDescription = "Shorten trousers by 3cm" }
+        ;
+        var second = new Order { Id = Guid.NewGuid(), WorkDescription = "Replace zipper on jacket" }
+        ;
+        repository.Add(first);
+        repository.Add(second);
+
+        var all = repository.GetAll();
+
+        Assert.Contains(all, i => i.Id == first.Id);
+        Assert.Contains(all, i => i.Id == second.Id);
+    }
 }
 
 public class FakeOrderRepositoryTests : OrderRepositoryContractTests
