@@ -19,7 +19,13 @@ builder.Services.AddScoped<CustomerService>();
 builder.Services.AddScoped<IOrderRepository, EfOrderRepository>();
 builder.Services.AddScoped<OrderService>();
 
-builder.Services.AddHealthChecks();
+builder.Services.AddHealthChecks()
+    .AddDbContextCheck<TailorManagerDbContext>(
+        customTestQuery: async (db, cancellationToken) =>
+        {
+            await db.Database.ExecuteSqlRawAsync("SELECT 1", cancellationToken);
+            return true;
+        });
 
 var app = builder.Build();
 
