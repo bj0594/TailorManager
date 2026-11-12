@@ -4,3 +4,8 @@
 GET {{host}}/does-not-exist
 
 ###
+
+### The API and its dependencies are healthy
+GET {{host}}/health
+
+###

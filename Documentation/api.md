@@ -5,6 +5,11 @@ Enums are sent as text, like `"NewGarment"` and `"Submitted"`. Times are ISO 860
 Every endpoint except register and login needs a token from POST /auth/login. The role in parentheses after Auth is the part that may use the endpoint. The history records the logged-in employee from the token.
 
 ```
+GET /health
+Request: none
+Response: 200 OK + Healthy
+Errors: 503 Service Unavailable + Unhealthy (a dependency does not answer)
+
 POST /auth/register
 Request: { "username": "kari", "password": "Secret-123", "firstName": "Kari", "lastName": "Nordmann", "role": "FrontDesk" }
 Response: 201 Created + { "id": "2c1f4a7e-9d3b-4e8a-b6f5-1a2b3c4d5e6f", "username": "kari", "displayName": "Kari N.", "role": "FrontDesk" }
