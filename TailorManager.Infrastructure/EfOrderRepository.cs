@@ -14,15 +14,17 @@ public class EfOrderRepository : IOrderRepository
 
     public void Add(Order order)
     {
-        throw new NotImplementedException();
+        _db.Orders.Add(order);
+        _db.SaveChanges();
     }
 
-    public List<Order> GetAll() => throw new NotImplementedException();
+    public List<Order> GetAll() => _db.Orders.ToList();
 
-    public Order? GetById(Guid id) => throw new NotImplementedException();
+    public Order? GetById(Guid id) => _db.Orders.Find(id);
 
     public void Update(Order order)
     {
-        throw new NotImplementedException();
+        _db.Orders.Update(order);
+        _db.SaveChanges();
     }
 }
