@@ -29,7 +29,16 @@ public class EfCustomerRepositoryTests : CustomerRepositoryContractTests, IClass
 {
     private readonly EfDatabaseFixture _db;
 
-public EfCustomerRepositoryTests(EfDatabaseFixture db) => _db = db;
+    public EfCustomerRepositoryTests(EfDatabaseFixture db) => _db = db;
 
-protected override ICustomerRepository CreateRepository() => new EfCustomerRepository(_db.CreateContext());
+    protected override ICustomerRepository CreateRepository() => new EfCustomerRepository(_db.CreateContext());
+}
+
+public class EfOrderRepositoryTests : OrderRepositoryContractTests, IClassFixture<EfDatabaseFixture>
+{
+    private readonly EfDatabaseFixture _db;
+
+    public EfOrderRepositoryTests(EfDatabaseFixture db) => _db = db;
+
+    protected override IOrderRepository CreateRepository() => new EfOrderRepository(_db.CreateContext());
 }
