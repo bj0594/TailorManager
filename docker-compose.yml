@@ -22,6 +22,7 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       ConnectionStrings__Default: Host=db;Port=5432;Database=tailor;Username=employee;Password=password
+      Database__MigrateOnStartup: "true"
     ports:
       - "8080:8080"
     depends_on:
