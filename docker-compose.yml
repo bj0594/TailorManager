@@ -9,7 +9,7 @@ services:
       - "5432:5432"
     volumes:
       - db-data:/var/lib/postgresql/data
-    healthcheck:
+    healthcheck: 
       test: ["CMD-SHELL", "pg_isready -U employee -d tailor"]
       interval: 5s
       timeout: 3s

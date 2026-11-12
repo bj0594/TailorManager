@@ -187,6 +187,35 @@ stateDiagram-v2
     Delivered --> [*]
 ```
 
+### Architecture
+
+Every part of the system as it runs with Docker Compose. Solid arrows are requests, dotted arrows are dependencies. Start order (depends_on): db, then api when db is healthy.
+
+```mermaid
+flowchart LR
+    subgraph host["Your machine (localhost)"]
+        browser(["Browser"])
+        restclient["REST Client<br/>TailorManager.Api.http"]
+    end
+
+    subgraph compose["Docker Compose network"]
+        subgraph api["api: ASP.NET Core"]
+            apiproj["TailorManager.Api<br/>controllers and /health"]
+            core["TailorManager.Core<br/>CustomerService, OrderService and the rules<br/>in-memory fake repositories"]
+            apiproj -- "calls" --> core
+        end
+
+        db[("db<br/>PostgreSQL<br/>no tables until the EF module")]
+        vol[["volume db_data"]]
+        pgadmin["pgadmin"]
+    end
+
+    restclient -- "HTTP localhost:8080" --> apiproj
+    browser -- "HTTP localhost:5050" --> pgadmin
+    pgadmin -- "db:5432" --> db
+    db --- vol
+```
+
 ### From FrontDesk to Workshop and back
 
 What goes between the two parts through the API, for one order.
@@ -797,7 +826,7 @@ One heading per function, with one line per category. The API lines are the firs
 
 ### Infrastructure
 
-- [ ] Docker: the api container answers /health with 200
+- [x] Docker: the api container answers /health with 200
 - [ ] Docker: the website container shows the login page
 
 Manual checks:
