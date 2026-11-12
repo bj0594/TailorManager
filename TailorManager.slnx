@@ -1,5 +1,6 @@
 <Solution>
   <Project Path="TailorManager.Api/TailorManager.Api.csproj" />
   <Project Path="TailorManager.Core/TailorManager.Core.csproj" />
+  <Project Path="TailorManager.Infrastructure/TailorManager.Infrastructure.csproj" />
   <Project Path="TailorManager.Tests/TailorManager.Tests.csproj" />
 </Solution>
