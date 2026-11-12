@@ -1,6 +1,6 @@
-@TailorManager.Api_HostAddress = http://localhost:8080
+@host = http://localhost:8080
 
-GET {{}}/weatherforecast/
-Accept: application/json
+### The API answers: 404 Not Found until the first endpoint exists
+GET {{host}}/does-not-exist
 
 ###
