@@ -14,15 +14,17 @@ public class EfCustomerRepository : ICustomerRepository
 
     public void Add(Customer customer)
     {
-        throw new NotImplementedException();
+        _db.Customers.Add(customer);
+        _db.SaveChanges();
     }
 
-    public List<Customer> GetAll() => throw new NotImplementedException();
+    public List<Customer> GetAll() => _db.Customers.ToList();
 
-    public Customer? GetById(Guid id) => throw new NotImplementedException();
+    public Customer? GetById(Guid id) => _db.Customers.Find(id);
 
     public void Update(Customer customer)
     {
-        throw new NotImplementedException();
+        _db.Customers.Update(customer);
+        _db.SaveChanges();
     }
 }
