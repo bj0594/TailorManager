@@ -1,4 +1,4 @@
-k# Specification – TailorManager
+# Specification – TailorManager
 
 ## 1 The project in my own words
 
@@ -50,12 +50,11 @@ Rules:
 - Every change to the agreed work or price requires written customer approval, linked to the specific change request.
 - A rejected change does not modify the agreed work or price.
 - An approved price adjustment changes CurrentAgreedPrice only after the written approval is recorded.
+- An answered decision request and a completed fitting cannot be answered or completed again.
 - An order cannot be marked Delivered while it has an outstanding balance. Full payment must be registered first.
 - An order with no outstanding balance can be marked Delivered without a payment.
-- Incorrect payment amounts, duplicate transactions and invalid payment registrations are rejected without changing the order or its status. Core only accepts payments that are already confirmed outside Core.
+- Incorrect payment amounts, missing or duplicate transaction references and invalid payment registrations are rejected without changing the order or its status. Core only accepts payments that are already confirmed outside Core.
 - Linked orders must belong to the same customer.
-- Reclamation work is free when valid reclamation grounds are established.
-- An inspection fee can only be charged when the customer agreed to it in writing at intake, no valid reclamation grounds are established, and no other work is performed.
 - Failed communication does not change the order status, but the failure is recorded in the history.
 - An automated notification request is raised when an order enters WaitingForCustomer or ReadyForPickup. It is a NotificationRequested entry in the history, and sending it happens outside Core.
 - Delivered orders cannot be reopened. Reclamation work is registered as a new order linked to the original order.
@@ -63,6 +62,8 @@ Rules:
 
 Later / bonus (NOT NOW):
 
+- Free reclamation work when valid reclamation grounds are established
+- Charging the inspection fee (only when the customer agreed in writing at intake, no valid reclamation grounds are established, and no other work is performed)
 - Partial payments and deposits
 - Order cancellation and cancellation fees
 - Customer-facing order tracking
@@ -181,7 +182,7 @@ erDiagram
     }
     Order {
         guid Id
-        guid OrderId
+        guid CustomerId
         string WorkDescription
         string Status
     }
@@ -359,7 +360,8 @@ OrderService
   Empty note: ArgumentException
 - Order RequestCustomerDecision(Guid orderId, string proposedWorkChange, decimal? proposedPriceAdjustment)
   → a pending request, status WaitingForCustomer, and a notification request when entering WaitingForCustomer
-  → can add further requests while already WaitingForCustomer
+  → can add further requests while already WaitingForCustomer, without a new notification request
+  → the agreed price is not changed until the request is approved
   Unknown order: OrderNotFoundException
   Not InProgress or WaitingForCustomer: InvalidOrderStatusException
   Empty work change: ArgumentException
@@ -369,6 +371,7 @@ OrderService
   Unknown order: OrderNotFoundException
   Unknown request: KeyNotFoundException
   No recorded written response: InvalidOperationException
+  Request already answered: InvalidOperationException
 - Order ScheduleFitting(Guid orderId, DateTimeOffset scheduledAt)
   → a fitting appointment, and status WaitingForFitting
   → can add further appointments while already WaitingForFitting
@@ -381,6 +384,7 @@ OrderService
   Unknown order: OrderNotFoundException
   Unknown fitting: KeyNotFoundException
   Not WaitingForFitting: InvalidOrderStatusException
+  Fitting already completed: InvalidOperationException
 - Order RecordCommunication(Guid orderId, CommunicationEntry communication)
   → records incoming or outgoing communication, and a history entry that references it
   Unknown order: OrderNotFoundException
@@ -392,6 +396,7 @@ OrderService
 - Order RegisterPayment(Guid orderId, decimal amount, string transactionReference)
   → records the full payment, adds history entries, and status Delivered
   Unknown order: OrderNotFoundException
+  Empty transaction reference: ArgumentException
   Not ReadyForPickup: InvalidOrderStatusException
   Amount is not the outstanding balance: PaymentAmountMismatchException
   Transaction already registered: DuplicatePaymentException
@@ -430,18 +435,20 @@ Dependencies:
 - No HTTP, frontend, database or external providers in Core.
 - The API (TailorManager.Api) calls CustomerService and OrderService, and only translates their results and exceptions to status codes. The contract is in api.md.
 
-Stored in: PostgreSQL or with EF Core (tables: Customers & Orders).
+Stored in: PostgreSQL with EF Core (tables: Customers and Orders).
 
 Notes:
 
 - Reclamation work is registered as a new order linked to the original order. It has no OrderType of its own yet.
-- CustomerApproval can record an agreed inspection fee, but how the fee is assessed and applied is not clarified yet.
+- CustomerApproval can record an agreed inspection fee, but how the fee is assessed and applied is Later (§2).
 - OrderStatus holds one status at a time. An order that waits for a customer decision and a fitting at the same time is not defined yet (§6).
 - Employees log in (§6). Each method that adds a history entry gets the logged-in employee as its last parameter in the Innlogging module. Until then, ActorId and ActorDisplayName are empty.
 
 ## 5 Test list
 
 One heading per function, with one line per category. The API lines are the first line and status of the block in api.md.
+
+The headings are in the order the cycles are taken: the main flow first, then the rules (409), the invalid input (400), the unknown ids (404), and last the login.
 
 ### (FrontDesk) Add a customer
 
@@ -451,6 +458,13 @@ One heading per function, with one line per category. The API lines are the firs
 - [ ] Web client: AddCustomerAsync posts the customer to /customers
 - [x] EF: an added customer can be read back by id
 
+### (FrontDesk) Get a customer
+
+- [ ] Core: a customer can be found by id
+- [ ] API: GET /customers/{customerId} → 200 OK
+- [ ] Web: the customer page shows the customer
+- [ ] Web client: GetCustomerAsync gets /customers/{customerId}
+
 ### (FrontDesk) Create an order
 
 - [ ] Core: a new order for a garment or a repair is Submitted, with its agreed price and a history entry
@@ -459,6 +473,13 @@ One heading per function, with one line per category. The API lines are the firs
 - [ ] Web client: CreateOrderAsync posts the order to /orders
 - [ ] EF: a created order is read back with its history
 
+### (Workshop) Open an order
+
+- [ ] Core: an order can be found by id, with its history
+- [ ] API: GET /orders/{orderId} → 200 OK
+- [ ] Web: the order page shows the order with its history
+- [ ] Web client: GetOrderAsync gets /orders/{orderId}
+
 ### (Workshop) Start work
 
 - [ ] Core: starting a submitted order sets InProgress and adds a history entry
@@ -466,6 +487,12 @@ One heading per function, with one line per category. The API lines are the firs
 - [ ] Web: clicking Start shows the order as InProgress
 - [ ] Web client: StartWorkAsync patches /orders/{orderId}/start
 - [ ] EF: the new status and the history entry are saved
+
+### (Workshop) Start an order that is not submitted
+
+- [ ] Core: starting fails when the order is not Submitted
+- [ ] API: PATCH /orders/{orderId}/start → 409 Conflict
+- [ ] Web: the page shows "The order is not Submitted"
 
 ### (Workshop) Record work
 
@@ -489,33 +516,18 @@ One heading per function, with one line per category. The API lines are the firs
 - [ ] Web client: RegisterPaymentAsync posts the payment to /orders/{orderId}/payments
 - [ ] EF: the payment is saved with the order
 
-### (FrontDesk) Deliver an order with nothing to pay
-
-- [ ] Core: an order with no outstanding balance can be marked Delivered
-- [ ] API: PATCH /orders/{orderId}/delivered → 200 OK
-- [ ] Web: clicking Deliver shows the order as Delivered
-- [ ] Web client: MarkDeliveredAsync patches /orders/{orderId}/delivered
-
 ### (FrontDesk) Create a free order
 
 - [ ] Core: an order with price zero has no outstanding balance
 - [ ] API: POST /orders with agreedPrice 0 → 201 Created, with outstandingBalance 0
 - [ ] Web: the order page shows nothing to pay
 
-### (FrontDesk) Find customers
+### (FrontDesk) Deliver an order with nothing to pay
 
-- [ ] Core: searching by name, phone number or email returns only the matching customers
-- [ ] API: GET /customers?searchTerm={searchTerm} → 200 OK
-- [ ] Web: the search box shows only the matching customers
-- [ ] Web client: FindCustomersAsync gets /customers?searchTerm={searchTerm}
-- [ ] EF: the search runs in the database
-
-### (FrontDesk) Get a customer
-
-- [ ] Core: a customer can be found by id
-- [ ] API: GET /customers/{customerId} → 200 OK
-- [ ] Web: the customer page shows the customer
-- [ ] Web client: GetCustomerAsync gets /customers/{customerId}
+- [ ] Core: an order with no outstanding balance can be marked Delivered
+- [ ] API: PATCH /orders/{orderId}/delivered → 200 OK
+- [ ] Web: clicking Deliver shows the order as Delivered
+- [ ] Web client: MarkDeliveredAsync patches /orders/{orderId}/delivered
 
 ### (Workshop) List orders
 
@@ -525,38 +537,24 @@ One heading per function, with one line per category. The API lines are the firs
 - [ ] Web client: ListOrdersAsync gets /orders with the filters
 - [ ] EF: the filter runs in the database
 
-### (Workshop) Open an order
+### (FrontDesk) Find customers
 
-- [ ] Core: an order can be found by id, with its history
-- [ ] API: GET /orders/{orderId} → 200 OK
-- [ ] Web: the order page shows the order with its history
-- [ ] Web client: GetOrderAsync gets /orders/{orderId}
+- [ ] Core: searching by name, phone number or email returns only the matching customers
+- [ ] API: GET /customers?searchTerm={searchTerm} → 200 OK
+- [ ] Web: the search box shows only the matching customers
+- [ ] Web client: FindCustomersAsync gets /customers?searchTerm={searchTerm}
+- [ ] EF: the search runs in the database
 
-### (FrontDesk) Record the initial approval
+### Order history
 
-- [ ] Core: the signed intake form is recorded as the initial approval
-- [ ] API: POST /orders/{orderId}/approvals → 201 Created
-- [ ] Web: the intake form records the reference to the signed form
-- [ ] Web client: RecordInitialApprovalAsync posts to /orders/{orderId}/approvals
-- [ ] EF: the approval is saved with the order
-
-### (FrontDesk) Record an inspection fee agreement
-
-- [ ] Core: a written inspection fee agreement is recorded with its amount and document reference
-- [ ] API: POST /orders/{orderId}/inspection-fee-agreements → 201 Created
-- [ ] Web: the intake form records the inspection fee agreement
-- [ ] Web client: RecordInspectionFeeAgreementAsync posts to /orders/{orderId}/inspection-fee-agreements
-
-### (FrontDesk) Link to an earlier order
-
-- [ ] Core: an order can be linked to an earlier order from the same customer
-- [ ] API: POST /orders with relatedOrderId → 201 Created
-- [ ] Web: the order form lets the employee pick an earlier order from the same customer
-- [ ] EF: the link to the earlier order is saved
+- [ ] Core: the history is returned oldest first, references the detailed records, and earlier entries are never changed
+- [ ] API: GET /orders/{orderId} → 200 OK, with the history oldest first
+- [ ] Web: the history list shows who did what and when, oldest first
+- [ ] EF: the history is read back oldest first
 
 ### (Workshop) Ask for a customer decision
 
-- [ ] Core: asking for a change sets WaitingForCustomer and adds a notification request
+- [ ] Core: asking for a change sets WaitingForCustomer, adds a notification request, and keeps the agreed price
 - [ ] API: POST /orders/{orderId}/decision-requests → 200 OK
 - [ ] Web: the decision form shows the order as WaitingForCustomer
 - [ ] Web client: RequestCustomerDecisionAsync posts to /orders/{orderId}/decision-requests
@@ -564,7 +562,7 @@ One heading per function, with one line per category. The API lines are the firs
 
 ### (Workshop) Ask for a second decision while waiting
 
-- [ ] Core: a second request while WaitingForCustomer is added, and the order keeps waiting
+- [ ] Core: a second request while WaitingForCustomer is added, the order keeps waiting, and no new notification request is raised
 - [ ] API: POST /orders/{orderId}/decision-requests → 200 OK, still WaitingForCustomer
 
 ### (Workshop) Approve a change
@@ -574,6 +572,11 @@ One heading per function, with one line per category. The API lines are the firs
 - [ ] Web: approving a change shows the new agreed price
 - [ ] Web client: RecordCustomerDecisionAsync posts to /orders/{orderId}/decision-requests/{requestId}/decision
 - [ ] EF: the approval and the price adjustment are saved with the order
+
+### (Workshop) Approve a change without a price
+
+- [ ] Core: an approved change without a price adjustment is Approved, and the agreed price is unchanged
+- [ ] API: POST /orders/{orderId}/decision-requests/{requestId}/decision → 200 OK, the price unchanged
 
 ### (Workshop) Reject a change
 
@@ -620,23 +623,32 @@ One heading per function, with one line per category. The API lines are the firs
 - [ ] API: POST /orders/{orderId}/communications with outcome Failed → 200 OK, the status unchanged
 - [ ] Web: the order page shows the message as Failed
 
-### Order history
+### (FrontDesk) Record the initial approval
 
-- [ ] Core: the history is returned oldest first, references the detailed records, and earlier entries are never changed
-- [ ] API: GET /orders/{orderId} → 200 OK, with the history oldest first
-- [ ] Web: the history list shows who did what and when, oldest first
-- [ ] EF: the history is read back oldest first
+- [ ] Core: the signed intake form is recorded as the initial approval
+- [ ] API: POST /orders/{orderId}/approvals → 201 Created
+- [ ] Web: the intake form records the reference to the signed form
+- [ ] Web client: RecordInitialApprovalAsync posts to /orders/{orderId}/approvals
+- [ ] EF: the approval is saved with the order
+
+### (FrontDesk) Record an inspection fee agreement
+
+- [ ] Core: a written inspection fee agreement is recorded with its amount and document reference
+- [ ] API: POST /orders/{orderId}/inspection-fee-agreements → 201 Created
+- [ ] Web: the intake form records the inspection fee agreement
+- [ ] Web client: RecordInspectionFeeAgreementAsync posts to /orders/{orderId}/inspection-fee-agreements
+
+### (FrontDesk) Link to an earlier order
+
+- [ ] Core: an order can be linked to an earlier order from the same customer
+- [ ] API: POST /orders with relatedOrderId → 201 Created
+- [ ] Web: the order form lets the employee pick an earlier order from the same customer
+- [ ] EF: the link to the earlier order is saved
 
 ### (Web) Empty list and errors
 
 - [ ] Web: the order list shows "No orders yet"
 - [ ] Web: the pages show "Could not load orders" when the API does not answer
-
-### (Workshop) Start an order that is not submitted
-
-- [ ] Core: starting fails when the order is not Submitted
-- [ ] API: PATCH /orders/{orderId}/start → 409 Conflict
-- [ ] Web: the page shows "The order is not Submitted"
 
 ### (Workshop) Work note on an order not in progress
 
@@ -661,6 +673,11 @@ One heading per function, with one line per category. The API lines are the firs
 - [ ] API: POST /orders/{orderId}/decision-requests/{requestId}/decision → 409 Conflict
 - [ ] Web: the page shows "Record the customer's written response first"
 
+### (Workshop) Decide on a request that is already answered
+
+- [ ] Core: recording a second decision for the same request fails and changes nothing
+- [ ] API: POST /orders/{orderId}/decision-requests/{requestId}/decision → 409 Conflict
+
 ### (Workshop) Schedule a fitting when not in progress
 
 - [ ] Core: scheduling a fitting fails when the order is not InProgress or WaitingForFitting
@@ -669,6 +686,11 @@ One heading per function, with one line per category. The API lines are the firs
 ### (Workshop) Complete a fitting on an order that is not waiting
 
 - [ ] Core: completing a fitting fails when the order is not WaitingForFitting
+- [ ] API: PATCH /orders/{orderId}/fittings/{fittingId}/complete → 409 Conflict
+
+### (Workshop) Complete a fitting twice
+
+- [ ] Core: completing a fitting that is already completed fails and keeps the first outcome
 - [ ] API: PATCH /orders/{orderId}/fittings/{fittingId}/complete → 409 Conflict
 
 ### (FrontDesk) Pay before the order is ready
@@ -698,6 +720,11 @@ One heading per function, with one line per category. The API lines are the firs
 - [ ] Core: marking Delivered fails while there is an outstanding balance
 - [ ] API: PATCH /orders/{orderId}/delivered → 409 Conflict
 - [ ] Web: the page shows "Register the payment first"
+
+### (Workshop) Act on a delivered order
+
+- [ ] Core: every order action with a status rule fails with InvalidOrderStatusException on a Delivered order (one test per method, as a Theory)
+- [ ] API: PATCH /orders/{orderId}/start on a Delivered order → 409 Conflict
 
 ### (FrontDesk) Link to another customer's order
 
@@ -759,6 +786,11 @@ One heading per function, with one line per category. The API lines are the firs
 
 - [ ] Core: recording communication fails when the content is empty
 - [ ] API: POST /orders/{orderId}/communications → 400 Bad Request
+
+### (FrontDesk) Pay without a transaction reference
+
+- [ ] Core: a payment with an empty transaction reference fails and changes nothing
+- [ ] API: POST /orders/{orderId}/payments → 400 Bad Request
 
 ### (FrontDesk) Create an order for an unknown customer
 
@@ -885,15 +917,17 @@ Decisions:
 - Decision: changes during the work can be approved by email or SMS, linked to the specific decision request.
 - Decision: an order can have several customer decision requests and several fitting appointments at the same time.
 - Decision: an order stays in its waiting status until every request or appointment of that type is resolved.
+- Decision: an answered decision request and a completed fitting cannot be answered or completed again (the history is append-only, and an approved price adjustment would otherwise be added twice).
 - Decision: linked orders must belong to the same customer.
 - Decision: employees are shown in the history with their first name and the first letter of their last name.
 - Decision: the first version supports one full payment per order. The model allows several payments later, but partial payments are not in scope.
 - Decision: incorrect amounts and unconfirmed payments are rejected without changing the order or its status.
+- Decision: a payment without a transaction reference is invalid (duplicate payments cannot be found without it).
 - Decision: reclamation work is a new order linked to the original order, with its own history.
-- Decision: reclamation work is free when valid reclamation grounds are established.
+- Decision: free reclamation work and charging the inspection fee are Later, until the shop has answered who decides the reclamation grounds and how the fee is calculated.
 - Decision: a possible inspection fee must be agreed in writing at intake.
 - Decision: automated customer notifications are raised when an order enters WaitingForCustomer or ReadyForPickup.
-- Decision: delivered orders cannot be reopened.
+- Decision: delivered orders cannot be reopened. Every order action with a status rule is tested once on a Delivered order, in one Theory.
 - Decision: order cancellation is not in the first version.
 - Decision: the exceptions for unknown customers and orders derive from KeyNotFoundException, and the exceptions for rules derive from InvalidOperationException, so an API can map them to 404 and 409 later.
 - Decision: Core has no dependencies on frontend, HTTP, database, email, SMS or payment terminal code.
