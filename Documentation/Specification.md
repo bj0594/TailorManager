@@ -170,6 +170,23 @@ flowchart TD
 
 All relevant order activities are recorded in an append-only history: order creation, initial approvals, status changes, work notes, customer decisions, fittings, communication, price adjustments, notification requests and payments. The history references the detailed records instead of copying their contents.
 
+### Data
+
+~~~mermaid
+erDiagram
+    Customer ||..o{ Order : "CustomerId (not a foreign key)"
+    Customer {
+        guid Id
+        string Name
+    }
+    Order {
+        guid Id
+        guid OrderId
+        string WorkDescription
+        string Status
+    }
+~~~
+
 ### Order status
 
 Every arrow is a move that is allowed, and becomes a function in §5. Moves without an arrow are not allowed.
@@ -413,6 +430,8 @@ Dependencies:
 - No HTTP, frontend, database or external providers in Core.
 - The API (TailorManager.Api) calls CustomerService and OrderService, and only translates their results and exceptions to status codes. The contract is in api.md.
 
+Stored in: PostgreSQL or with EF Core (tables: Customers & Orders).
+
 Notes:
 
 - Reclamation work is registered as a new order linked to the original order. It has no OrderType of its own yet.
@@ -430,7 +449,7 @@ One heading per function, with one line per category. The API lines are the firs
 - [ ] API: POST /customers → 201 Created
 - [ ] Web: the customer form adds a customer and shows it
 - [ ] Web client: AddCustomerAsync posts the customer to /customers
-- [ ] EF: an added customer can be read back by id
+- [x] EF: an added customer can be read back by id
 
 ### (FrontDesk) Create an order
 
