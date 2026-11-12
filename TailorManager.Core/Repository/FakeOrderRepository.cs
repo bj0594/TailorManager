@@ -6,4 +6,5 @@ public class FakeOrderRepository : IOrderRepository
 
     public void Add(Order order) => _orders.Add(order);
     public List<Order> GetAll() => _orders;
+    public Order? GetById(Guid id) => _orders.FirstOrDefault(o => o.Id == id);
 }
