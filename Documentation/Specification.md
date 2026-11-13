@@ -656,11 +656,11 @@ The headings are in the order the cycles are taken: the main flow first, then th
 - [ ] API: POST /orders/{orderId}/notes → 409 Conflict
 - [ ] Web: the page shows "The order is not in progress"
 
-### (Workshop) Ready for pickup while waiting
+### (Workshop) Mark ready for pickup when not in progress
 
-- [ ] Core: marking ReadyForPickup fails while the order waits for a customer decision or a fitting
+- [ ] Core: marking ReadyForPickup fails when the order is not InProgress
 - [ ] API: PATCH /orders/{orderId}/ready-for-pickup → 409 Conflict
-- [ ] Web: the page shows "The order is waiting for a customer decision or a fitting"
+- [ ] Web: the page shows "The order is not in progress"
 
 ### (Workshop) Ask for a decision when not in progress
 
@@ -705,9 +705,9 @@ The headings are in the order the cycles are taken: the main flow first, then th
 - [ ] API: POST /orders/{orderId}/payments → 409 Conflict
 - [ ] Web: the page shows "The amount is not the outstanding balance"
 
-### (FrontDesk) Pay twice
+### (FrontDesk) Pay with a transaction that is already registered
 
-- [ ] Core: a second payment, or the same transaction twice, fails and changes nothing
+- [ ] Core: a payment with a transaction reference that is already registered fails and changes nothing
 - [ ] API: POST /orders/{orderId}/payments → 409 Conflict
 
 ### (FrontDesk) Deliver before the order is ready
