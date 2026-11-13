@@ -3,4 +3,6 @@
   <Project Path="TailorManager.Core/TailorManager.Core.csproj" />
   <Project Path="TailorManager.Infrastructure/TailorManager.Infrastructure.csproj" />
   <Project Path="TailorManager.Tests/TailorManager.Tests.csproj" />
+  <Project Path="TailorManager.Web.Tests/TailorManager.Web.Tests.csproj" />
+  <Project Path="TailorManager.Web/TailorManager.Web.csproj" />
 </Solution>
