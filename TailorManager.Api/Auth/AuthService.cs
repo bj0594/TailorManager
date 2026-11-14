@@ -15,6 +15,10 @@ public class AuthService
 
     public User Register(string username, string password)
     {
+        if (_users.GetByUsername(username) is not null)
+        {
+            throw new InvalidOperationException("Username is already taken.");
+        }
         var user = new User { Id = Guid.NewGuid(), Username = username, PasswordHash = password };
         _users.Add(user);
         return user;

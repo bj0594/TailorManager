@@ -17,7 +17,14 @@ public class AuthController : ControllerBase
     [HttpPost("register")]
     public IActionResult Register(RegisterRequest request)
     {
-        var user = _authService.Register(request.Username, request.Password);
-        return StatusCode(StatusCodes.Status201Created, new { user.Id, user.Username });
+        try
+        {
+            var user = _authService.Register(request.Username, request.Password);
+            return StatusCode(StatusCodes.Status201Created, new { user.Id, user.Username });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return Conflict(ex.Message);
+        }
     }
 }
