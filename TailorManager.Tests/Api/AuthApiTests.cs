@@ -36,4 +36,18 @@ public class AuthApiTests : IDisposable
         // Assert
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
     }
+
+    [Fact]
+    public async Task PostAuthRegister_TakenUsername_ReturnsConflict()
+    {
+        // Arrange
+        var credentials = new { Username = "owner", Password = "Test-password-1" };
+        await _client.PostAsJsonAsync("/auth/register", credentials);
+
+        // Act
+        var response = await _client.PostAsJsonAsync("/auth/register", credentials);
+
+        // Assert
+        Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
+    }
 }
