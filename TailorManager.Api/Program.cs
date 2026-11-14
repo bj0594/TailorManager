@@ -3,6 +3,7 @@ using TailorManager.Core.Repository;
 using TailorManager.Core;
 using Microsoft.EntityFrameworkCore;
 using TailorManager.Infrastructure;
+using TailorManager.Api.Auth;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -10,7 +11,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-builder.Services.AddOpenApi();
+builder.Services.AddOpenApi(options => options.AddDocumentTransformer<BearerSecuritySchemeTransformer>());
 
 builder.Services.AddDbContext<TailorManagerDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("Default")));
@@ -39,7 +40,7 @@ if (app.Configuration.GetValue<bool>("Database:MigrateOnStartup"))
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
-    app.MapScalarApiReference();
+    app.MapScalarApiReference(options => options.AddPreferredSecuritySchemes("Bearer"));
 }
 
 app.UseHttpsRedirection();
