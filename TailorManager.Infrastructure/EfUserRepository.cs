@@ -12,7 +12,11 @@ public class EfUserRepository : IUserRepository
         _db = db;
     }
 
-    public void Add(User user) => throw new NotImplementedException();
+    public void Add(User user)
+    {
+        _db.Users.Add(user);
+        _db.SaveChanges();
+    }
 
-    public User? GetByUsername(string username) => throw new NotImplementedException();
+    public User? GetByUsername(string username) => _db.Users.FirstOrDefault(u => u.Username == username);
 }
