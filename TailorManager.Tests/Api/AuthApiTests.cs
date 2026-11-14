@@ -50,4 +50,19 @@ public class AuthApiTests : IDisposable
         // Assert
         Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
     }
+
+    [Fact]
+    public async Task PostAuthRegister_NewUser_StoresOnlyHash()
+    {
+        // Arrange
+        var password = "Test-password-1";
+
+        // Act
+        await _client.PostAsJsonAsync("/auth/register", new { Username = "owner", Password = password });
+
+        // Assert
+        var user = _factory.Services.GetRequiredService<IUserRepository>().GetByUsername("owner");
+        Assert.NotEqual(password, user!.PasswordHash);
+        Assert.StartsWith("$2", user.PasswordHash);
+    }
 }
