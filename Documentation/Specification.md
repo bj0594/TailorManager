@@ -21,6 +21,10 @@ Main flow (FrontDesk): an employee registers or finds a customer, creates an ord
 
 Main flow (Workshop): an employee starts a submitted order, records the work, asks for written customer approval before changing the agreed work or price, schedules fittings when needed, and marks the order as ready for pickup when it is completed.
 
+Frontend: the main flow can be done in the browser, by FrontDesk (Search, Ready for pickup) and by Workshop (Orders)
+
+Login: employees register and log in, and each part can only do its own actions
+
 Core (MUST):
 
 - (FrontDesk) Register a customer with name, phone number, email and address
@@ -186,7 +190,17 @@ erDiagram
         string WorkDescription
         string Status
     }
+    User {
+        guid Id
+        string Username
+        string PasswordHash
+        string Role
+        string FirstName
+        string LastName
+    }
 ~~~
+
+Users is its own table. The history stores the employee's id and display name, so Order has no foreign key to User either.
 
 ### Order status
 
@@ -207,7 +221,7 @@ stateDiagram-v2
 
 ### Architecture
 
-Every part of the system as it runs with Docker Compose. Solid arrows are requests, dotted arrows are dependencies. Start order (depends_on): db, then api when db is healthy.
+Every part of the system as it runs with Docker Compose. Solid arrows are requests, dotted arrows are dependencies. Start order (depends_on): db, then api when db is healthy, then web.
 
 ```mermaid
 flowchart LR
@@ -217,64 +231,67 @@ flowchart LR
     end
 
     subgraph compose["Docker Compose network"]
+        subgraph web["web: Blazor Server"]
+            webproj["TailorManager.Web<br/>pages per part, CustomersClient and OrdersClient<br/>the token in TokenStore"]
+        end
         subgraph api["api: ASP.NET Core"]
-            apiproj["TailorManager.Api<br/>controllers and /health"]
-            core["TailorManager.Core<br/>CustomerService, OrderService and the rules<br/>in-memory fake repositories"]
+            apiproj["TailorManager.Api<br/>controllers, /auth and /health<br/>JWT and roles"]
+            core["TailorManager.Core<br/>CustomerService, OrderService and the rules"]
             apiproj -- "calls" --> core
         end
 
-        db[("db<br/>PostgreSQL<br/>no tables until the EF module")]
+        db[("db<br/>PostgreSQL<br/>Customers, Orders and Users")]
         vol[["volume db_data"]]
         pgadmin["pgadmin"]
     end
 
+    browser -- "HTTP localhost:5100" --> webproj
+    webproj -- "HTTP api:8080<br/>Bearer token" --> apiproj
     restclient -- "HTTP localhost:8080" --> apiproj
+    apiproj -- "EF Core, db:5432" --> db
     browser -- "HTTP localhost:5050" --> pgadmin
     pgadmin -- "db:5432" --> db
     db --- vol
 ```
 
-### From FrontDesk to Workshop and back
-
-What goes between the two parts through the API, for one order.
+### Login flow
 
 ```mermaid
 sequenceDiagram
-    actor fd as FrontDesk
-    participant api as API
-    actor ws as Workshop
-    fd->>api: POST /orders
-    api->>api: OrderService creates the order (Submitted)
-    api-->>fd: 201 Created + the order
-    ws->>api: GET /orders?status=Submitted
-    api-->>ws: 200 OK + the submitted orders
-    ws->>api: PATCH /orders/{orderId}/start
-    api-->>ws: 200 OK (InProgress)
-    opt a change needs the customer's approval
-        ws->>api: POST /orders/{orderId}/decision-requests
-        api->>api: WaitingForCustomer, and a notification request in the history
-        api-->>ws: 200 OK
-        ws->>api: POST /orders/{orderId}/decision-requests/{requestId}/decision
-        api-->>ws: 200 OK (InProgress when no request is pending)
-    end
-    opt a fitting is needed
-        ws->>api: POST /orders/{orderId}/fittings
-        api-->>ws: 200 OK (WaitingForFitting)
-        ws->>api: PATCH /orders/{orderId}/fittings/{fittingId}/complete
-        api-->>ws: 200 OK (InProgress when every fitting is completed)
-    end
-    ws->>api: PATCH /orders/{orderId}/ready-for-pickup
-    api->>api: ReadyForPickup, and a notification request in the history
-    api-->>ws: 200 OK
-    fd->>api: GET /orders?status=ReadyForPickup
-    api-->>fd: 200 OK + the orders ready for pickup
-    alt payment is due
-        fd->>api: POST /orders/{orderId}/payments
-    else nothing to pay
-        fd->>api: PATCH /orders/{orderId}/delivered
-    end
-    api-->>fd: 200 OK (Delivered)
+    actor e as Employee
+    participant w as Web
+    participant a as API
+    e->>w: username and password on /login
+    w->>a: POST /auth/login
+    a-->>w: 200 OK + token (role FrontDesk or Workshop)
+    w->>w: keeps the token in TokenStore while the tab is open
+    w->>a: GET /orders with Bearer token
+    a-->>w: 200 OK, or 401 without a token, or 403 for the other part's actions
 ```
+
+### Pages and navigation
+
+A customer has no page of its own. FrontDesk searches by name, phone number or email, and the results show the matching customers, each with its orders.
+
+~~~mermaid
+flowchart LR
+    login["/login<br/>LoginPage"] -- "logged in as FrontDesk" --> fdmenu{{FrontDesk menu}}
+    login -- "logged in as Workshop" --> wsmenu{{Workshop menu}}
+    register["/register<br/>RegisterPage"] -- "registered" --> login
+    fdmenu --> search["/front-desk<br/>FrontDeskSearchPage"]
+    search -- "New customer" --> search
+    search -- "New order for a customer" --> order["/orders/{id}<br/>OrderDetailsPage"]
+    search -- "clicks an order" --> order
+    fdmenu --> ready["/front-desk/orders<br/>FrontDeskOrdersPage (ReadyForPickup)"]
+    ready -- "clicks an order" --> order
+    wsmenu --> wsorders["/workshop/orders<br/>WorkshopOrdersPage"]
+    wsorders -- "clicks an order" --> order
+    order -- "Back" --> search
+    search -- "nothing matches" --> nomatch[/Shows: No customers found/]
+    search -- "the API fails" --> error[/Shows: Could not load customers/]
+    wsorders -- "the list is empty" --> empty[/Shows: No orders yet/]
+    order -- "no token (401)" --> login
+~~~
 
 ## 4 Interface
 
@@ -435,43 +452,116 @@ Dependencies:
 - No HTTP, frontend, database or external providers in Core.
 - The API (TailorManager.Api) calls CustomerService and OrderService, and only translates their results and exceptions to status codes. The contract is in api.md.
 
-Stored in: PostgreSQL with EF Core (tables: Customers and Orders).
+### Web pages
+
+~~~text
+Hosting: Blazor Server
+Client:  own API (api.md), with the token from POST /auth/login
+Menu:    FrontDesk: Search, Ready for pickup. Workshop: Orders
+
+LoginPage                /login                     does:  log in, link to /register
+                                                    calls: POST /auth/login, GET /auth/me
+                                                    errors: "Wrong username or password"
+RegisterPage             /register                  does:  register with first name, last name and part
+                                                    calls: POST /auth/register
+                                                    errors: shows the message from 400 and 409
+FrontDeskSearchPage      /front-desk                shows: the customers whose name, phone or email matches, each with its orders
+                                                    does:  search, new customer form, new order form for a customer (with an earlier order to link to)
+                                                    calls: GET /customers?searchTerm=, GET /orders?customerId=, POST /customers, POST /orders
+                                                    states: no match ("No customers found"), error ("Could not load customers")
+FrontDeskOrdersPage      /front-desk/orders         shows: the orders that are ReadyForPickup
+                                                    calls: GET /orders?status=ReadyForPickup
+WorkshopOrdersPage       /workshop/orders           shows: the orders, filtered by status
+                                                    calls: GET /orders?status=
+                                                    states: empty ("No orders yet"), error ("Could not load orders")
+OrderDetailsPage         /orders/{id}               shows: one order, its customer (name and phone), its price, outstanding balance and history
+                                                    does:  the buttons and forms for the logged-in part
+                                                    calls: GET /orders/{id}, GET /customers/{id}, and the PATCH and POST endpoints under /orders/{id}
+                                                    states: not found ("Order not found")
+                                                    errors: shows the message from 400 and 409
+~~~
+
+Stored in: PostgreSQL with EF Core (tables: Customers, Orders and Users).
 
 Notes:
 
 - Reclamation work is registered as a new order linked to the original order. It has no OrderType of its own yet.
 - CustomerApproval can record an agreed inspection fee, but how the fee is assessed and applied is Later (§2).
 - OrderStatus holds one status at a time. An order that waits for a customer decision and a fitting at the same time is not defined yet (§6).
-- Employees log in (§6). Each method that adds a history entry gets the logged-in employee as its last parameter in the Innlogging module. Until then, ActorId and ActorDisplayName are empty.
+- Employees log in (§6). Each method that adds a history entry takes the logged-in employee as its last parameter, and the controllers send the employee from the token. The first one is tested in "The history shows who did it" in §5.
 
 ## 5 Test list
 
 One heading per function, with one line per category. The API lines are the first line and status of the block in api.md.
 
-The headings are in the order the cycles are taken: the main flow first, then the rules (409), the invalid input (400), the unknown ids (404), and last the login.
+The headings are in the order the cycles are taken: the main flow first, then the rules (409), the invalid input (400) and the unknown ids (404). Login (401) and the role (403) for an endpoint come right after the function that makes the endpoint, so each function is done in every category at once.
+
+No cycle, built on the module page: Register an employee and Log in (Innlogging), Storage is unavailable (Funksjoner), and One menu per part (Web). Pages require login and Infrastructure are taken in a module, not in Funksjoner, so they stand last: Pages require login is taken in the frontend part of Innlogging, which needs the Web project.
 
 ### (FrontDesk) Add a customer
 
 - [x] Core: a new customer can be added with name, phone number, email and address
 - [ ] API: POST /customers → 201 Created
-- [ ] Web: the customer form adds a customer and shows it
+- [ ] Web: the new customer form on the search page adds a customer and shows it in the results
 - [ ] Web client: AddCustomerAsync posts the customer to /customers
 - [x] EF: an added customer can be read back by id
+
+### Register an employee
+
+- [ ] API: POST /auth/register → 201 Created
+- [ ] API: POST /auth/register → 409 Conflict (username is taken)
+- [ ] API: POST /auth/register with missing details or an unknown role → 400 Bad Request
+- [ ] API: the password is stored as a hash
+- [ ] Web: the register page creates an employee with a role
+- [ ] Web: the register page shows the message from 400 and 409
+- [ ] Web client: RegisterAsync posts to /auth/register
+- [ ] EF: an employee is saved with a hashed password
+
+### Log in
+
+- [ ] API: POST /auth/login → 200 OK with a token
+- [ ] API: POST /auth/login → 401 Unauthorized (wrong username or password)
+- [ ] API: GET /auth/me → 200 OK with the username and the role
+- [ ] Web: the login page keeps the token and shows the menu for the role
+- [ ] Web: the login page shows "Wrong username or password"
+- [ ] Web client: LoginAsync posts to /auth/login, and GetMeAsync gets /auth/me
+- [ ] Web client: GetOrdersAsync and GetCustomersAsync send the token
+
+### Customers require login
+
+- [ ] API: GET /customers without a token → 401 Unauthorized
+
+### (FrontDesk) Only FrontDesk can add customers
+
+- [ ] API: POST /customers as Workshop → 403 Forbidden
 
 ### (FrontDesk) Get a customer
 
 - [ ] Core: a customer can be found by id
 - [ ] API: GET /customers/{customerId} → 200 OK
-- [ ] Web: the customer page shows the customer
+- [ ] Web: the order page shows the customer's name and phone
 - [ ] Web client: GetCustomerAsync gets /customers/{customerId}
 
 ### (FrontDesk) Create an order
 
 - [ ] Core: a new order for a garment or a repair is Submitted, with its agreed price and a history entry
 - [ ] API: POST /orders → 201 Created
-- [ ] Web: the order form creates an order for the chosen customer
+- [ ] Web: the new order form on the search page creates an order for the chosen customer
 - [ ] Web client: CreateOrderAsync posts the order to /orders
 - [ ] EF: a created order is read back with its history
+
+### Orders require login
+
+- [ ] API: GET /orders without a token → 401 Unauthorized
+
+### (FrontDesk) Only FrontDesk can create orders
+
+- [ ] API: POST /orders as Workshop → 403 Forbidden
+
+### The history shows who did it
+
+- [ ] Core: CreateOrder stores the employee it gets in the history entry
+- [ ] API: POST /orders records the logged-in employee in the history, like "Kari N."
 
 ### (Workshop) Open an order
 
@@ -488,6 +578,11 @@ The headings are in the order the cycles are taken: the main flow first, then th
 - [ ] Web client: StartWorkAsync patches /orders/{orderId}/start
 - [ ] EF: the new status and the history entry are saved
 
+### (Workshop) Only Workshop can start work
+
+- [ ] API: PATCH /orders/{orderId}/start as FrontDesk → 403 Forbidden
+- [ ] Web: the Start button is hidden for FrontDesk
+
 ### (Workshop) Start an order that is not submitted
 
 - [ ] Core: starting fails when the order is not Submitted
@@ -501,12 +596,22 @@ The headings are in the order the cycles are taken: the main flow first, then th
 - [ ] Web: the note form adds the note to the order history
 - [ ] Web client: AddWorkNoteAsync posts the note to /orders/{orderId}/notes
 
+### (Workshop) Only Workshop can record work
+
+- [ ] API: POST /orders/{orderId}/notes as FrontDesk → 403 Forbidden
+- [ ] Web: the note form is hidden for FrontDesk
+
 ### (Workshop) Mark ready for pickup
 
 - [ ] Core: marking an order in progress ReadyForPickup adds a history entry and a notification request
 - [ ] API: PATCH /orders/{orderId}/ready-for-pickup → 200 OK
 - [ ] Web: clicking Ready for pickup shows the order as ReadyForPickup
 - [ ] Web client: MarkReadyForPickupAsync patches /orders/{orderId}/ready-for-pickup
+
+### (Workshop) Only Workshop can mark orders ready for pickup
+
+- [ ] API: PATCH /orders/{orderId}/ready-for-pickup as FrontDesk → 403 Forbidden
+- [ ] Web: the Ready for pickup button is hidden for FrontDesk
 
 ### (FrontDesk) Register payment and deliver
 
@@ -515,6 +620,11 @@ The headings are in the order the cycles are taken: the main flow first, then th
 - [ ] Web: the payment form registers the payment and shows the order as Delivered
 - [ ] Web client: RegisterPaymentAsync posts the payment to /orders/{orderId}/payments
 - [ ] EF: the payment is saved with the order
+
+### (FrontDesk) Only FrontDesk can register payments
+
+- [ ] API: POST /orders/{orderId}/payments as Workshop → 403 Forbidden
+- [ ] Web: the payment form is hidden for Workshop
 
 ### (FrontDesk) Create a free order
 
@@ -529,6 +639,11 @@ The headings are in the order the cycles are taken: the main flow first, then th
 - [ ] Web: clicking Deliver shows the order as Delivered
 - [ ] Web client: MarkDeliveredAsync patches /orders/{orderId}/delivered
 
+### (FrontDesk) Only FrontDesk can deliver orders
+
+- [ ] API: PATCH /orders/{orderId}/delivered as Workshop → 403 Forbidden
+- [ ] Web: the Deliver button is hidden for Workshop
+
 ### (Workshop) List orders
 
 - [ ] Core: orders can be listed, filtered by status and by customer
@@ -541,7 +656,7 @@ The headings are in the order the cycles are taken: the main flow first, then th
 
 - [ ] Core: searching by name, phone number or email returns only the matching customers
 - [ ] API: GET /customers?searchTerm={searchTerm} → 200 OK
-- [ ] Web: the search box shows only the matching customers
+- [ ] Web: the search shows only the matching customers, each with its orders
 - [ ] Web client: FindCustomersAsync gets /customers?searchTerm={searchTerm}
 - [ ] EF: the search runs in the database
 
@@ -560,6 +675,11 @@ The headings are in the order the cycles are taken: the main flow first, then th
 - [ ] Web client: RequestCustomerDecisionAsync posts to /orders/{orderId}/decision-requests
 - [ ] EF: the decision request is saved with the order
 
+### (Workshop) Only Workshop can ask for customer decisions
+
+- [ ] API: POST /orders/{orderId}/decision-requests as FrontDesk → 403 Forbidden
+- [ ] Web: the decision form is hidden for FrontDesk
+
 ### (Workshop) Ask for a second decision while waiting
 
 - [ ] Core: a second request while WaitingForCustomer is added, the order keeps waiting, and no new notification request is raised
@@ -572,6 +692,11 @@ The headings are in the order the cycles are taken: the main flow first, then th
 - [ ] Web: approving a change shows the new agreed price
 - [ ] Web client: RecordCustomerDecisionAsync posts to /orders/{orderId}/decision-requests/{requestId}/decision
 - [ ] EF: the approval and the price adjustment are saved with the order
+
+### (Workshop) Only Workshop can record customer decisions
+
+- [ ] API: POST /orders/{orderId}/decision-requests/{requestId}/decision as FrontDesk → 403 Forbidden
+- [ ] Web: the Approve and Reject buttons are hidden for FrontDesk
 
 ### (Workshop) Approve a change without a price
 
@@ -597,12 +722,22 @@ The headings are in the order the cycles are taken: the main flow first, then th
 - [ ] Web client: ScheduleFittingAsync posts to /orders/{orderId}/fittings
 - [ ] EF: the fitting is saved with the order
 
+### (Workshop) Only Workshop can schedule fittings
+
+- [ ] API: POST /orders/{orderId}/fittings as FrontDesk → 403 Forbidden
+- [ ] Web: the fitting form is hidden for FrontDesk
+
 ### (Workshop) Complete a fitting
 
 - [ ] Core: completing a fitting records its outcome
 - [ ] API: PATCH /orders/{orderId}/fittings/{fittingId}/complete → 200 OK
 - [ ] Web: completing a fitting shows its outcome
 - [ ] Web client: CompleteFittingAsync patches /orders/{orderId}/fittings/{fittingId}/complete
+
+### (Workshop) Only Workshop can complete fittings
+
+- [ ] API: PATCH /orders/{orderId}/fittings/{fittingId}/complete as FrontDesk → 403 Forbidden
+- [ ] Web: the Complete button is hidden for FrontDesk
 
 ### (Workshop) Resume after the fittings
 
@@ -616,6 +751,11 @@ The headings are in the order the cycles are taken: the main flow first, then th
 - [ ] Web: the communication form adds the message to the order
 - [ ] Web client: RecordCommunicationAsync posts to /orders/{orderId}/communications
 - [ ] EF: the communication is saved with the order
+
+### (Workshop) Only Workshop can record communication
+
+- [ ] API: POST /orders/{orderId}/communications as FrontDesk → 403 Forbidden
+- [ ] Web: the communication form is hidden for FrontDesk
 
 ### (Workshop) Failed communication
 
@@ -631,12 +771,22 @@ The headings are in the order the cycles are taken: the main flow first, then th
 - [ ] Web client: RecordInitialApprovalAsync posts to /orders/{orderId}/approvals
 - [ ] EF: the approval is saved with the order
 
+### (FrontDesk) Only FrontDesk can record the initial approval
+
+- [ ] API: POST /orders/{orderId}/approvals as Workshop → 403 Forbidden
+- [ ] Web: the intake form is hidden for Workshop
+
 ### (FrontDesk) Record an inspection fee agreement
 
 - [ ] Core: a written inspection fee agreement is recorded with its amount and document reference
 - [ ] API: POST /orders/{orderId}/inspection-fee-agreements → 201 Created
 - [ ] Web: the intake form records the inspection fee agreement
 - [ ] Web client: RecordInspectionFeeAgreementAsync posts to /orders/{orderId}/inspection-fee-agreements
+
+### (FrontDesk) Only FrontDesk can record an inspection fee agreement
+
+- [ ] API: POST /orders/{orderId}/inspection-fee-agreements as Workshop → 403 Forbidden
+- [ ] Web: the inspection fee form is hidden for Workshop
 
 ### (FrontDesk) Link to an earlier order
 
@@ -649,6 +799,8 @@ The headings are in the order the cycles are taken: the main flow first, then th
 
 - [ ] Web: the order list shows "No orders yet"
 - [ ] Web: the pages show "Could not load orders" when the API does not answer
+- [ ] Web: the customer search shows "No customers found"
+- [ ] Web: the search page shows "Could not load customers" when the API does not answer
 
 ### (Workshop) Work note on an order not in progress
 
@@ -806,7 +958,6 @@ The headings are in the order the cycles are taken: the main flow first, then th
 
 - [ ] Core: finding a customer fails when the id does not exist
 - [ ] API: GET /customers/{customerId} → 404 Not Found
-- [ ] Web: the customer page shows "Customer not found"
 
 ### (Workshop) Open an unknown order
 
@@ -829,51 +980,20 @@ The headings are in the order the cycles are taken: the main flow first, then th
 - [ ] Core: recording a decision fails when the request id does not exist
 - [ ] API: POST /orders/{orderId}/decision-requests/{requestId}/decision → 404 Not Found
 
-### Register an employee
+### Storage is unavailable
 
-- [ ] API: POST /auth/register → 201 Created
-- [ ] Web: the register page creates an employee with a role
-- [ ] EF: an employee is saved with a hashed password
+- [ ] Core: CustomerService and OrderService let the storage error through (BrokenCustomerRepository and BrokenOrderRepository)
+- [ ] API: GET /customers when the storage is down → 503 Service Unavailable
+- [ ] API: GET /orders when the storage is down → 503 Service Unavailable
 
-### Register with a taken username
+### Pages require login
 
-- [ ] API: POST /auth/register → 409 Conflict
-
-### Register with missing details or an unknown role
-
-- [ ] API: POST /auth/register → 400 Bad Request
-
-### Log in
-
-- [ ] API: POST /auth/login → 200 OK, with a token
-- [ ] Web: the login page keeps the token and shows the menu for the role
-
-### Log in with the wrong password
-
-- [ ] API: POST /auth/login → 401 Unauthorized
-- [ ] Web: the login page shows "Wrong username or password"
-
-### Endpoints need a token
-
-- [ ] API: /customers without a token → 401 Unauthorized
-- [ ] API: /orders without a token → 401 Unauthorized
-
-### (FrontDesk) Only FrontDesk can do FrontDesk actions
-
-- [ ] API: the FrontDesk endpoints → 403 Forbidden for a Workshop employee
-
-### (Workshop) Only Workshop can do Workshop actions
-
-- [ ] API: the Workshop endpoints → 403 Forbidden for a FrontDesk employee
-
-### The history shows who did it
-
-- [ ] Core: a history entry stores the employee it gets
-- [ ] API: a history entry has the logged-in employee from the token, like "Kari N."
+- [ ] Web: a logged-out user who opens a page is sent to the login page
 
 ### One menu per part
 
 - [ ] Web: the menu shows the FrontDesk pages or the Workshop pages for the logged-in role
+- [ ] Web: the menu links every page for the part
 
 ### Infrastructure
 
@@ -884,6 +1004,10 @@ Manual checks:
 
 - [ ] The workflow is green in Actions
 - [ ] Orders are still there after docker compose restart api
+- [ ] Login works in Swagger and in the .http file, and a request without a token gets 401
+- [ ] Frontend: the main flow works in the browser (FrontDesk and Workshop)
+- [ ] Frontend: a rule that stops an action shows the API's error message
+- [ ] The site is readable on a phone
 
 Later questions:
 
@@ -935,6 +1059,9 @@ Decisions:
 - Decision: until the admin question is answered, an employee chooses FrontDesk or Workshop when registering, with first and last name for the history.
 - Decision: a fitting date before the current time is invalid (opening hours are a later question).
 - Decision: an unknown order id gives OrderNotFoundException in every OrderService method, tested once per method in one Theory.
+- Decision: Storage unavailable → the services let the error through, and the API answers 503.
+- Decision: each action only one part does is locked to that role ([Authorize(Roles = ...)]), with one 403 test per endpoint. Both parts can read customers and orders.
+- Decision: the website has one menu per part, and the order page only shows the buttons for the logged-in part.
 
 Assumptions:
 
@@ -944,6 +1071,10 @@ Assumptions:
 - Assumption: a fitting needs a date and time, and an employee records when it is completed.
 - Assumption: communication and written approvals belong to an order and are kept in its history.
 - Assumption: each employee has a stable internal id in addition to the name shown in the history.
+
+Limitations:
+
+- Limitation: the login is lost when the page is reloaded (the token is kept in memory while the tab is open).
 
 Questions:
 
