@@ -508,14 +508,14 @@ No cycle, built on the module page: Register an employee and Log in (Innlogging)
 
 ### Register an employee
 
-- [ ] API: POST /auth/register → 201 Created
-- [ ] API: POST /auth/register → 409 Conflict (username is taken)
+- [x] API: POST /auth/register → 201 Created
+- [x] API: POST /auth/register → 409 Conflict (username is taken)
 - [ ] API: POST /auth/register with missing details or an unknown role → 400 Bad Request
-- [ ] API: the password is stored as a hash
+- [x] API: the password is stored as a hash
 - [ ] Web: the register page creates an employee with a role
 - [ ] Web: the register page shows the message from 400 and 409
 - [ ] Web client: RegisterAsync posts to /auth/register
-- [ ] EF: an employee is saved with a hashed password
+- [x] EF: an employee is saved with a hashed password
 
 ### Log in
 
