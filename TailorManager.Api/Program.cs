@@ -20,6 +20,9 @@ builder.Services.AddScoped<CustomerService>();
 builder.Services.AddScoped<IOrderRepository, EfOrderRepository>();
 builder.Services.AddScoped<OrderService>();
 
+builder.Services.AddSingleton<IUserRepository, FakeUserRepository>();
+builder.Services.AddScoped<AuthService>();
+
 builder.Services.AddHealthChecks()
     .AddDbContextCheck<TailorManagerDbContext>(
         customTestQuery: async (db, cancellationToken) =>
