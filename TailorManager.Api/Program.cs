@@ -21,6 +21,7 @@ builder.Services.AddScoped<IOrderRepository, EfOrderRepository>();
 builder.Services.AddScoped<OrderService>();
 
 builder.Services.AddSingleton<IUserRepository, FakeUserRepository>();
+builder.Services.AddSingleton<PasswordHasher>();
 builder.Services.AddScoped<AuthService>();
 
 builder.Services.AddHealthChecks()

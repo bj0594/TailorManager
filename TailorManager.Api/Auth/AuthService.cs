@@ -7,10 +7,12 @@ namespace TailorManager.Api.Auth;
 public class AuthService
 {
     private readonly IUserRepository _users;
+    private readonly PasswordHasher _hasher;
 
-    public AuthService(IUserRepository users)
+    public AuthService(IUserRepository users, PasswordHasher hasher)
     {
         _users = users;
+        _hasher = hasher;
     }
 
     public User Register(string username, string password)
@@ -19,7 +21,7 @@ public class AuthService
         {
             throw new InvalidOperationException("Username is already taken.");
         }
-        var user = new User { Id = Guid.NewGuid(), Username = username, PasswordHash = password };
+        var user = new User { Id = Guid.NewGuid(), Username = username, PasswordHash = _hasher.Hash(password) };
         _users.Add(user);
         return user;
     }
