@@ -20,7 +20,7 @@ builder.Services.AddScoped<CustomerService>();
 builder.Services.AddScoped<IOrderRepository, EfOrderRepository>();
 builder.Services.AddScoped<OrderService>();
 
-builder.Services.AddSingleton<IUserRepository, FakeUserRepository>();
+builder.Services.AddScoped<IUserRepository, EfUserRepository>();
 builder.Services.AddSingleton<PasswordHasher>();
 builder.Services.AddScoped<AuthService>();
 
