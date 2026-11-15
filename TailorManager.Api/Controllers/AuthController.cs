@@ -27,4 +27,11 @@ public class AuthController : ControllerBase
             return Conflict(ex.Message);
         }
     }
+
+    [HttpPost("login")]
+    public IActionResult Login(LoginRequest request)
+    {
+        var token = _authService.Login(request.Username, request.Password);
+        return Ok(new { token });
+    }
 }
