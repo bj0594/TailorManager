@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using TailorManager.Api.Auth;
+using Microsoft.AspNetCore.Authorization;
 
 namespace TailorManager.Api.Controllers;
 
@@ -40,5 +41,12 @@ public class AuthController : ControllerBase
         {
             return Unauthorized();
         }
+    }
+
+    [Authorize]
+    [HttpGet("me")]
+    public IActionResult Me()
+    {
+        return Ok(User.Claims.Select(c => new { c.Type, c.Value }));
     }
 }
