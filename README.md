@@ -62,6 +62,14 @@ dotnet ef migrations add <MigrationName> --project TailorManager.Infrastructure 
 
 `dotnet test` also runs the repository contract tests against a PostgreSQL that Testcontainers starts, so Docker must be running.
 
+## Log in
+
+1. Register: `POST /auth/register` with `{ "username": "<username>", "password": "<password>" }`.
+2. Log in: `POST /auth/login` with the same body, and copy `token` from the response.
+3. Send the token with each request: in Swagger, click Authorize and paste it. In the `.http` file, the requests below `# @name login` use `Authorization: Bearer {{login.response.body.$.token}}`.
+
+Without a valid token, the endpoints that require login answer `401 Unauthorized`.
+
 ## Documentation
 
 - [Specification](Specification.md): requirements, flow, interface, test list and decisions

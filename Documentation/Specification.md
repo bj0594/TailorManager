@@ -175,9 +175,25 @@ flowchart TD
 
 All relevant order activities are recorded in an append-only history: order creation, initial approvals, status changes, work notes, customer decisions, fittings, communication, price adjustments, notification requests and payments. The history references the detailed records instead of copying their contents.
 
+```mermaid
+sequenceDiagram
+    participant C as Client
+    participant A as API
+    participant S as AuthService
+    participant R as IUserRepository
+    C->>A: POST /auth/login
+    A->>S: Login(username, password)
+    S->>R: GetByUsername(username)
+    R-->>S: User with PasswordHash
+    S-->>A: JWT with sub and unique_name
+    A-->>C: 200 OK + token
+    C->>A: GET /<things> with Bearer token
+    A-->>C: 200 OK, only the user's <things>
+```
+
 ### Data
 
-~~~mermaid
+```mermaid
 erDiagram
     Customer ||..o{ Order : "CustomerId (not a foreign key)"
     Customer {
@@ -198,7 +214,7 @@ erDiagram
         string FirstName
         string LastName
     }
-~~~
+```
 
 Users is its own table. The history stores the employee's id and display name, so Order has no foreign key to User either.
 
@@ -273,7 +289,7 @@ sequenceDiagram
 
 A customer has no page of its own. FrontDesk searches by name, phone number or email, and the results show the matching customers, each with its orders.
 
-~~~mermaid
+```mermaid
 flowchart LR
     login["/login<br/>LoginPage"] -- "logged in as FrontDesk" --> fdmenu{{FrontDesk menu}}
     login -- "logged in as Workshop" --> wsmenu{{Workshop menu}}
@@ -291,7 +307,7 @@ flowchart LR
     search -- "the API fails" --> error[/Shows: Could not load customers/]
     wsorders -- "the list is empty" --> empty[/Shows: No orders yet/]
     order -- "no token (401)" --> login
-~~~
+```
 
 ## 4 Interface
 
@@ -1062,6 +1078,7 @@ Decisions:
 - Decision: Storage unavailable → the services let the error through, and the API answers 503.
 - Decision: each action only one part does is locked to that role ([Authorize(Roles = ...)]), with one 403 test per endpoint. Both parts can read customers and orders.
 - Decision: the website has one menu per part, and the order page only shows the buttons for the logged-in part.
+- Decision: JWT in the Authorization header, signed with Jwt:Key
 
 Assumptions:
 
