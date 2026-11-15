@@ -1,11 +1,30 @@
 @host = http://localhost:8080
 
-### The API answers: 404 Not Found until the first endpoint exists
-GET {{host}}/does-not-exist
-
-###
-
 ### The API and its dependencies are healthy
 GET {{host}}/health
 
-###
+### Register a FrontDesk employee (409 the second time: the username is taken)
+POST {{host}}/auth/register
+Content-Type: application/json
+
+{ "username": "kari", "password": "Secret-123", "firstName": "Kari", "lastName": "Nordmann", "role": "FrontDesk" }
+
+### Log in
+# @name login
+POST {{host}}/auth/login
+Content-Type: application/json
+
+{ "username": "kari", "password": "Secret-123" }
+
+### Log in with the wrong password: 401
+POST {{host}}/auth/login
+Content-Type: application/json
+
+{ "username": "kari", "password": "Wrong-123" }
+
+### Who am I: 200 with the username and the role
+GET {{host}}/auth/me
+Authorization: Bearer {{login.response.body.$.token}}
+
+### Who am I without a token: 401
+GET {{host}}/auth/me

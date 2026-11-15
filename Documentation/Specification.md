@@ -1002,9 +1002,9 @@ No cycle, built on the module page: Register an employee and Log in (Innlogging)
 
 Manual checks:
 
-- [ ] The workflow is green in Actions
+- [x] The workflow is green in Actions
 - [ ] Orders are still there after docker compose restart api
-- [ ] Login works in Swagger and in the .http file, and a request without a token gets 401
+- [x] Login works in Swagger and in the .http file, and a request without a token gets 401
 - [ ] Frontend: the main flow works in the browser (FrontDesk and Workshop)
 - [ ] Frontend: a rule that stops an action shows the API's error message
 - [ ] The site is readable on a phone
