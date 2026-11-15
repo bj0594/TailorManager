@@ -83,4 +83,17 @@ public class AuthApiTests : IDisposable
     }
 
     private record LoginResponse(string Token);
+
+    [Fact]
+    public async Task PostAuthLogin_WrongPassword_ReturnsUnauthorized()
+    {
+        // Arrange
+        await _client.PostAsJsonAsync("/auth/register", new { Username = "owner", Password = "Test-password-1" });
+
+        // Act
+        var response = await _client.PostAsJsonAsync("/auth/login", new { Username = "owner", Password = "Wrong-password-1" });
+
+        // Assert
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+    }
 }
