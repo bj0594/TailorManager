@@ -31,10 +31,15 @@ public class AuthService
         return user;
     }
 
-    // Returns a JWT for the user.
+    // Returns a JWT. Throws UnauthorizedAccessException if the username or the password is wrong.
     public string Login(string username, string password)
     {
-        var user = _users.GetByUsername(username)!;
+        var user = _users.GetByUsername(username);
+        if (user is null || !_hasher.Verify(password, user.PasswordHash))
+        {
+            throw new UnauthorizedAccessException("Wrong username or password.");
+        }
+
         return CreateToken(user);
     }
 
