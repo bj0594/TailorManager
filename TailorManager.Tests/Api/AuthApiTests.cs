@@ -96,4 +96,21 @@ public class AuthApiTests : IDisposable
         // Assert
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }
+
+    [Fact]
+    public async Task GetAuthMe_WithToken_ReturnsUsername()
+    {
+        // Arrange
+        var client = await AuthHelper.CreateLoggedInClientAsync(_factory, "owner");
+
+        // Act
+        var response = await client.GetAsync("/auth/me");
+
+        // Assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var claims = await response.Content.ReadFromJsonAsync<List<ClaimResponse>>();
+        Assert.Contains(claims!, c => c.Value == "owner");
+    }
+
+    private record ClaimResponse(string Type, string Value);
 }
