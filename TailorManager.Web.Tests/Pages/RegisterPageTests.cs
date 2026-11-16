@@ -1,4 +1,5 @@
 using Bunit;
+using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.DependencyInjection;
 using TailorManager.Web.Api;
 using TailorManager.Web.Components.Pages;
@@ -27,5 +28,20 @@ public class RegisterPageTests : BunitContext
 
         // Assert
         page.WaitForAssertion(() => Assert.NotNull(page.Find(".error")));
+    }
+
+    [Fact]
+    public void RegisterPage_NewUser_GoesToLogin()
+    {
+        // Arrange
+        _auth.Succeeds = true;
+        var page = Render<RegisterPage>();
+
+        // Act
+        page.Find("form").Submit();
+
+        // Assert
+        var navigation = Services.GetRequiredService<NavigationManager>();
+        page.WaitForAssertion(() => Assert.EndsWith("/login", navigation.Uri));
     }
 }

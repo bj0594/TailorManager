@@ -47,4 +47,20 @@ public class LoginPageTests : BunitContext
         var navigation = Services.GetRequiredService<NavigationManager>();
         page.WaitForAssertion(() => Assert.EndsWith("/workshop/orders", navigation.Uri));
     }
+
+    [Fact]
+    public void LoginPage_FrontDeskUser_GoesToTheirPage()
+    {
+        // Arrange
+        _auth.Succeeds = true;
+        _tokens.Role = Roles.FrontDesk;
+        var page = Render<LoginPage>();
+
+        // Act
+        page.Find("form").Submit();
+
+        // Assert
+        var navigation = Services.GetRequiredService<NavigationManager>();
+        page.WaitForAssertion(() => Assert.EndsWith("/front-desk", navigation.Uri));
+    }
 }

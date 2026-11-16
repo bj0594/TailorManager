@@ -1,4 +1,5 @@
 using System.Net;
+using System.Text.Json;
 using TailorManager.Web.Api;
 
 namespace TailorManager.Web.Tests;
@@ -81,5 +82,19 @@ public class AuthClientTests
 
         // Assert
         Assert.True(result);
+    }
+
+    [Fact]
+    public async Task RegisterAsync_NewUser_SendsTheRole()
+    {
+        // Arrange
+        _handler.Respond("/auth/register", "{}", HttpStatusCode.Created);
+
+        // Act
+        await _auth.RegisterAsync("anna", "Secret-123", Roles.Workshop);
+
+        // Assert
+        var body = JsonDocument.Parse(_handler.Bodies.Single()!).RootElement;
+        Assert.Equal(Roles.Workshop, body.GetProperty("role").GetString());
     }
 }
