@@ -24,6 +24,11 @@ public class AuthClient : IAuthClient
 
         var body = await response.Content.ReadFromJsonAsync<LoginResponse>();
         _tokens.Token = body!.Token;
+
+        // Asks the API who is logged in, and keeps the role.
+        _http.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", _tokens.Token);
+        var claims = await _http.GetFromJsonAsync<List<ClaimResponse>>("auth/me");
+        _tokens.Role = claims?.FirstOrDefault(c => c.Type == "role" || c.Type.EndsWith("/role"))?.Value;
         return true;
     }
 
@@ -34,4 +39,5 @@ public class AuthClient : IAuthClient
     }
 
     private record LoginResponse(string Token);
+    private record ClaimResponse(string Type, string Value);
 }

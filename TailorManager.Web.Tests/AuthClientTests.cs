@@ -19,8 +19,7 @@ public class AuthClientTests
     public async Task LoginAsync_RightPassword_StoresTheToken()
     {
         // Arrange
-        _handler.Respond("/auth/login", """{ "token": "abc" }""");
-
+        _handler.Respond("/auth/login", """{ "token": "abc" }""").Respond("/auth/me", "[]");
         // Act
         var result = await _auth.LoginAsync("anna", "Secret-123");
 
