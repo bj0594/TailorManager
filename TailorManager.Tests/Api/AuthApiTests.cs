@@ -115,6 +115,16 @@ public class AuthApiTests : IDisposable
     }
 
     [Fact]
+    public async Task PostAuthRegister_MissingName_ReturnsBadRequest()
+    {
+        // Act
+        var response = await _client.PostAsJsonAsync("/auth/register", new { Username = "owner", Password = "Test-password-1", Role = Roles.FrontDesk });
+
+        // Assert
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
     public async Task GetAuthMe_FrontDeskUser_ReturnsTheRole()
     {
         // Arrange
