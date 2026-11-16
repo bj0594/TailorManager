@@ -68,4 +68,18 @@ public class AuthClientTests
         // Assert
         Assert.True(result);
     }
+
+    [Fact]
+    public async Task LoginAsync_WorkshopUser_StoresTheRole()
+{
+        // Arrange
+        _handler.Respond("/auth/login", """{ "token": "abc" }""")
+                .Respond("/auth/me", """[{ "type": "role", "value": "Workshop" }]""");
+
+        // Act
+        await _auth.LoginAsync("anna", "Secret-123");
+
+        // Assert
+        Assert.Equal("Workshop", _tokens.Role);
+    }
 }
