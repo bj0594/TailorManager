@@ -539,7 +539,7 @@ No cycle, built on the module page: Register an employee and Log in (Innlogging)
 - [ ] API: POST /auth/login → 401 Unauthorized (wrong username or password)
 - [ ] API: GET /auth/me → 200 OK with the username and the role
 - [ ] Web: the login page keeps the token and shows the menu for the role
-- [ ] Web: the login page shows "Wrong username or password"
+- [x] Web: the login page shows "Wrong username or password"
 - [ ] Web client: LoginAsync posts to /auth/login, and GetMeAsync gets /auth/me
 - [ ] Web client: GetOrdersAsync and GetCustomersAsync send the token
 
