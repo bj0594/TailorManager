@@ -8,26 +8,40 @@ namespace TailorManager.Web.Tests;
 public class OrdersClientTests
 {
     private readonly StubHttpMessageHandler _handler = new();
-private readonly OrdersClient _client;
+    private readonly OrdersClient _client;
 
-public OrdersClientTests()
-{
-    _client = new OrdersClient(new HttpClient(_handler) { BaseAddress = new Uri("http://api.test/") });
-}
-
-[Fact]
-public async Task GetOrdersAsync_ApiReturnsTwo_ReturnsBoth()
+    public OrdersClientTests()
     {
-    // Arrange
-    _handler.Respond("/orders", JsonSerializer.Serialize(new[] { new { id = Guid.NewGuid() }, new { id = Guid.NewGuid() } }));
+        _client = new OrdersClient(new HttpClient(_handler) { BaseAddress = new Uri("http://api.test/") }, new TokenStore());
+    }
 
-    // Act
-    var result = await _client.GetOrdersAsync();
+    [Fact]
+    public async Task GetOrdersAsync_ApiReturnsTwo_ReturnsBoth()
+        {
+        // Arrange
+        _handler.Respond("/orders", JsonSerializer.Serialize(new[] { new { id = Guid.NewGuid() }, new { id = Guid.NewGuid() } }));
 
-    // Assert
-    Assert.Equal(2, result.Count);
-    var request = _handler.Requests.Single();
-    Assert.Equal(HttpMethod.Get, request.Method);
-    Assert.Equal("/orders", request.RequestUri!.AbsolutePath);
-}
+        // Act
+        var result = await _client.GetOrdersAsync();
+
+        // Assert
+        Assert.Equal(2, result.Count);
+        var request = _handler.Requests.Single();
+        Assert.Equal(HttpMethod.Get, request.Method);
+        Assert.Equal("/orders", request.RequestUri!.AbsolutePath);
+    }
+
+    [Fact]
+    public async Task GetOrdersAsync_LoggedIn_SendsTheToken()
+{
+        // Arrange
+        var client = new OrdersClient(new HttpClient(_handler) { BaseAddress = new Uri("http://api.test/") }, new TokenStore { Token = "abc" });
+        _handler.Respond("/orders", "[]");
+
+        // Act
+        await client.GetOrdersAsync();
+
+        // Assert
+        Assert.Equal("Bearer abc", _handler.Requests.Single().Headers.Authorization?.ToString());
+    }
 }
