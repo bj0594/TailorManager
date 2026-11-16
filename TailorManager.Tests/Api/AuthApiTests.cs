@@ -112,5 +112,15 @@ public class AuthApiTests : IDisposable
         Assert.Contains(claims!, c => c.Value == "owner");
     }
 
+    [Fact]
+    public async Task PostAuthRegister_InvalidRole_ReturnsBadRequest()
+    {
+        // Act
+        var response = await _client.PostAsJsonAsync("/auth/register", new { Username = "owner", Password = "Test-password-1", Role = "Janitor" });
+
+        // Assert
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
     private record ClaimResponse(string Type, string Value);
 }
