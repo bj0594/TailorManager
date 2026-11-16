@@ -55,4 +55,17 @@ public class AuthClientTests
         // Assert
         Assert.False(result);
     }
+
+    [Fact]
+    public async Task RegisterAsync_NewUser_ReturnsTue()
+    {
+        // Arrange
+        _handler.Respond("/auth/register", "{}", HttpStatusCode.Created);
+
+        // Act
+        var result = await _auth.RegisterAsync("anna", "Secret-123", "FrontDesk");
+
+        // Assert
+        Assert.True(result);
+    }
 }
