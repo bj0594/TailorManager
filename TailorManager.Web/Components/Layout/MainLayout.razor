@@ -1,12 +1,19 @@
 ﻿@inherits LayoutComponentBase
+@inject TailorManager.Web.Api.TokenStore Tokens
 
 <PageTitle>Tailor Manager</PageTitle>
 
 <nav>
     <img src="icon.png" alt="" width="32" height="32" />
-    <a href="front-desk">Search</a>
-    <a href="front-desk/orders">Ready for pickup</a>
-    <a href="workshop/orders">Orders</a>
+    @if (Tokens.Role == "FrontDesk")
+    {
+        <a href="front-desk">Search</a>
+        <a href="front-desk/orders">Ready for pickup</a>
+    }
+    else if (Tokens.Role == "Workshop")
+    {
+        <a href="workshop/orders">Orders</a>
+    }
 </nav>
 
 <main>@Body</main>
