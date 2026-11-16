@@ -1,1 +1,33 @@
 @page "/login"
+@rendermode InteractiveServer
+@using TailorManager.Web.Api
+@inject IAuthClient Auth
+@inject NavigationManager Navigation
+
+<h1>Log in</h1>
+
+<form @onsubmit="LogIn">
+    <input id="username" @bind="_username" placeholder="Username" />
+    <input id="password" @bind="_password" type="password" placeholder="Password" />
+    <button type="submit">Log in</button>
+</form>
+
+@if (_failed)
+{
+    <p class="error">Wrong username or password.</p>
+}
+
+@code {
+    private string _username = "";
+    private string _password = "";
+    private bool _failed;
+
+    private async Task LogIn()
+    {
+        _failed = !await Auth.LoginAsync(_username, _password);
+        if (!_failed)
+        {
+            Navigation.NavigateTo("/");
+        }
+    }
+}
