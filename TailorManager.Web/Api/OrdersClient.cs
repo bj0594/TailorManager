@@ -1,4 +1,5 @@
 using System.Net.Http.Json;
+using System.Net.Http.Headers;
 
 namespace TailorManager.Web.Api;
 
@@ -10,6 +11,10 @@ public class OrdersClient : IOrdersClient
     public OrdersClient(HttpClient http, TokenStore tokens)
     {
         _http = http;
+        if (tokens.Token is not null)
+        {
+            _http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", tokens.Token);
+        }
     }
 
     public async Task<List<OrderDto>> GetOrdersAsync()
