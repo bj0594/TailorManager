@@ -44,4 +44,19 @@ public class RegisterPageTests : BunitContext
         var navigation = Services.GetRequiredService<NavigationManager>();
         page.WaitForAssertion(() => Assert.EndsWith("/login", navigation.Uri));
     }
+
+    [Fact]
+    public void RegisterPage_ApiRejects_ShowsTheMessage()
+    {
+        // Arrange
+        _auth.Succeeds = false;
+        _auth.Error = "Unknown role: Janitor.";
+        var page = Render<RegisterPage>();
+
+        // Act
+        page.Find("form").Submit();
+
+        // Assert
+        page.WaitForAssertion(() => Assert.Equal("Unknown role: Janitor.", page.Find(".error").TextContent));
+    }
 }
