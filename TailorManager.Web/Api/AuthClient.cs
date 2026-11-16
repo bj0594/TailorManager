@@ -32,7 +32,7 @@ public class AuthClient : IAuthClient
         return true;
     }
 
-    public async Task<bool> RegisterAsync(string username, string password, string role)
+    public async Task<bool> RegisterAsync(string username, string password, string firstName, string lastName, string role)
     {
         var response = await _http.PostAsJsonAsync("auth/register", new { username, password, role });
         return response.IsSuccessStatusCode;

@@ -65,7 +65,7 @@ public class AuthClientTests
         _handler.Respond("/auth/register", "\"Username is already taken.\"", HttpStatusCode.Conflict);
 
         // Act
-        var result = await _auth.RegisterAsync("anna", "Secret-123", Roles.FrontDesk);
+        var result = await _auth.RegisterAsync("anna", "Secret-123", "Anna", "Hansen", Roles.FrontDesk);
 
         // Assert
         Assert.False(result);
@@ -78,7 +78,7 @@ public class AuthClientTests
         _handler.Respond("/auth/register", "{}", HttpStatusCode.Created);
 
         // Act
-        var result = await _auth.RegisterAsync("anna", "Secret-123", Roles.FrontDesk);
+        var result = await _auth.RegisterAsync("anna", "Secret-123", "Anna", "Hansen", Roles.FrontDesk);
 
         // Assert
         Assert.True(result);
@@ -91,10 +91,25 @@ public class AuthClientTests
         _handler.Respond("/auth/register", "{}", HttpStatusCode.Created);
 
         // Act
-        await _auth.RegisterAsync("anna", "Secret-123", Roles.Workshop);
+        await _auth.RegisterAsync("anna", "Secret-123", "Anna", "Hansen", Roles.Workshop);
 
         // Assert
         var body = JsonDocument.Parse(_handler.Bodies.Single()!).RootElement;
         Assert.Equal(Roles.Workshop, body.GetProperty("role").GetString());
+    }
+
+    [Fact]
+    public async Task RegisterAsync_NewUser_SendsTheNames()
+    {
+        // Arrange
+        _handler.Respond("/auth/register", "{}", HttpStatusCode.Created);
+
+        // Act
+        await _auth.RegisterAsync("anna", "Secret-123", "Anna", "Hansen", Roles.Workshop);
+
+        // Assert
+        var body = JsonDocument.Parse(_handler.Bodies.Single()!).RootElement;
+        Assert.Equal("Anna", body.GetProperty("firstName").GetString());
+        Assert.Equal("Hansen", body.GetProperty("lastName").GetString());
     }
 }

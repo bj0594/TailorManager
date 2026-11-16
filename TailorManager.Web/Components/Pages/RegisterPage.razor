@@ -7,6 +7,8 @@
 <form @onsubmit="Register">
     <input id="username" @bind="_username" placeholder="Username" />
     <input id="password" @bind="_password" type="password" placeholder="Password" />
+    <input id="firstName" @bind="_firstName" placeholder="First name" />
+    <input id="lastName" @bind="_lastName" placeholder="Last name" />
     <select id="role" @bind="_role">
         <option value="@Roles.FrontDesk">Front desk</option>
         <option value="@Roles.Workshop">Workshop</option>
@@ -22,12 +24,14 @@
 @code {
     private string _username = "";
     private string _password = "";
+    private string _firstName = "";
+    private string _lastName = "";
     private string _role = Roles.FrontDesk;
     private bool _failed;
 
     private async Task Register()
     {
-        _failed = !await Auth.RegisterAsync(_username, _password, _role);
+        _failed = !await Auth.RegisterAsync(_username, _password, _firstName, _lastName, _role);
         if (!_failed)
         {
             Navigation.NavigateTo("/login");
