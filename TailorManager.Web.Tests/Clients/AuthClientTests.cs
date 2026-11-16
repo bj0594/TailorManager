@@ -59,29 +59,42 @@ public class AuthClientTests
     }
 
     [Fact]
-    public async Task RegisterAsync_UsernameTaken_ReturnsFalse()
+    public async Task RegisterAsync_UsernameTaken_ReturnsTheMessage()
     {
         // Arrange
-        _handler.Respond("/auth/register", "\"Username is already taken.\"", HttpStatusCode.Conflict);
+        _handler.Respond("/auth/register", "Username is already taken.", HttpStatusCode.Conflict);
 
         // Act
-        var result = await _auth.RegisterAsync("anna", "Secret-123", "Anna", "Hansen", Roles.FrontDesk);
+        var error = await _auth.RegisterAsync("anna", "Secret-123", "Anna", "Hansen", Roles.FrontDesk);
 
         // Assert
-        Assert.False(result);
+        Assert.Equal("Username is already taken.", error);
     }
 
     [Fact]
-    public async Task RegisterAsync_NewUser_ReturnsTrue()
+    public async Task RegisterAsync_NewUser_ReturnsNoError()
     {
         // Arrange
         _handler.Respond("/auth/register", "{}", HttpStatusCode.Created);
 
         // Act
-        var result = await _auth.RegisterAsync("anna", "Secret-123", "Anna", "Hansen", Roles.FrontDesk);
+        var error = await _auth.RegisterAsync("anna", "Secret-123", "Anna", "Hansen", Roles.FrontDesk);
 
         // Assert
-        Assert.True(result);
+        Assert.Null(error);
+    }
+
+    [Fact]
+    public async Task RegisterAsync_MissingField_ReturnsAGeneralMessage()
+    {
+        // Arrange
+        _handler.Respond("/auth/register", """{ "title": "One or more validation errors occurred." }""", HttpStatusCode.BadRequest);
+
+        // Act
+        var error = await _auth.RegisterAsync("anna", "Secret-123", "", "", Roles.FrontDesk);
+
+        // Assert
+        Assert.Equal("Fill in every field.", error);
     }
 
     [Fact]

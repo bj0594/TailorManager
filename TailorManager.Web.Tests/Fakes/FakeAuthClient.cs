@@ -9,5 +9,5 @@ public class FakeAuthClient : IAuthClient
     public string Error { get; set; } = "Username is already taken.";
 
     public Task<bool> LoginAsync(string username, string password) => Task.FromResult(Succeeds);
-    public Task<bool> RegisterAsync(string username, string password, string firstName, string lastName, string role) => Task.FromResult(Succeeds);
+    public Task<string?> RegisterAsync(string username, string password, string firstName, string lastName, string role) => Task.FromResult<string?>(Succeeds ? null : Error);
 }

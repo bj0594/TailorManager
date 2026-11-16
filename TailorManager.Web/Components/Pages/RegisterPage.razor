@@ -16,9 +16,9 @@
     <button type="submit">Register</button>
 </form>
 
-@if (_failed)
+@if (_error is not null)
 {
-    <p class="error">Username is taken.</p>
+    <p class="error">@_error</p>
 }
 
 @code {
@@ -27,12 +27,12 @@
     private string _firstName = "";
     private string _lastName = "";
     private string _role = Roles.FrontDesk;
-    private bool _failed;
+    private string? _error;
 
     private async Task Register()
     {
-        _failed = !await Auth.RegisterAsync(_username, _password, _firstName, _lastName, _role);
-        if (!_failed)
+        _error = await Auth.RegisterAsync(_username, _password, _firstName, _lastName, _role);
+        if (_error is null)
         {
             Navigation.NavigateTo("/login");
         }
