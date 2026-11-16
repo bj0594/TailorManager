@@ -1,1 +1,38 @@
 @page "/register"
+@rendermode InteractiveServer
+@using TailorManager.Web.Api
+@inject IAuthClient Auth
+@inject NavigationManager Navigation
+
+<h1>Register</h1>
+
+<form @onsubmit="Register">
+    <input id="username" @bind="_username" placeholder="Username" />
+    <input id="password" @bind="_password" type="password" placeholder="Password" />
+    <select id="role" @bind="_role">
+        <option value="FrontDesk">Front desk</option>
+        <option value="Workshop">Workshop</option>
+    </select>
+    <button type="submit">Register</button>
+</form>
+
+@if (_failed)
+{
+    <p class="error">Username is taken.</p>
+}
+
+@code {
+    private string _username = "";
+    private string _password = "";
+    private string _role = "FrontDesk";
+    private bool _failed;
+
+    private async Task Register()
+    {
+        _failed = !await Auth.RegisterAsync(_username, _password, _role);
+        if (!_failed)
+        {
+            Navigation.NavigateTo("/login");
+        }
+    }
+}
