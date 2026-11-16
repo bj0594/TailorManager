@@ -12,15 +12,21 @@ Errors: 503 Service Unavailable + Unhealthy (a dependency does not answer)
 
 POST /auth/register
 Request: { "username": "kari", "password": "Secret-123", "firstName": "Kari", "lastName": "Nordmann", "role": "FrontDesk" }
-Response: 201 Created + { "id": "2c1f4a7e-9d3b-4e8a-b6f5-1a2b3c4d5e6f", "username": "kari", "displayName": "Kari N.", "role": "FrontDesk" }
-Errors: 400 Bad Request (empty first name or last name)
-        400 Bad Request (role is not FrontDesk or Workshop)
-        409 Conflict (username is taken)
+Response: 201 Created + { "id": "2c1f4a7e-9d3b-4e8a-b6f5-1a2b3c4d5e6f", "username": "kari" }
+Errors: 400 Bad Request + validation problem (a field is missing or empty)
+        400 Bad Request + "Unknown role: …" (role is not FrontDesk or Workshop)
+        409 Conflict + "Username is already taken."
 
 POST /auth/login
 Request: { "username": "kari", "password": "Secret-123" }
 Response: 200 OK + { "token": "eyJ…" }
 Errors: 401 Unauthorized (wrong username or password)
+
+GET /auth/me
+Auth: Bearer token
+Request: none
+Response: 200 OK + the claims in the token, as [{ "type": "…", "value": "…" }], with the username and the role (the type of the role ends with "role")
+Errors: 401 Unauthorized (no valid token)
 
 POST /customers
 Auth: Bearer token (FrontDesk)

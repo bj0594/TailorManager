@@ -184,11 +184,11 @@ sequenceDiagram
     C->>A: POST /auth/login
     A->>S: Login(username, password)
     S->>R: GetByUsername(username)
-    R-->>S: User with PasswordHash
-    S-->>A: JWT with sub and unique_name
+    R-->>S: User with PasswordHash and Role
+    S-->>A: JWT with sub, unique_name and role
     A-->>C: 200 OK + token
-    C->>A: GET /<things> with Bearer token
-    A-->>C: 200 OK, only the user's <things>
+    C->>A: GET /auth/me with Bearer token
+    A-->>C: 200 OK, the claims (username and role)
 ```
 
 ### Data
@@ -257,7 +257,7 @@ flowchart LR
         end
 
         db[("db<br/>PostgreSQL<br/>Customers, Orders and Users")]
-        vol[["volume db_data"]]
+        vol[["volume db-data"]]
         pgadmin["pgadmin"]
     end
 
@@ -291,7 +291,9 @@ A customer has no page of its own. FrontDesk searches by name, phone number or e
 
 ```mermaid
 flowchart LR
-    login["/login<br/>LoginPage"] -- "logged in as FrontDesk" --> fdmenu{{FrontDesk menu}}
+    home["/<br/>Home"] -- "Log in" --> login["/login<br/>LoginPage"]
+    home -- "Register" --> register
+    login -- "logged in as FrontDesk" --> fdmenu{{FrontDesk menu}}
     login -- "logged in as Workshop" --> wsmenu{{Workshop menu}}
     register["/register<br/>RegisterPage"] -- "registered" --> login
     fdmenu --> search["/front-desk<br/>FrontDeskSearchPage"]
@@ -475,7 +477,8 @@ Hosting: Blazor Server
 Client:  own API (api.md), with the token from POST /auth/login
 Menu:    FrontDesk: Search, Ready for pickup. Workshop: Orders
 
-LoginPage                /login                     does:  log in, link to /register
+Home                     /                          shows: the site name, one sentence about it, and the Log in and Register buttons
+LoginPage                /login                     does:  log in, and go to the first page for the role
                                                     calls: POST /auth/login, GET /auth/me
                                                     errors: "Wrong username or password"
 RegisterPage             /register                  does:  register with first name, last name and part
@@ -526,22 +529,22 @@ No cycle, built on the module page: Register an employee and Log in (Innlogging)
 
 - [x] API: POST /auth/register → 201 Created
 - [x] API: POST /auth/register → 409 Conflict (username is taken)
-- [ ] API: POST /auth/register with missing details or an unknown role → 400 Bad Request
+- [x] API: POST /auth/register with missing details or an unknown role → 400 Bad Request
 - [x] API: the password is stored as a hash
-- [ ] Web: the register page creates an employee with a role
-- [ ] Web: the register page shows the message from 400 and 409
-- [ ] Web client: RegisterAsync posts to /auth/register
+- [x] Web: the register page creates an employee with a role
+- [x] Web: the register page shows the message from 400 and 409
+- [x] Web client: RegisterAsync posts to /auth/register
 - [x] EF: an employee is saved with a hashed password
 
 ### Log in
 
-- [ ] API: POST /auth/login → 200 OK with a token
-- [ ] API: POST /auth/login → 401 Unauthorized (wrong username or password)
-- [ ] API: GET /auth/me → 200 OK with the username and the role
-- [ ] Web: the login page keeps the token and shows the menu for the role
+- [x] API: POST /auth/login → 200 OK with a token
+- [x] API: POST /auth/login → 401 Unauthorized (wrong username or password)
+- [x] API: GET /auth/me → 200 OK with the username and the role
+- [x] Web: the login page keeps the token and shows the menu for the role
 - [x] Web: the login page shows "Wrong username or password"
-- [ ] Web client: LoginAsync posts to /auth/login, and GetMeAsync gets /auth/me
-- [ ] Web client: GetOrdersAsync and GetCustomersAsync send the token
+- [x] Web client: LoginAsync posts to /auth/login, and gets the role from /auth/me
+- [x] Web client: GetOrdersAsync and GetCustomersAsync send the token
 
 ### Customers require login
 
@@ -1008,13 +1011,13 @@ No cycle, built on the module page: Register an employee and Log in (Innlogging)
 
 ### One menu per part
 
-- [ ] Web: the menu shows the FrontDesk pages or the Workshop pages for the logged-in role
-- [ ] Web: the menu links every page for the part
+- [x] Web: the menu shows the FrontDesk pages or the Workshop pages for the logged-in role
+- [x] Web: the menu links every page for the part
 
 ### Infrastructure
 
 - [x] Docker: the api container answers /health with 200
-- [ ] Docker: the website container shows the login page
+- [ ] Docker: the website container shows the start page
 
 Manual checks:
 
@@ -1078,7 +1081,7 @@ Decisions:
 - Decision: Storage unavailable → the services let the error through, and the API answers 503.
 - Decision: each action only one part does is locked to that role ([Authorize(Roles = ...)]), with one 403 test per endpoint. Both parts can read customers and orders.
 - Decision: the website has one menu per part, and the order page only shows the buttons for the logged-in part.
-- Decision: JWT in the Authorization header, signed with Jwt:Key
+- Decision: JWT in the Authorization header, signed with Jwt:Key. The key is only in appsettings.Development.json, so another environment must set Jwt__Key
 
 Assumptions:
 
