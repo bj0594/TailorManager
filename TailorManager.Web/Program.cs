@@ -1,10 +1,15 @@
 using TailorManager.Web.Components;
+using TailorManager.Web.Api;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
+
+// The pages get CustomersClient when they ask for ICustomersClient. ApiBaseUrl is the address of the API.
+builder.Services.AddHttpClient<ICustomersClient, CustomersClient > (client =>
+    client.BaseAddress = new Uri(builder.Configuration["ApiBaseUrl"]!));
 
 var app = builder.Build();
 
