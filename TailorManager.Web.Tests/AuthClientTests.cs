@@ -42,4 +42,17 @@ public class AuthClientTests
         Assert.False(result);
         Assert.Null(_tokens.Token);
     }
+
+    [Fact]
+    public async Task RegisterAsync_UsernameTaken_ReturnsFalse()
+    {
+        // Arrange
+        _handler.Respond("/auth/register", "\"Username is already taken.\"", HttpStatusCode.Conflict);
+
+        // Act
+        var result = await _auth.RegisterAsync("anna", "Secret-123", "FrontDesk");
+
+        // Assert
+        Assert.False(result);
+    }
 }
