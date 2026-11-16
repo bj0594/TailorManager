@@ -8,26 +8,40 @@ namespace TailorManager.Web.Tests;
 public class CustomersClientTests
 {
     private readonly StubHttpMessageHandler _handler = new();
-private readonly CustomersClient _client;
+    private readonly CustomersClient _client;
 
-public CustomersClientTests()
-{
-    _client = new CustomersClient(new HttpClient(_handler) { BaseAddress = new Uri("http://api.test/") });
-}
-
-[Fact]
-public async Task GetCustomersAsync_ApiReturnsTwo_ReturnsBoth()
+    public CustomersClientTests()
     {
-    // Arrange
-    _handler.Respond("/customers", JsonSerializer.Serialize(new[] { new { id = Guid.NewGuid() }, new { id = Guid.NewGuid() } }));
+        _client = new CustomersClient(new HttpClient(_handler) { BaseAddress = new Uri("http://api.test/") }, new TokenStore());
+    }
 
-    // Act
-    var result = await _client.GetCustomersAsync();
+    [Fact]
+    public async Task GetCustomersAsync_ApiReturnsTwo_ReturnsBoth()
+        {
+        // Arrange
+        _handler.Respond("/customers", JsonSerializer.Serialize(new[] { new { id = Guid.NewGuid() }, new { id = Guid.NewGuid() } }));
 
-    // Assert
-    Assert.Equal(2, result.Count);
-    var request = _handler.Requests.Single();
-    Assert.Equal(HttpMethod.Get, request.Method);
-    Assert.Equal("/customers", request.RequestUri!.AbsolutePath);
-}
+        // Act
+        var result = await _client.GetCustomersAsync();
+
+        // Assert
+        Assert.Equal(2, result.Count);
+        var request = _handler.Requests.Single();
+        Assert.Equal(HttpMethod.Get, request.Method);
+        Assert.Equal("/customers", request.RequestUri!.AbsolutePath);
+    }
+
+    [Fact]
+    public async Task GetCustomersAsync_LoggedIn_SendsTheToken()
+{
+        // Arrange
+        var client = new CustomersClient(new HttpClient(_handler) { BaseAddress = new Uri("http://api.test/") }, new TokenStore { Token = "abc" });
+        _handler.Respond("/Customers", "[]");
+
+        // Act
+        await client.GetCustomersAsync();
+
+        // Assert
+        Assert.Equal("Bearer abc", _handler.Requests.Single().Headers.Authorization?.ToString());
+    }
 }

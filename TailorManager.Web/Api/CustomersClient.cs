@@ -7,7 +7,7 @@ public class CustomersClient : ICustomersClient
 {
     private readonly HttpClient _http;
 
-    public CustomersClient(HttpClient http)
+    public CustomersClient(HttpClient http, TokenStore tokens)
     {
         _http = http;
     }
