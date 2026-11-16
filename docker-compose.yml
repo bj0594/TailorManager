@@ -14,6 +14,16 @@ services:
       interval: 5s
       timeout: 3s
       retries: 10
+  web:
+    build:
+      context: .
+      dockerfile: TailorManager.Web/Dockerfile
+    environment:
+      ApiBaseUrl: http://api:8080/
+    ports:
+      - "5100:8080"
+    depends_on:
+      - api
 
   api:
     build:
