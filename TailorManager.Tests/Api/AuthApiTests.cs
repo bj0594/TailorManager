@@ -31,7 +31,7 @@ public class AuthApiTests : IDisposable
     public async Task PostAuthRegister_NewUser_ReturnsCreated()
     {
         // Act
-        var response = await _client.PostAsJsonAsync("/auth/register", new { Username = "employee", Password = "Test-password-1" });
+        var response = await _client.PostAsJsonAsync("/auth/register", new { Username = "employee", Password = "Test-password-1", Role = "FrontDesk" });
 
         // Assert
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
@@ -41,7 +41,7 @@ public class AuthApiTests : IDisposable
     public async Task PostAuthRegister_TakenUsername_ReturnsConflict()
     {
         // Arrange
-        var credentials = new { Username = "owner", Password = "Test-password-1" };
+        var credentials = new { Username = "owner", Password = "Test-password-1", Role = "FrontDesk" };
         await _client.PostAsJsonAsync("/auth/register", credentials);
 
         // Act
@@ -58,7 +58,7 @@ public class AuthApiTests : IDisposable
         var password = "Test-password-1";
 
         // Act
-        await _client.PostAsJsonAsync("/auth/register", new { Username = "owner", Password = password });
+        await _client.PostAsJsonAsync("/auth/register", new { Username = "owner", Password = password, Role = "FrontDesk" });
 
         // Assert
         var user = _factory.Services.GetRequiredService<IUserRepository>().GetByUsername("owner");
@@ -70,7 +70,7 @@ public class AuthApiTests : IDisposable
     public async Task PostAuthLogin_ValidCredentials_ReturnsToken()
     {
         // Arrange
-        var credentials = new { Username = "owner", Password = "Test-password-1" };
+        var credentials = new { Username = "owner", Password = "Test-password-1", Role = "FrontDesk" };
         await _client.PostAsJsonAsync("/auth/register", credentials);
 
         // Act
@@ -88,7 +88,7 @@ public class AuthApiTests : IDisposable
     public async Task PostAuthLogin_WrongPassword_ReturnsUnauthorized()
     {
         // Arrange
-        await _client.PostAsJsonAsync("/auth/register", new { Username = "owner", Password = "Test-password-1" });
+        await _client.PostAsJsonAsync("/auth/register", new { Username = "owner", Password = "Test-password-1", Role = "FrontDesk" });
 
         // Act
         var response = await _client.PostAsJsonAsync("/auth/login", new { Username = "owner", Password = "Wrong-password-1" });

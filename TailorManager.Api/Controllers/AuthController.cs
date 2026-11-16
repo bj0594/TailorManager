@@ -20,12 +20,16 @@ public class AuthController : ControllerBase
     {
         try
         {
-            var user = _authService.Register(request.Username, request.Password);
+            var user = _authService.Register(request.Username, request.Password, request.Role);
             return StatusCode(StatusCodes.Status201Created, new { user.Id, user.Username });
         }
         catch (InvalidOperationException ex)
         {
             return Conflict(ex.Message);
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(ex.Message);
         }
     }
 
