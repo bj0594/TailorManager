@@ -9,7 +9,7 @@ services:
       - "5432:5432"
     volumes:
       - db-data:/var/lib/postgresql/data
-    healthcheck: 
+    healthcheck:
       test: ["CMD-SHELL", "pg_isready -U employee -d tailor"]
       interval: 5s
       timeout: 3s
@@ -23,7 +23,8 @@ services:
     ports:
       - "5100:8080"
     depends_on:
-      - api
+      api:
+        condition: service_healthy
 
   api:
     build:
@@ -38,7 +39,6 @@ services:
     depends_on:
       db:
         condition: service_healthy
-
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
       interval: 10s
