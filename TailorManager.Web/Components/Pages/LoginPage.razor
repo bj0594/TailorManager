@@ -3,6 +3,7 @@
 @using TailorManager.Web.Api
 @inject IAuthClient Auth
 @inject NavigationManager Navigation
+@inject TokenStore Tokens
 
 <h1>Log in</h1>
 
@@ -27,7 +28,7 @@
         _failed = !await Auth.LoginAsync(_username, _password);
         if (!_failed)
         {
-            Navigation.NavigateTo("/");
+            Navigation.NavigateTo(Tokens.Role == "Workshop" ? "/workshop/orders" : "/front-desk");
         }
     }
 }
