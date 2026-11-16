@@ -19,7 +19,7 @@ public CustomersClientTests()
 public async Task GetCustomersAsync_ApiReturnsTwo_ReturnsBoth()
     {
     // Arrange
-    _handler.Respond("/Customers", JsonSerializer.Serialize(new[] { new { id = Guid.NewGuid() }, new { id = Guid.NewGuid() } }));
+    _handler.Respond("/customers", JsonSerializer.Serialize(new[] { new { id = Guid.NewGuid() }, new { id = Guid.NewGuid() } }));
 
     // Act
     var result = await _client.GetCustomersAsync();
@@ -28,6 +28,6 @@ public async Task GetCustomersAsync_ApiReturnsTwo_ReturnsBoth()
     Assert.Equal(2, result.Count);
     var request = _handler.Requests.Single();
     Assert.Equal(HttpMethod.Get, request.Method);
-    Assert.Equal("/Customers", request.RequestUri!.AbsolutePath);
+    Assert.Equal("/customers", request.RequestUri!.AbsolutePath);
 }
 }
