@@ -36,7 +36,7 @@ public class CustomersClientTests
 {
         // Arrange
         var client = new CustomersClient(new HttpClient(_handler) { BaseAddress = new Uri("http://api.test/") }, new TokenStore { Token = "abc" });
-        _handler.Respond("/Customers", "[]");
+        _handler.Respond("/customers", "[]");
 
         // Act
         await client.GetCustomersAsync();
