@@ -122,5 +122,19 @@ public class AuthApiTests : IDisposable
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
+    [Fact]
+    public async Task GetAuthMe_FrontDeskUser_ReturnsTheRole()
+    {
+        // Arrange
+        var client = await AuthHelper.CreateLoggedInClientAsync(_factory, "frontdesk", "FrontDesk");
+
+        // Act
+        var response = await client.GetAsync("/auth/me");
+
+        // Assert
+        var claims = await response.Content.ReadFromJsonAsync<List<ClaimResponse>>();
+        Assert.Contains(claims!, c => c.Type.EndsWith("role") && c.Value == "FrontDesk");
+    }
+
     private record ClaimResponse(string Type, string Value);
 }
