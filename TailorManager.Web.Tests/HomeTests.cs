@@ -15,5 +15,6 @@ public class HomeTests : BunitContext
         // Assert
         Assert.Equal("Tailor Manager", page.Find("h1").TextContent);
         Assert.NotNull(page.Find("a[href='login']"));
+        Assert.NotNull(page.Find("a[href='register']"));
     }
 }
