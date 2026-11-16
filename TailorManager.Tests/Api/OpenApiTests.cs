@@ -1,12 +1,11 @@
 using System.Text.Json;
-using Microsoft.AspNetCore.Mvc.Testing;
 
 namespace TailorManager.Tests;
 
 // Swagger shows the Authorize button when the OpenAPI document has the Bearer scheme.
 public class OpenApiTests : IDisposable
 {
-    private readonly WebApplicationFactory<Program> _factory = new();
+    private readonly TestApiFactory _factory = new();
 
     public void Dispose() => _factory.Dispose();
 

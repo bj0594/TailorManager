@@ -1,27 +1,19 @@
 using System.Net;
 using System.Net.Http.Json;
-using Microsoft.AspNetCore.Mvc.Testing;
-using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
+using TailorManager.Core;
 using TailorManager.Core.Repository;
 
 namespace TailorManager.Tests;
 
+// Register, log in and /auth/me, through the API with the fake repositories.
 public class AuthApiTests : IDisposable
 {
-    private readonly WebApplicationFactory<Program> _factory;
+    private readonly TestApiFactory _factory = new();
     private readonly HttpClient _client;
 
     public AuthApiTests()
     {
-        _factory = new WebApplicationFactory<Program>().WithWebHostBuilder(builder =>
-            builder.ConfigureTestServices(services =>
-            {
-                services.AddSingleton<ICustomerRepository, FakeCustomerRepository>();
-                services.AddSingleton<IOrderRepository, FakeOrderRepository>();
-                // new: users are stored in memory in the tests
-                services.AddSingleton<IUserRepository, FakeUserRepository>();
-            }));
         _client = _factory.CreateClient();
     }
 
@@ -31,7 +23,7 @@ public class AuthApiTests : IDisposable
     public async Task PostAuthRegister_NewUser_ReturnsCreated()
     {
         // Act
-        var response = await _client.PostAsJsonAsync("/auth/register", new { Username = "employee", Password = "Test-password-1", Role = "FrontDesk" });
+        var response = await _client.PostAsJsonAsync("/auth/register", new { Username = "employee", Password = "Test-password-1", Role = Roles.FrontDesk });
 
         // Assert
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
@@ -41,7 +33,7 @@ public class AuthApiTests : IDisposable
     public async Task PostAuthRegister_TakenUsername_ReturnsConflict()
     {
         // Arrange
-        var credentials = new { Username = "owner", Password = "Test-password-1", Role = "FrontDesk" };
+        var credentials = new { Username = "owner", Password = "Test-password-1", Role = Roles.FrontDesk };
         await _client.PostAsJsonAsync("/auth/register", credentials);
 
         // Act
@@ -58,7 +50,7 @@ public class AuthApiTests : IDisposable
         var password = "Test-password-1";
 
         // Act
-        await _client.PostAsJsonAsync("/auth/register", new { Username = "owner", Password = password, Role = "FrontDesk" });
+        await _client.PostAsJsonAsync("/auth/register", new { Username = "owner", Password = password, Role = Roles.FrontDesk });
 
         // Assert
         var user = _factory.Services.GetRequiredService<IUserRepository>().GetByUsername("owner");
@@ -70,7 +62,7 @@ public class AuthApiTests : IDisposable
     public async Task PostAuthLogin_ValidCredentials_ReturnsToken()
     {
         // Arrange
-        var credentials = new { Username = "owner", Password = "Test-password-1", Role = "FrontDesk" };
+        var credentials = new { Username = "owner", Password = "Test-password-1", Role = Roles.FrontDesk };
         await _client.PostAsJsonAsync("/auth/register", credentials);
 
         // Act
@@ -88,7 +80,7 @@ public class AuthApiTests : IDisposable
     public async Task PostAuthLogin_WrongPassword_ReturnsUnauthorized()
     {
         // Arrange
-        await _client.PostAsJsonAsync("/auth/register", new { Username = "owner", Password = "Test-password-1", Role = "FrontDesk" });
+        await _client.PostAsJsonAsync("/auth/register", new { Username = "owner", Password = "Test-password-1", Role = Roles.FrontDesk });
 
         // Act
         var response = await _client.PostAsJsonAsync("/auth/login", new { Username = "owner", Password = "Wrong-password-1" });
@@ -126,14 +118,14 @@ public class AuthApiTests : IDisposable
     public async Task GetAuthMe_FrontDeskUser_ReturnsTheRole()
     {
         // Arrange
-        var client = await AuthHelper.CreateLoggedInClientAsync(_factory, "frontdesk", "FrontDesk");
+        var client = await AuthHelper.CreateLoggedInClientAsync(_factory, "frontdesk", Roles.FrontDesk);
 
         // Act
         var response = await client.GetAsync("/auth/me");
 
         // Assert
         var claims = await response.Content.ReadFromJsonAsync<List<ClaimResponse>>();
-        Assert.Contains(claims!, c => c.Type.EndsWith("role") && c.Value == "FrontDesk");
+        Assert.Contains(claims!, c => c.Type.EndsWith("role") && c.Value == Roles.FrontDesk);
     }
 
     private record ClaimResponse(string Type, string Value);

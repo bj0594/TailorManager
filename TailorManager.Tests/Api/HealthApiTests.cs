@@ -1,29 +1,20 @@
 using System.Net;
-using Microsoft.AspNetCore.Mvc.Testing;
-using Microsoft.AspNetCore.TestHost;
-using Microsoft.Extensions.DependencyInjection;
-using TailorManager.Core.Repository;
 
 namespace TailorManager.Tests;
 
-public class HealthApiTests
+public class HealthApiTests : IDisposable
 {
+    private readonly TestApiFactory _factory = new();
+
+    public void Dispose() => _factory.Dispose();
+
     [Fact]
     public async Task GetHealth_ApiRunning_ReturnsOk()
     {
-        // Arrange
-        using var factory = new WebApplicationFactory<Program>().WithWebHostBuilder(builder =>
-        builder.ConfigureTestServices(services =>
-        {
-            services.AddSingleton<ICustomerRepository, FakeCustomerRepository>();
-            services.AddSingleton<IOrderRepository, FakeOrderRepository>();
-        }));
-        var client = factory.CreateClient();
-
         // Act
-        var response = await client.GetAsync("/health");
+        var response = await _factory.CreateClient().GetAsync("/health");
 
-        // Assert
+        // Assert: the endpoint exists. 200 or 503 depends on whether PostgreSQL is running.
         Assert.NotEqual(HttpStatusCode.NotFound, response.StatusCode);
     }
 }
