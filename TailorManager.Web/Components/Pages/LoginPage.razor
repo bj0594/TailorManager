@@ -1,6 +1,4 @@
 @page "/login"
-@rendermode InteractiveServer
-@using TailorManager.Web.Api
 @inject IAuthClient Auth
 @inject NavigationManager Navigation
 @inject TokenStore Tokens
@@ -28,7 +26,7 @@
         _failed = !await Auth.LoginAsync(_username, _password);
         if (!_failed)
         {
-            Navigation.NavigateTo(Tokens.Role == "Workshop" ? "/workshop/orders" : "/front-desk");
+            Navigation.NavigateTo(Tokens.Role == Roles.Workshop ? "/workshop/orders" : "/front-desk");
         }
     }
 }

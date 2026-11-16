@@ -1,6 +1,4 @@
 @page "/register"
-@rendermode InteractiveServer
-@using TailorManager.Web.Api
 @inject IAuthClient Auth
 @inject NavigationManager Navigation
 
@@ -10,8 +8,8 @@
     <input id="username" @bind="_username" placeholder="Username" />
     <input id="password" @bind="_password" type="password" placeholder="Password" />
     <select id="role" @bind="_role">
-        <option value="FrontDesk">Front desk</option>
-        <option value="Workshop">Workshop</option>
+        <option value="@Roles.FrontDesk">Front desk</option>
+        <option value="@Roles.Workshop">Workshop</option>
     </select>
     <button type="submit">Register</button>
 </form>
@@ -24,7 +22,7 @@
 @code {
     private string _username = "";
     private string _password = "";
-    private string _role = "FrontDesk";
+    private string _role = Roles.FrontDesk;
     private bool _failed;
 
     private async Task Register()
