@@ -27,8 +27,11 @@ public class AuthClient : IAuthClient
         return true;
     }
 
-    // The test comes first, in the next step.
-    public Task<bool> RegisterAsync(string username, string password, string role) => throw new NotImplementedException();
+    public async Task<bool> RegisterAsync(string username, string password, string role)
+    {
+        var response = await _http.PostAsJsonAsync("auth/register", new { username, password, role });
+        return response.IsSuccessStatusCode;
+    }
 
     private record LoginResponse(string Token);
 }
