@@ -18,5 +18,6 @@ public class MainLayoutTests : BunitContext
         Assert.Contains("front-desk/orders", links);
         Assert.Contains("workshop/orders", links);
         Assert.Contains("login", links);
+        Assert.Contains("register", links);
     }
 }
