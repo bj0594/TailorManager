@@ -10,6 +10,8 @@ builder.Services.AddRazorComponents()
 // The pages get CustomersClient when they ask for ICustomersClient. ApiBaseUrl is the address of the API.
 builder.Services.AddHttpClient<ICustomersClient, CustomersClient > (client =>
     client.BaseAddress = new Uri(builder.Configuration["ApiBaseUrl"]!));
+builder.Services.AddHttpClient<IOrdersClient, OrdersClient > (client =>
+    client.BaseAddress = new Uri(builder.Configuration["ApiBaseUrl"]!));
 
 var app = builder.Build();
 
