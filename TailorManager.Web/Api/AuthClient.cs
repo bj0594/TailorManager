@@ -34,7 +34,7 @@ public class AuthClient : IAuthClient
 
     public async Task<bool> RegisterAsync(string username, string password, string firstName, string lastName, string role)
     {
-        var response = await _http.PostAsJsonAsync("auth/register", new { username, password, role });
+        var response = await _http.PostAsJsonAsync("auth/register", new { username, password, firstName, lastName, role });
         return response.IsSuccessStatusCode;
     }
 
