@@ -32,9 +32,7 @@ public class AuthService
         {
             throw new ArgumentException($"Unknown role: {role}.");
         }
-
-        var user = new User { Id = Guid.NewGuid(), Username = username, PasswordHash = _hasher.Hash(password) };
-        _users.Add(user);
+        var user = new User { Id = Guid.NewGuid(), Username = username, PasswordHash = _hasher.Hash(password), Role = role }; _users.Add(user);
         return user;
     }
 
@@ -59,9 +57,10 @@ public class AuthService
         {
             Subject = new ClaimsIdentity(new[]
             {
-            new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
-            new Claim(JwtRegisteredClaimNames.UniqueName, user.Username)
-        }),
+                new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
+                new Claim(JwtRegisteredClaimNames.UniqueName, user.Username),
+                new Claim("role", user.Role)
+            }),
             Issuer = _config["Jwt:Issuer"],
             Audience = _config["Jwt:Audience"],
             Expires = DateTime.UtcNow.AddHours(1),
