@@ -27,5 +27,8 @@ public class AuthClient : IAuthClient
         return true;
     }
 
+    // The test comes first, in the next step.
+    public Task<bool> RegisterAsync(string username, string password, string role) => throw new NotImplementedException();
+
     private record LoginResponse(string Token);
 }

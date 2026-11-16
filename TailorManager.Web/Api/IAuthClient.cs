@@ -4,4 +4,6 @@ namespace TailorManager.Web.Api;
 public interface IAuthClient
 {
     Task<bool> LoginAsync(string username, string password);
+    Task<bool> RegisterAsync(string username, string password, string role);
+
 }

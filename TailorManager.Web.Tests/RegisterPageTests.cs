@@ -1,0 +1,31 @@
+using Bunit;
+using Microsoft.Extensions.DependencyInjection;
+using TailorManager.Web.Api;
+using TailorManager.Web.Components.Pages;
+
+namespace TailorManager.Web.Tests;
+
+// Renders RegisterPage with the fake auth client.
+public class RegisterPageTests : BunitContext
+{
+    private readonly FakeAuthClient _auth = new();
+
+    public RegisterPageTests()
+    {
+        Services.AddSingleton<IAuthClient>(_auth);
+    }
+
+    [Fact]
+    public void RegisterPage_UsernameTaken_ShowsError()
+    {
+        // Arrange
+        _auth.Succeeds = false;
+        var page = Render<RegisterPage>();
+
+        // Act
+        page.Find("form").Submit();
+
+        // Assert
+        page.WaitForAssertion(() => Assert.NotNull(page.Find(".error")));
+    }
+}
