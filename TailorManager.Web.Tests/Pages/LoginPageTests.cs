@@ -1,8 +1,8 @@
 using Bunit;
+using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.DependencyInjection;
 using TailorManager.Web.Api;
 using TailorManager.Web.Components.Pages;
-using Microsoft.AspNetCore.Components;
 
 namespace TailorManager.Web.Tests;
 
@@ -34,10 +34,10 @@ public class LoginPageTests : BunitContext
 
     [Fact]
     public void LoginPage_WorkshopUser_GoesToTheirPage()
-{
+    {
         // Arrange
         _auth.Succeeds = true;
-        _tokens.Role = "Workshop";
+        _tokens.Role = Roles.Workshop;
         var page = Render<LoginPage>();
 
         // Act

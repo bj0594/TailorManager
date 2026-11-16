@@ -1,4 +1,3 @@
-using System.Net;
 using System.Text.Json;
 using TailorManager.Web.Api;
 
@@ -12,12 +11,12 @@ public class CustomersClientTests
 
     public CustomersClientTests()
     {
-        _client = new CustomersClient(new HttpClient(_handler) { BaseAddress = new Uri("http://api.test/") }, new TokenStore());
+        _client = CreateClient(new TokenStore());
     }
 
     [Fact]
     public async Task GetCustomersAsync_ApiReturnsTwo_ReturnsBoth()
-        {
+    {
         // Arrange
         _handler.Respond("/customers", JsonSerializer.Serialize(new[] { new { id = Guid.NewGuid() }, new { id = Guid.NewGuid() } }));
 
@@ -33,9 +32,9 @@ public class CustomersClientTests
 
     [Fact]
     public async Task GetCustomersAsync_LoggedIn_SendsTheToken()
-{
+    {
         // Arrange
-        var client = new CustomersClient(new HttpClient(_handler) { BaseAddress = new Uri("http://api.test/") }, new TokenStore { Token = "abc" });
+        var client = CreateClient(new TokenStore { Token = "abc" });
         _handler.Respond("/customers", "[]");
 
         // Act
@@ -44,4 +43,8 @@ public class CustomersClientTests
         // Assert
         Assert.Equal("Bearer abc", _handler.Requests.Single().Headers.Authorization?.ToString());
     }
+
+    // A client that talks to the stub instead of the API.
+    private CustomersClient CreateClient(TokenStore tokens) =>
+        new(new HttpClient(_handler) { BaseAddress = new Uri("http://api.test/") }, tokens);
 }

@@ -7,5 +7,5 @@ public class FakeOrdersClient : IOrdersClient
 {
     public List<OrderDto> Items { get; } = [];
 
-public Task<List<OrderDto>> GetOrdersAsync() => Task.FromResult(Items);
+    public Task<List<OrderDto>> GetOrdersAsync() => Task.FromResult(Items);
 }

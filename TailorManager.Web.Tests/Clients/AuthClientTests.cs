@@ -20,6 +20,7 @@ public class AuthClientTests
     {
         // Arrange
         _handler.Respond("/auth/login", """{ "token": "abc" }""").Respond("/auth/me", "[]");
+
         // Act
         var result = await _auth.LoginAsync("anna", "Secret-123");
 
@@ -43,34 +44,8 @@ public class AuthClientTests
     }
 
     [Fact]
-    public async Task RegisterAsync_UsernameTaken_ReturnsFalse()
-    {
-        // Arrange
-        _handler.Respond("/auth/register", "\"Username is already taken.\"", HttpStatusCode.Conflict);
-
-        // Act
-        var result = await _auth.RegisterAsync("anna", "Secret-123", "FrontDesk");
-
-        // Assert
-        Assert.False(result);
-    }
-
-    [Fact]
-    public async Task RegisterAsync_NewUser_ReturnsTue()
-    {
-        // Arrange
-        _handler.Respond("/auth/register", "{}", HttpStatusCode.Created);
-
-        // Act
-        var result = await _auth.RegisterAsync("anna", "Secret-123", "FrontDesk");
-
-        // Assert
-        Assert.True(result);
-    }
-
-    [Fact]
     public async Task LoginAsync_WorkshopUser_StoresTheRole()
-{
+    {
         // Arrange
         _handler.Respond("/auth/login", """{ "token": "abc" }""")
                 .Respond("/auth/me", """[{ "type": "role", "value": "Workshop" }]""");
@@ -79,6 +54,32 @@ public class AuthClientTests
         await _auth.LoginAsync("anna", "Secret-123");
 
         // Assert
-        Assert.Equal("Workshop", _tokens.Role);
+        Assert.Equal(Roles.Workshop, _tokens.Role);
+    }
+
+    [Fact]
+    public async Task RegisterAsync_UsernameTaken_ReturnsFalse()
+    {
+        // Arrange
+        _handler.Respond("/auth/register", "\"Username is already taken.\"", HttpStatusCode.Conflict);
+
+        // Act
+        var result = await _auth.RegisterAsync("anna", "Secret-123", Roles.FrontDesk);
+
+        // Assert
+        Assert.False(result);
+    }
+
+    [Fact]
+    public async Task RegisterAsync_NewUser_ReturnsTrue()
+    {
+        // Arrange
+        _handler.Respond("/auth/register", "{}", HttpStatusCode.Created);
+
+        // Act
+        var result = await _auth.RegisterAsync("anna", "Secret-123", Roles.FrontDesk);
+
+        // Assert
+        Assert.True(result);
     }
 }
