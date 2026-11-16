@@ -24,7 +24,7 @@ public class AuthService
     }
 
     // Throws InvalidOperationException if the username is taken, and ArgumentException if the role is unknown.
-    public User Register(string username, string password, string role)
+    public User Register(string username, string password, string firstName, string lastName, string role)
     {
         if (_users.GetByUsername(username) is not null)
         {
@@ -36,7 +36,15 @@ public class AuthService
             throw new ArgumentException($"Unknown role: {role}.");
         }
 
-        var user = new User { Id = Guid.NewGuid(), Username = username, PasswordHash = _hasher.Hash(password), Role = role };
+        var user = new User
+        {
+            Id = Guid.NewGuid(),
+            Username = username,
+            PasswordHash = _hasher.Hash(password),
+            FirstName = firstName,
+            LastName = lastName,
+            Role = role
+        };
         _users.Add(user);
         return user;
     }

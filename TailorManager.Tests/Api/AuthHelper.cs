@@ -11,7 +11,7 @@ public static class AuthHelper
     public static async Task<HttpClient> CreateLoggedInClientAsync(WebApplicationFactory<Program> factory, string username, string role = Roles.Workshop)
     {
         var client = factory.CreateClient();
-        var credentials = new { Username = username, Password = "Test-password-1", Role = role };
+        var credentials = new { Username = username, Password = "Test-password-1", FirstName = "Kari", LastName = "Nordmann", Role = role };
 
         await client.PostAsJsonAsync("/auth/register", credentials);
         var response = await client.PostAsJsonAsync("/auth/login", credentials);

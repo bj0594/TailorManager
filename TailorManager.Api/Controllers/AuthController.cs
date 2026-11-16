@@ -20,7 +20,7 @@ public class AuthController : ControllerBase
     {
         try
         {
-            var user = _authService.Register(request.Username, request.Password, request.Role);
+            var user = _authService.Register(request.Username, request.Password, request.FirstName, request.LastName, request.Role);
             return StatusCode(StatusCodes.Status201Created, new { user.Id, user.Username });
         }
         catch (InvalidOperationException ex)
