@@ -125,6 +125,18 @@ public class AuthApiTests : IDisposable
     }
 
     [Fact]
+    public async Task PostAuthRegister_NewUser_StoresTheNames()
+    {
+        // Act
+        await _client.PostAsJsonAsync("/auth/register", new { Username = "kari", Password = "Test-password-1", FirstName = "Kari", LastName = "Nordmann", Role = Roles.FrontDesk });
+
+        // Assert
+        var user = _factory.Services.GetRequiredService<IUserRepository>().GetByUsername("kari");
+        Assert.Equal("Kari", user!.FirstName);
+        Assert.Equal("Nordmann", user.LastName);
+    }
+
+    [Fact]
     public async Task GetAuthMe_FrontDeskUser_ReturnsTheRole()
     {
         // Arrange
