@@ -7,11 +7,13 @@ public class OrdersClient : IOrdersClient
 {
     private readonly HttpClient _http;
 
-public OrdersClient(HttpClient http)
-{
-    _http = http;
-}
+    public OrdersClient(HttpClient http)
+    {
+        _http = http;
+    }
 
-// The test comes first, in the next step.
-public Task<List<OrderDto>> GetOrdersAsync() => throw new NotImplementedException();
+    public async Task<List<OrderDto>> GetOrdersAsync()
+    {
+        return await _http.GetFromJsonAsync<List<OrderDto>>("orders") ?? [];
+    }
 }
