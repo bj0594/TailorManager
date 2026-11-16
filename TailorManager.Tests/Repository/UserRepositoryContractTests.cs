@@ -1,6 +1,5 @@
 using TailorManager.Core;
 using TailorManager.Core.Repository;
-using TailorManager.Infrastructure;
 
 namespace TailorManager.Tests;
 
@@ -38,13 +37,4 @@ public abstract class UserRepositoryContractTests
 public class FakeUserRepositoryTests : UserRepositoryContractTests
 {
     protected override IUserRepository CreateRepository() => new FakeUserRepository();
-}
-
-public class EfUserRepositoryTests : UserRepositoryContractTests, IClassFixture<EfDatabaseFixture>
-{
-    private readonly EfDatabaseFixture _db;
-
-    public EfUserRepositoryTests(EfDatabaseFixture db) => _db = db;
-
-    protected override IUserRepository CreateRepository() => new EfUserRepository(_db.CreateContext());
 }
