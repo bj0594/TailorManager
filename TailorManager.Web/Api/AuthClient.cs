@@ -1,3 +1,5 @@
+using System.Net.Http.Json;
+
 namespace TailorManager.Web.Api;
 
 // Logs in through the API and keeps the token in TokenStore.
@@ -12,6 +14,18 @@ public class AuthClient : IAuthClient
         _tokens = tokens;
     }
 
-    // The test comes first, below. GREEN in point 3 replaces this file.
-    public Task<bool> LoginAsync(string username, string password) => throw new NotImplementedException();
+    public async Task<bool> LoginAsync(string username, string password)
+    {
+        var response = await _http.PostAsJsonAsync("auth/login", new { username, password });
+        if (!response.IsSuccessStatusCode)
+        {
+            return false;
+        }
+
+        var body = await response.Content.ReadFromJsonAsync<LoginResponse>();
+        _tokens.Token = body!.Token;
+        return true;
+    }
+
+    private record LoginResponse(string Token);
 }
