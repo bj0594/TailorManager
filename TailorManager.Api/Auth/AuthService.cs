@@ -1,18 +1,21 @@
-using TailorManager.Core;
-using TailorManager.Core.Repository;
 using System.Security.Claims;
 using System.Text;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
+using TailorManager.Core;
+using TailorManager.Core.Repository;
 
 namespace TailorManager.Api.Auth;
 
 // Registers users and logs them in.
 public class AuthService
 {
+    private static readonly string[] KnownRoles = [Roles.FrontDesk, Roles.Workshop];
+
     private readonly IUserRepository _users;
     private readonly PasswordHasher _hasher;
     private readonly IConfiguration _config;
+
     public AuthService(IUserRepository users, PasswordHasher hasher, IConfiguration config)
     {
         _users = users;
@@ -28,11 +31,13 @@ public class AuthService
             throw new InvalidOperationException("Username is already taken.");
         }
 
-        if (role != "Workshop" && role != "FrontDesk")
+        if (!KnownRoles.Contains(role))
         {
             throw new ArgumentException($"Unknown role: {role}.");
         }
-        var user = new User { Id = Guid.NewGuid(), Username = username, PasswordHash = _hasher.Hash(password), Role = role }; _users.Add(user);
+
+        var user = new User { Id = Guid.NewGuid(), Username = username, PasswordHash = _hasher.Hash(password), Role = role };
+        _users.Add(user);
         return user;
     }
 

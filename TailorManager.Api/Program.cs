@@ -1,21 +1,19 @@
-using Scalar.AspNetCore;
-using TailorManager.Core.Repository;
-using TailorManager.Core;
-using Microsoft.EntityFrameworkCore;
-using TailorManager.Infrastructure;
-using TailorManager.Api.Auth;
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Scalar.AspNetCore;
+using TailorManager.Api.Auth;
+using TailorManager.Core;
+using TailorManager.Core.Repository;
+using TailorManager.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-
 builder.Services.AddControllers();
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi(options => options.AddDocumentTransformer<BearerSecuritySchemeTransformer>());
 
+// The database, and the repositories and services that use it.
 builder.Services.AddDbContext<TailorManagerDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("Default")));
 builder.Services.AddScoped<ICustomerRepository, EfCustomerRepository>();
@@ -23,6 +21,7 @@ builder.Services.AddScoped<CustomerService>();
 builder.Services.AddScoped<IOrderRepository, EfOrderRepository>();
 builder.Services.AddScoped<OrderService>();
 
+// Users and login.
 builder.Services.AddScoped<IUserRepository, EfUserRepository>();
 builder.Services.AddSingleton<PasswordHasher>();
 builder.Services.AddScoped<AuthService>();
@@ -35,6 +34,7 @@ builder.Services.AddHealthChecks()
             return true;
         });
 
+// Every request with a token is checked against the same Jwt settings AuthService signs with.
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
@@ -59,7 +59,6 @@ if (app.Configuration.GetValue<bool>("Database:MigrateOnStartup"))
     scope.ServiceProvider.GetRequiredService<TailorManagerDbContext>().Database.Migrate();
 }
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
