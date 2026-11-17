@@ -12,4 +12,14 @@ public class OrderService
         _repository = repository;
         _customerRepository = customerRepository;
     }
+
+    public Order AddOrder(Guid customerId, OrderType type, string workDescription, decimal agreedPrice, Guid? relatedOrderId)
+    {
+        throw new NotImplementedException();
+    }
+
+    public List<Order> GetOrders()
+    {
+        throw new NotImplementedException();
+    }
 }
