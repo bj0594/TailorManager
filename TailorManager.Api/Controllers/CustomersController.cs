@@ -1,10 +1,12 @@
 using Microsoft.AspNetCore.Mvc;
 using TailorManager.Core;
+using Microsoft.AspNetCore.Authorization;
 
 namespace TailorManager.Api.Controllers;
 
 [ApiController]
 [Route("customers")]
+[Authorize]
 public class CustomersController : ControllerBase
 {
     private readonly CustomerService _service;

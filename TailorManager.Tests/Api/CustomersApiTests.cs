@@ -10,14 +10,10 @@ namespace TailorManager.Tests;
 // Starts the API in memory with the fake repository, so the tests need no database.
 public class CustomersApiTests : IDisposable
 {
-    private readonly WebApplicationFactory<Program> _factory;
-    private readonly HttpClient _client;
+    private readonly TestApiFactory _factory = new(); private readonly HttpClient _client;
 
     public CustomersApiTests()
     {
-        _factory = new WebApplicationFactory<Program>().WithWebHostBuilder(builder =>
-            builder.ConfigureTestServices(services =>
-                services.AddSingleton < ICustomerRepository, FakeCustomerRepository > ()));
         _client = _factory.CreateClient();
     }
 
@@ -26,8 +22,11 @@ public class CustomersApiTests : IDisposable
     [Fact]
     public async Task PostCustomers_ValidCustomer_ReturnsCreated()
     {
+        // Arrange
+        var client = await AuthHelper.CreateLoggedInClientAsync(_factory, "owner");
+
         // Act
-        var response = await _client.PostAsJsonAsync("/customers", new {
+        var response = await client.PostAsJsonAsync("/customers", new {
             Name = "John",
             Email = "john@john.com",
             PhoneNumber = "12345678",
