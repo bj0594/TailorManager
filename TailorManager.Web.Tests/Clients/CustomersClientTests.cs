@@ -1,5 +1,6 @@
 using System.Text.Json;
 using TailorManager.Web.Api;
+using System.Net;
 
 namespace TailorManager.Web.Tests;
 
@@ -42,6 +43,22 @@ public class CustomersClientTests
 
         // Assert
         Assert.Equal("Bearer abc", _handler.Requests.Single().Headers.Authorization?.ToString());
+    }
+
+    [Fact]
+    public async Task AddCustomerAsync_Valid_PostsTheFields()
+{
+        // Arrange
+        _handler.Respond("/customers", "{}", HttpStatusCode.Created);
+
+        // Act
+        await _client.AddCustomerAsync("Anna Hansen", "98765432", "anna@example.com", "Storgata 1, 0155 Oslo");
+
+        // Assert
+        var request = _handler.Requests.Single();
+        Assert.Equal(HttpMethod.Post, request.Method);
+        Assert.Equal("/customers", request.RequestUri!.AbsolutePath);
+        Assert.Equal("Anna Hansen", JsonDocument.Parse(_handler.Bodies.Single()!).RootElement.GetProperty("name").GetString());
     }
 
     // A client that talks to the stub instead of the API.
