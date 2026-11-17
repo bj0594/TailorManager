@@ -27,4 +27,6 @@ public class CustomersClient : ICustomersClient
         var response = await _http.PostAsJsonAsync("customers", new { name, phone, email, address });
         response.EnsureSuccessStatusCode();
     }
+
+    public Task<CustomerDto> GetCustomerAsync(Guid id) => throw new NotImplementedException();
 }
