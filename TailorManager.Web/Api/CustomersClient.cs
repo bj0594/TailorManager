@@ -28,5 +28,9 @@ public class CustomersClient : ICustomersClient
         response.EnsureSuccessStatusCode();
     }
 
-    public Task<CustomerDto> GetCustomerAsync(Guid id) => throw new NotImplementedException();
+    public async Task<CustomerDto> GetCustomerAsync(Guid id)
+    {
+        var customer = await _http.GetFromJsonAsync<CustomerDto>($"customers/{id}");
+        return customer!;
+    }
 }
