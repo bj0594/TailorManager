@@ -548,7 +548,7 @@ No cycle, built on the module page: Register an employee and Log in (Innlogging)
 
 ### Customers require login
 
-- [ ] API: GET /customers without a token → 401 Unauthorized
+- [ ] API: POST /customers without a token → 401 Unauthorized
 
 ### (FrontDesk) Only FrontDesk can add customers
 

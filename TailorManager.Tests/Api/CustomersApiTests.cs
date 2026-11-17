@@ -39,5 +39,21 @@ public class CustomersApiTests : IDisposable
         var body = await response.Content.ReadFromJsonAsync <CustomerResponse>();
         Assert.Equal("John", body?.Name);
     }
+
+    [Fact]
+    public async Task PostCustomers_WithoutToken_ReturnsUnauthorized()
+    {
+        // Act
+        var response = await _client.PostAsJsonAsync("/customers", new
+        {
+            Name = "Anna Hansen",
+            Email = "anna@example.com",
+            PhoneNumber = "98765432",
+            Address = "Storgata 1, 0155 Oslo"
+        });
+
+        // Assert
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+    }
     private record CustomerResponse(Guid Id, string Name, string Email, string PhoneNumber, string Address);
 }
