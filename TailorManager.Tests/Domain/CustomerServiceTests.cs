@@ -20,4 +20,17 @@ public class CustomerServiceTests
         Assert.Equal(name, customer.Name);
     }
 
+    [Fact]
+    public void GetCustomer_ExistingId_ReturnsThatCustomer()
+{
+        // Arrange
+        _service.AddCustomer("Ola Nordmann", "12345678", "ola@example.com", "Kirkegata 2, 0153 Oslo");
+        var customer = _service.AddCustomer("Anna Hansen", "98765432", "anna@example.com", "Storgata 1, 0155 Oslo");
+
+        // Act
+        var found = _service.GetCustomer(customer.Id);
+
+        // Assert
+        Assert.Equal(customer.Id, found.Id);
+    }
 }

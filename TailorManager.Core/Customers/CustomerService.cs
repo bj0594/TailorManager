@@ -29,4 +29,9 @@ public class CustomerService
     {
         return _repository.GetAll();
     }
+
+    public Customer GetCustomer(Guid id)
+{
+    throw new NotImplementedException();
+}
 }
