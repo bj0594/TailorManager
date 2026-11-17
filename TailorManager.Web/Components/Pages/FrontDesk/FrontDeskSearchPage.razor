@@ -1,1 +1,31 @@
 @page "/front-desk"
+@using TailorManager.Web.Api
+@inject ICustomersClient Client
+
+<h1>Customers</h1>
+
+<form @onsubmit="Add">
+    <input id="name" @bind="_newName" placeholder="Name" />
+    <input id="phone" @bind="_newPhone" placeholder="Phone" />
+    <input id="email" @bind="_newEmail" placeholder="Email" />
+    <input id="address" @bind="_newAddress" placeholder="Address" />
+    <button type="submit">Add</button>
+</form>
+
+@code {
+    private string _newName = "";
+    private string _newPhone = "";
+    private string _newEmail = "";
+    private string _newAddress = "";
+
+
+    private async Task Add()
+    {
+        await Client.AddCustomerAsync(_newName, _newPhone, _newEmail, _newAddress);
+        _newName = "";
+        _newPhone = "";
+        _newEmail = "";
+        _newAddress = "";
+
+    }
+}
