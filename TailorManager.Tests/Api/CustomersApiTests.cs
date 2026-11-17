@@ -67,13 +67,14 @@ public class CustomersApiTests : IDisposable
 
     [Fact]
     public async Task GetCustomer_ExistingId_ReturnsOk()
-{
+    {
         // Arrange
-        var created = await _client.PostAsJsonAsync("/customers", NewCustomer);
+        var client = await AuthHelper.CreateLoggedInClientAsync(_factory, "owner", "FrontDesk");
+        var created = await client.PostAsJsonAsync("/customers", NewCustomer);
         var customer = await created.Content.ReadFromJsonAsync<CustomerResponse>();
 
         // Act
-        var response = await _client.GetAsync($"/customers/{customer !.Id}");
+        var response = await client.GetAsync($"/customers/{customer!.Id}");
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
