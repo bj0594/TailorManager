@@ -23,7 +23,7 @@ public class CustomersApiTests : IDisposable
     public async Task PostCustomers_ValidCustomer_ReturnsCreated()
     {
         // Arrange
-        var client = await AuthHelper.CreateLoggedInClientAsync(_factory, "owner");
+        var client = await AuthHelper.CreateLoggedInClientAsync(_factory, "owner", "FrontDesk");
 
         // Act
         var response = await client.PostAsJsonAsync("/customers", new {
