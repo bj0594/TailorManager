@@ -13,13 +13,22 @@ public class OrderService
         _customerRepository = customerRepository;
     }
 
-    public Order AddOrder(Guid customerId, OrderType type, string workDescription, decimal agreedPrice, Guid? relatedOrderId)
+    public Order AddOrder(Guid customerId, OrderType type, string workDescription, decimal agreedPrice, Guid? relatedOrderId
+)
     {
-        throw new NotImplementedException();
+        var order = new Order { Id = Guid.NewGuid(),
+            CustomerId = customerId,
+            Type = type,
+            WorkDescription = workDescription,
+            InitialAgreedPrice = agreedPrice,
+            RelatedOrderId = relatedOrderId
+         };
+        _repository.Add(order);
+        return order;
     }
 
     public List<Order> GetOrders()
     {
-        throw new NotImplementedException();
+        return _repository.GetAll().ToList();
     }
 }
