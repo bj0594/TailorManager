@@ -61,6 +61,26 @@ public class CustomersClientTests
         Assert.Equal("Anna Hansen", JsonDocument.Parse(_handler.Bodies.Single()!).RootElement.GetProperty("name").GetString());
     }
 
+    [Fact]
+    public async Task GetCustomerAsync_ExistingId_ReadsIt()
+{
+        // Arrange
+        var id = Guid.NewGuid();
+        _handler.Respond($"/customers/{id}", JsonSerializer.Serialize(new {id, 
+            name = "Anna Hansen",
+            phone = "98765432",
+            email = "anna@example.com",
+            address = "Storgata 1, 0155 Oslo"
+            }));
+
+        // Act
+        var result = await _client.GetCustomerAsync(id);
+
+        // Assert
+        Assert.Equal(HttpMethod.Get, _handler.Requests.Single().Method);
+        Assert.Equal("Anna Hansen", result.Name);
+    }
+
     // A client that talks to the stub instead of the API.
     private CustomersClient CreateClient(TokenStore tokens) =>
         new(new HttpClient(_handler) { BaseAddress = new Uri("http://api.test/") }, tokens);
