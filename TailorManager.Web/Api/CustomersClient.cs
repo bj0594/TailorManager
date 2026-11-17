@@ -22,5 +22,9 @@ public class CustomersClient : ICustomersClient
         return await _http.GetFromJsonAsync<List<CustomerDto>>("customers") ?? [];
     }
 
-    public Task AddCustomerAsync(string name, string email, string phoneNumber, string address) => throw new NotImplementedException();
+    public async Task AddCustomerAsync(string name, string phone, string email, string address)
+    {
+        var response = await _http.PostAsJsonAsync("customers", new { name, phone, email, address });
+        response.EnsureSuccessStatusCode();
+    }
 }
