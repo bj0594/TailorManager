@@ -17,7 +17,7 @@ public class CustomersController : ControllerBase
     [HttpPost]
     public IActionResult Create(CreateCustomerRequest request)
     {
-        var customer = _service.AddCustomer(request.Name, request.Email, request.PhoneNumber, request.Address);
+        var customer = _service.AddCustomer(request.Name, request.Email, request.Phone, request.Address);
         return Created($"/customers/{customer.Id}", customer);
     }
 }

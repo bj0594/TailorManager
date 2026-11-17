@@ -17,6 +17,14 @@ public class CustomersApiTests : IDisposable
         _client = _factory.CreateClient();
     }
 
+    // The customer from the Example line in §4, as the API gets it in POST /customers.
+    private static readonly object NewCustomer = new
+    {
+        name = "Anna Hansen",
+        phone = "98765432",
+        email = "anna@example.com",
+        address = "Storgata 1, 0155 Oslo"
+    };
     public void Dispose() => _factory.Dispose();
 
     [Fact]
@@ -26,30 +34,19 @@ public class CustomersApiTests : IDisposable
         var client = await AuthHelper.CreateLoggedInClientAsync(_factory, "owner", "FrontDesk");
 
         // Act
-        var response = await client.PostAsJsonAsync("/customers", new {
-            Name = "John",
-            Email = "john@john.com",
-            PhoneNumber = "12345678",
-            Address = "Test Street 1"
-        });
+        var response = await client.PostAsJsonAsync("/customers", NewCustomer);
 
         // Assert
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
         var body = await response.Content.ReadFromJsonAsync <CustomerResponse>();
-        Assert.Equal("John", body?.Name);
+        Assert.Equal("Anna Hansen", body?.Name);
     }
 
     [Fact]
     public async Task PostCustomers_WithoutToken_ReturnsUnauthorized()
     {
         // Act
-        var response = await _client.PostAsJsonAsync("/customers", new
-        {
-            Name = "Anna Hansen",
-            Email = "anna@example.com",
-            PhoneNumber = "98765432",
-            Address = "Storgata 1, 0155 Oslo"
-        });
+        var response = await _client.PostAsJsonAsync("/customers", NewCustomer);
 
         // Assert
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
@@ -62,16 +59,10 @@ public class CustomersApiTests : IDisposable
         var user = await AuthHelper.CreateLoggedInClientAsync(_factory, "user", "Workshop");
 
         // Act
-        var response = await user.PostAsJsonAsync("/customers", new
-        {
-            Name = "Anna Hansen",
-            Email = "anna@example.com",
-            PhoneNumber = "98765432",
-            Address = "Storgata 1, 0155 Oslo"
-        });
+        var response = await user.PostAsJsonAsync("/customers", NewCustomer);
 
         // Assert
         Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
     }
-    private record CustomerResponse(Guid Id, string Name, string Email, string PhoneNumber, string Address);
+    private record CustomerResponse(Guid Id, string Name, string Email, string Phone, string Address);
 }
