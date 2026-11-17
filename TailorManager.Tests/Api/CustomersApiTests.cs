@@ -54,7 +54,7 @@ public class CustomersApiTests : IDisposable
 
     [Fact]
     public async Task PostCustomers_NotFrontDesk_ReturnsForbidden()
-{
+    {
         // Arrange: a logged-in user without the role
         var user = await AuthHelper.CreateLoggedInClientAsync(_factory, "user", "Workshop");
 
@@ -63,6 +63,22 @@ public class CustomersApiTests : IDisposable
 
         // Assert
         Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task GetCustomer_ExistingId_ReturnsOk()
+{
+        // Arrange
+        var created = await _client.PostAsJsonAsync("/customers", NewCustomer);
+        var customer = await created.Content.ReadFromJsonAsync<CustomerResponse>();
+
+        // Act
+        var response = await _client.GetAsync($"/customers/{customer !.Id}");
+
+        // Assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var body = await response.Content.ReadFromJsonAsync<CustomerResponse>();
+        Assert.Equal(customer.Id, body!.Id);
     }
     private record CustomerResponse(Guid Id, string Name, string Email, string Phone, string Address);
 }
