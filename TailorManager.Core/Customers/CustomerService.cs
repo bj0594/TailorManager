@@ -31,7 +31,8 @@ public class CustomerService
     }
 
     public Customer GetCustomer(Guid id)
-{
-    throw new NotImplementedException();
-}
+    {
+        return _repository.GetById(id)
+        ?? throw new KeyNotFoundException($"Customer {id} was not found.");
+    }
 }
