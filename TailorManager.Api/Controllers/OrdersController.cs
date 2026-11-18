@@ -28,4 +28,10 @@ public class OrdersController : ControllerBase
         var order = _service.AddOrder(request.CustomerId, request.Type, request.WorkDescription, request.AgreedPrice, request.RelatedOrderId, employee); 
         return Created($"/orders/{order.Id}", order);
     }
+
+    [HttpGet("{id}")]
+    public IActionResult GetById(Guid id)
+    {
+        return Ok(_service.GetOrder(id));
+    }
 }
