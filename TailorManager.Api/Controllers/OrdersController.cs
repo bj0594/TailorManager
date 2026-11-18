@@ -13,6 +13,7 @@ public class OrdersController : ControllerBase
 
     public OrdersController(OrderService service) => _service = service;
 
+    [Authorize(Roles = "FrontDesk")]
     [HttpPost]
     public IActionResult Create(CreateOrderRequest request)
     {
