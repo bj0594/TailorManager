@@ -33,6 +33,17 @@ public class OrdersApiTests : IDisposable
         var body = await response.Content.ReadFromJsonAsync<OrderResponse>();
         Assert.Equal(customer.Id, body!.CustomerId);
     }
+
+    [Fact]
+    public async Task PostOrders_WithoutToken_ReturnsUnauthorized()
+{
+        // Act
+        var response = await _client.PostAsJsonAsync("/orders", new { });
+
+        // Assert
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+    }
+
     private record OrderResponse(Guid Id, Guid CustomerId, string WorkDescription, decimal InitialAgreedPrice);
     private record CustomerResponse(Guid Id, string Name, string Email, string Phone, string Address);
 }
