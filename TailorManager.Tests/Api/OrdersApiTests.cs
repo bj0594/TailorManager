@@ -36,12 +36,25 @@ public class OrdersApiTests : IDisposable
 
     [Fact]
     public async Task PostOrders_WithoutToken_ReturnsUnauthorized()
-{
+    {
         // Act
         var response = await _client.PostAsJsonAsync("/orders", new { });
 
         // Assert
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task PostOrders_NotFrontDesk_ReturnsForbidden()
+    {
+        // Arrange: a logged-in user without the role
+        var user = await AuthHelper.CreateLoggedInClientAsync(_factory, "user", Roles.Workshop);
+
+        // Act
+        var response = await user.PostAsJsonAsync("/orders", new { });
+
+        // Assert
+        Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
     }
 
     private record OrderResponse(Guid Id, Guid CustomerId, string WorkDescription, decimal InitialAgreedPrice);
