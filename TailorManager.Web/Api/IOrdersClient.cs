@@ -16,4 +16,6 @@ public interface IOrdersClient
         DateTimeOffset CreatedAt, 
         Guid? RelatedOrderId
     );
+
+    Task<OrderDto> GetOrderAsync(Guid id);
 }

@@ -34,4 +34,6 @@ public class OrdersClient : IOrdersClient
         DateTimeOffset CreatedAt, 
         Guid? RelatedOrderId
     ) => throw new NotImplementedException();
+
+    public Task<OrderDto> GetOrderAsync(Guid id) => throw new NotImplementedException();
 }

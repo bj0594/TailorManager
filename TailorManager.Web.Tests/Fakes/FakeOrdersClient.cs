@@ -34,4 +34,6 @@ public class FakeOrdersClient : IOrdersClient
         RelatedOrderId));
         return Task.CompletedTask;
     }
+
+    public Task<OrderDto> GetOrderAsync(Guid id) => Task.FromResult(Items.Single(i => i.Id == id));
 }
