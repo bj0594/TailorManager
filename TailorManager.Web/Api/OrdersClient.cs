@@ -35,5 +35,9 @@ public class OrdersClient : IOrdersClient
         Guid? RelatedOrderId
     ) => throw new NotImplementedException();
 
-    public Task<OrderDto> GetOrderAsync(Guid id) => throw new NotImplementedException();
+    public async Task<OrderDto> GetOrderAsync(Guid id)
+    {
+        var Order= await _http.GetFromJsonAsync<OrderDto>($"orders/{id}");
+        return Order!;
+    }
 }
