@@ -4,4 +4,16 @@ namespace TailorManager.Web.Api;
 public interface IOrdersClient
 {
     Task<List<OrderDto>> GetOrdersAsync();
+    Task AddOrderAsync(
+        Guid Id, 
+        Guid CustomerId, 
+        string Type, 
+        string WorkDescription, 
+        decimal InitialAgreedPrice, 
+        decimal CurrentAgreedPrice, 
+        decimal OutstandingBalance, 
+        string Status, 
+        DateTimeOffset CreatedAt, 
+        Guid? RelatedOrderId
+    );
 }

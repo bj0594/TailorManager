@@ -21,4 +21,17 @@ public class OrdersClient : IOrdersClient
     {
         return await _http.GetFromJsonAsync<List<OrderDto>>("orders") ?? [];
     }
+
+    public Task AddOrderAsync(
+        Guid Id, 
+        Guid CustomerId, 
+        string Type, 
+        string WorkDescription, 
+        decimal InitialAgreedPrice, 
+        decimal CurrentAgreedPrice, 
+        decimal OutstandingBalance, 
+        string Status, 
+        DateTimeOffset CreatedAt, 
+        Guid? RelatedOrderId
+    ) => throw new NotImplementedException();
 }
