@@ -34,6 +34,7 @@ public class OrderService
 
     public Order GetOrder(Guid id)
     {
-        throw new NotImplementedException();
+        return _repository.GetById(id)
+        ?? throw new KeyNotFoundException($"Order {id} was not found.");
     }
 }
