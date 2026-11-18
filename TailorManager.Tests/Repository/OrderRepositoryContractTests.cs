@@ -54,6 +54,30 @@ public abstract class OrderRepositoryContractTests
         Assert.Contains(all, o => o.Id == first.Id);
         Assert.Contains(all, o => o.Id == second.Id);
     }
+
+    [Fact]
+    public void AddOrder_ThenGetById_ReturnsTheSameObject()
+    {
+        // Arrange
+        var repository = CreateRepository();
+        var order = new Order
+        {
+            Id = Guid.NewGuid(),
+            CustomerId = Guid.NewGuid(),
+            Type = OrderType.NewGarment,
+            WorkDescription = "Shorten the trousers by 3 cm",
+            InitialAgreedPrice = 450m,
+            RelatedOrderId = null
+        };
+
+        // Act
+        repository.Add(order);
+
+        // Assert
+        var found = repository.GetById(order.Id);
+        Assert.NotNull(found);
+        Assert.Equal("Shorten the trousers by 3 cm", found.WorkDescription);
+    }
 }
 
 public class FakeOrderRepositoryTests : OrderRepositoryContractTests
