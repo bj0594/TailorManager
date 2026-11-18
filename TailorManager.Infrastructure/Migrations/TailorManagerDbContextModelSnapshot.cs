@@ -82,6 +82,28 @@ namespace TailorManager.Infrastructure.Migrations
                     b.ToTable("Orders");
                 });
 
+            modelBuilder.Entity("TailorManager.Core.OrderHistoryEntry", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("ActorDisplayName")
+                        .HasColumnType("text");
+
+                    b.Property<Guid?>("ActorId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("OrderId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OrderId");
+
+                    b.ToTable("OrderHistoryEntry");
+                });
+
             modelBuilder.Entity("TailorManager.Core.User", b =>
                 {
                     b.Property<Guid>("Id")
@@ -114,6 +136,18 @@ namespace TailorManager.Infrastructure.Migrations
                         .IsUnique();
 
                     b.ToTable("Users");
+                });
+
+            modelBuilder.Entity("TailorManager.Core.OrderHistoryEntry", b =>
+                {
+                    b.HasOne("TailorManager.Core.Order", null)
+                        .WithMany("History")
+                        .HasForeignKey("OrderId");
+                });
+
+            modelBuilder.Entity("TailorManager.Core.Order", b =>
+                {
+                    b.Navigation("History");
                 });
 #pragma warning restore 612, 618
         }

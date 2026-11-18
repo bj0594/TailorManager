@@ -13,7 +13,7 @@ public class OrderService
         _customerRepository = customerRepository;
     }
 
-    public Order AddOrder(Guid customerId, OrderType type, string workDescription, decimal agreedPrice, Guid? relatedOrderId)
+    public Order AddOrder(Guid customerId, OrderType type, string workDescription, decimal agreedPrice, Guid? relatedOrderId, User employee)
     {
         var order = new Order { Id = Guid.NewGuid(),
             CustomerId = customerId,

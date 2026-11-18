@@ -10,4 +10,5 @@ public class Order
     public OrderStatus Status { get; set; }
     public DateTimeOffset CreatedAt { get; set; }
     public Guid? RelatedOrderId { get; set; }
+    public List<OrderHistoryEntry> History { get; set; } = [];
 }

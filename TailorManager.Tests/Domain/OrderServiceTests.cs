@@ -21,9 +21,23 @@ public class OrderServiceTests
         var workDescription = "Shorten the trousers by 3 cm";
 
         // Act
-        var order = _service.AddOrder(customer.Id, OrderType.NewGarment, workDescription, 450m, null);
+        var order = _service.AddOrder(customer.Id, OrderType.NewGarment, workDescription, 450m, null, new User());
 
         // Assert
         Assert.Equal(workDescription, order.WorkDescription);
+    }
+
+    [Fact]
+    public void AddOrder_WithEmployee_StoresTheEmployeeInTheHistory()
+    {
+        // Arrange
+        var customer = new CustomerService(_customerRepository).AddCustomer("Anna Hansen", "98765432", "anna@example.com", "Storgata 1, 0155 Oslo");
+        var employee = new User { Id = Guid.NewGuid(), FirstName = "Kari", LastName = "Nordmann" };
+
+        // Act
+        var order = _service.AddOrder(customer.Id, OrderType.NewGarment, "Shorten the trousers by 3 cm", 450m, null, employee);
+
+        // Assert
+        Assert.Equal("Kari N.", order.History.First().ActorDisplayName);
     }
 }
