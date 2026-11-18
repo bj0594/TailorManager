@@ -44,6 +44,21 @@ public class OrdersClientTests
         Assert.Equal("Bearer abc", _handler.Requests.Single().Headers.Authorization?.ToString());
     }
 
+    [Fact]
+    public async Task GetOrderAsync_ExistingId_ReadsIt()
+    {
+        // Arrange
+        var id = Guid.NewGuid();
+        _handler.Respond($"/orders/{id}", JsonSerializer.Serialize(new { id, workDescription = "Shorten the trousers by 3 cm" }));
+
+        // Act
+        var result = await _client.GetOrderAsync(id);
+
+        // Assert
+        Assert.Equal(HttpMethod.Get, _handler.Requests.Single().Method);
+        Assert.Equal("Shorten the trousers by 3 cm", result.WorkDescription);
+    }
+
     // A client that talks to the stub instead of the API.
     private OrdersClient CreateClient(TokenStore tokens) =>
         new(new HttpClient(_handler) { BaseAddress = new Uri("http://api.test/") }, tokens);
