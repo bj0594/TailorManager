@@ -57,6 +57,23 @@ public class OrdersApiTests : IDisposable
         Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
     }
 
-    private record OrderResponse(Guid Id, Guid CustomerId, string WorkDescription, decimal InitialAgreedPrice);
+    [Fact]
+    public async Task PostOrders_LoggedIn_StoresTheEmployeeInTheHistory()
+    {
+        // Arrange
+        var client = await AuthHelper.CreateLoggedInClientAsync(_factory, "kari", Roles.FrontDesk);
+        var created = await client.PostAsJsonAsync("/customers", new { name = "Anna Hansen", phone = "98765432", email = "anna@example.com", address = "Storgata 1, 0155 Oslo" });
+        var customer = await created.Content.ReadFromJsonAsync<CustomerResponse>();
+
+        // Act
+        var response = await client.PostAsJsonAsync("/orders", new { customerId = customer!.Id, type = "NewGarment", workDescription = "Shorten the trousers by 3 cm", agreedPrice = 450, relatedOrderId = (Guid?)null });
+
+        // Assert
+        var body = await response.Content.ReadFromJsonAsync<OrderResponse>();
+        Assert.Equal("Kari N.", body!.History[0].ActorDisplayName);
+    }
+
+    private record OrderResponse(Guid Id, Guid CustomerId, string WorkDescription, decimal InitialAgreedPrice, List<OrderHistoryResponse> History);
+    private record OrderHistoryResponse(string? ActorDisplayName);
     private record CustomerResponse(Guid Id, string Name, string Email, string Phone, string Address);
 }
