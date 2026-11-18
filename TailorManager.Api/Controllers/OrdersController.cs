@@ -1,10 +1,12 @@
 using Microsoft.AspNetCore.Mvc;
 using TailorManager.Core;
+using Microsoft.AspNetCore.Authorization;
 
 namespace TailorManager.Api.Controllers;
 
 [ApiController]
 [Route("orders")]
+[Authorize]
 public class OrdersController : ControllerBase
 {
     private readonly OrderService _service;
