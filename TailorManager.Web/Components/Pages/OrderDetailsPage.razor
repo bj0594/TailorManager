@@ -1,5 +1,23 @@
 @page "/orders/{Id:guid}"
+@using TailorManager.Web.Api
+@inject IOrdersClient Client
+
+@if (_item is null)
+{
+    <p>Loading…</p>
+}
+else
+{
+    <h1>@_item.WorkDescription</h1>
+}
 
 @code {
     [Parameter] public Guid Id { get; set; }
+
+    private OrderDto? _item;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        _item = await Client.GetOrderAsync(Id);
+    }
 }
