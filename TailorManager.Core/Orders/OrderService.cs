@@ -31,4 +31,9 @@ public class OrderService
     {
         return _repository.GetAll().ToList();
     }
+
+    public Order GetOrder(Guid id)
+    {
+        throw new NotImplementedException();
+    }
 }
