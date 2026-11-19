@@ -92,6 +92,23 @@ public class OrdersApiTests : IDisposable
         Assert.Equal(order.Id, body!.Id);
     }
 
+    [Fact]
+    public async Task PatchOrdersStart_ExistingOrder_ReturnsNoContent()
+    {
+        // Arrange
+        var client = await AuthHelper.CreateLoggedInClientAsync(_factory, "kari", Roles.FrontDesk);
+        var createdCustomer = await client.PostAsJsonAsync("/customers", new { name = "Anna Hansen", phone = "98765432", email = "anna@example.com", address = "Storgata 1, 0155 Oslo" });
+        var customer = await createdCustomer.Content.ReadFromJsonAsync<CustomerResponse>();
+        var created = await client.PostAsJsonAsync("/orders", new { customerId = customer!.Id, type = "NewGarment", workDescription = "Shorten the trousers by 3 cm", agreedPrice = 450, relatedOrderId = (Guid?)null });
+        var order = await created.Content.ReadFromJsonAsync<OrderResponse>();
+
+        // Act
+        var response = await client.PatchAsync($"/orders/{order!.Id}/start", null);
+
+        // Assert
+        Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
+    }
+
     private record OrderResponse(Guid Id, Guid CustomerId, string WorkDescription, decimal InitialAgreedPrice, List<OrderHistoryResponse> History);
     private record OrderHistoryResponse(string? ActorDisplayName);
     private record CustomerResponse(Guid Id, string Name, string Email, string Phone, string Address);
