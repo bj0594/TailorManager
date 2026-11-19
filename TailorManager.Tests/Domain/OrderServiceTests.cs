@@ -56,4 +56,19 @@ public class OrderServiceTests
         // Assert
         Assert.Equal(order.Id, found.Id);
     }
+
+    [Fact]
+    public void StartOrder_ExistingOrder_SetsInProgress()
+    {
+        // Arrange
+        var customer = new CustomerService(_customerRepository).AddCustomer("Anna Hansen", "98765432", "anna@example.com", "Storgata 1, 0155 Oslo");
+        var employee = new User { Id = Guid.NewGuid(), FirstName = "Kari", LastName = "Nordmann" };
+        var order = _service.AddOrder(customer.Id, OrderType.NewGarment, "Shorten the trousers by 3 cm", 450m, null, employee);
+
+        // Act
+        _service.StartOrder(order.Id);
+
+        // Assert
+        Assert.Equal(OrderStatus.InProgress, _service.GetOrder(order.Id).Status);
+    }
 }

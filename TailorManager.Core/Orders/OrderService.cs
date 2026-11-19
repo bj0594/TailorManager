@@ -37,4 +37,9 @@ public class OrderService
         return _repository.GetById(id)
         ?? throw new KeyNotFoundException($"Order {id} was not found.");
     }
+
+    public void StartOrder(Guid id)
+    {
+        throw new NotImplementedException();
+    }
 }
