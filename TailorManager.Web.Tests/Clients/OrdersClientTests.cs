@@ -1,5 +1,6 @@
 using System.Text.Json;
 using TailorManager.Web.Api;
+using System.Net;
 
 namespace TailorManager.Web.Tests;
 
@@ -57,6 +58,22 @@ public class OrdersClientTests
         // Assert
         Assert.Equal(HttpMethod.Get, _handler.Requests.Single().Method);
         Assert.Equal("Shorten the trousers by 3 cm", result.WorkDescription);
+    }
+
+    [Fact]
+    public async Task StartOrderAsync_Always_SendsPatch()
+    {
+        // Arrange
+        var id = Guid.NewGuid();
+        _handler.Respond($"/orders/{id}/start", "", HttpStatusCode.NoContent);
+
+        // Act
+        await _client.StartOrderAsync(id);
+
+        // Assert
+        var request = _handler.Requests.Single();
+        Assert.Equal(HttpMethod.Patch, request.Method);
+        Assert.Equal($"/orders/{id}/start", request.RequestUri!.AbsolutePath);
     }
 
     // A client that talks to the stub instead of the API.
