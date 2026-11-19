@@ -78,6 +78,30 @@ public abstract class OrderRepositoryContractTests
         Assert.NotNull(found);
         Assert.Equal("Shorten the trousers by 3 cm", found.WorkDescription);
     }
+
+    [Fact]
+    public void Update_ChangedOrder_IsStored()
+    {
+        // Arrange
+        var repository = CreateRepository();
+        var order = new Order
+        {
+            Id = Guid.NewGuid(),
+            CustomerId = Guid.NewGuid(),
+            Type = OrderType.NewGarment,
+            WorkDescription = "Shorten the trousers by 3 cm",
+            InitialAgreedPrice = 450m,
+            RelatedOrderId = null
+        };
+        repository.Add(order);
+
+        // Act
+        order.Status = OrderStatus.InProgress;
+        repository.Update(order);
+
+        // Assert
+        Assert.Equal(OrderStatus.InProgress, repository.GetById(order.Id)!.Status);
+    }
 }
 
 public class FakeOrderRepositoryTests : OrderRepositoryContractTests
