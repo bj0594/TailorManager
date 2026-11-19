@@ -34,6 +34,7 @@ public class OrdersController : ControllerBase
         return Ok(_service.GetOrder(id));
     }
 
+    [Authorize(Roles = Roles.Workshop)]
     [HttpPatch("{id}/start")]
     public IActionResult Start(Guid id)
     {

@@ -92,9 +92,10 @@ public class OrdersApiTests : IDisposable
         // Arrange
         var client = await _factory.LogInAsFrontDeskAsync();
         var order = await client.CreateOrderAsync();
+        var workshop = await _factory.LogInAsWorkshopAsync();
 
         // Act
-        var response = await client.PatchAsync($"/orders/{order.Id}/start", null);
+        var response = await workshop.PatchAsync($"/orders/{order.Id}/start", null);
 
         // Assert
         Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
