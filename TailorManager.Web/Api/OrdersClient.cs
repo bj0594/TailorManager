@@ -40,4 +40,6 @@ public class OrdersClient : IOrdersClient
         var Order= await _http.GetFromJsonAsync<OrderDto>($"orders/{id}");
         return Order!;
     }
+
+    public Task StartOrderAsync(Guid id) => throw new NotImplementedException();
 }

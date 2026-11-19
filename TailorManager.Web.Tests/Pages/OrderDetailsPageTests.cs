@@ -28,4 +28,19 @@ public class OrderDetailsPageTests : BunitContext
         // Assert
         Assert.Contains("Shorten the trousers by 3 cm", page.Find("h1").TextContent);
     }
+
+    [Fact]
+    public void OrderDetailsPage_ClickStart_SendsItToTheApi()
+    {
+        // Arrange
+        var order = new OrderDto(Guid.NewGuid(), Guid.NewGuid(), "NewGarment", "Shorten the trousers by 3 cm", 450m, 450m, 450m, "Submitted", DateTimeOffset.Now, null);
+        _client.Items.Add(order);
+        var page = Render<OrderDetailsPage>(p => p.Add(x => x.Id, order.Id));
+
+        // Act
+        page.Find("button.start").Click();
+
+        // Assert
+        page.WaitForAssertion(() => Assert.Contains(order.Id, _client.StartIds));
+    }
 }

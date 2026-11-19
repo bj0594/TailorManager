@@ -18,4 +18,6 @@ public interface IOrdersClient
     );
 
     Task<OrderDto> GetOrderAsync(Guid id);
+
+    Task StartOrderAsync(Guid id);
 }

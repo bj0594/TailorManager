@@ -36,4 +36,12 @@ public class FakeOrdersClient : IOrdersClient
     }
 
     public Task<OrderDto> GetOrderAsync(Guid id) => Task.FromResult(Items.Single(i => i.Id == id));
+
+    public List<Guid> StartIds { get; } = [];
+
+    public Task StartOrderAsync(Guid id)
+    {
+    StartIds.Add(id);
+        return Task.CompletedTask;
+    }
 }
