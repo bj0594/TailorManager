@@ -34,4 +34,11 @@ public class OrdersController : ControllerBase
     {
         return Ok(_service.GetOrder(id));
     }
+
+    [HttpPatch("{id}/start")]
+    public IActionResult Start(Guid id)
+    {
+        _service.StartOrder(id);
+        return NoContent();
+    }
 }
