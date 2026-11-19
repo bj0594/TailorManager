@@ -67,13 +67,13 @@ public class OrderServiceTests
     }
 
     [Fact]
-    public void StartOrder_NotSubmitted_ThrowsInvalidOperationException()
+    public void StartOrder_NotSubmitted_ThrowsInvalidOrderStatusException()
     {
         // Arrange
         var order = _app.AddOrder();
         _service.StartOrder(order.Id);
 
         // Act + Assert
-        Assert.Throws<InvalidOperationException>(() => _service.StartOrder(order.Id));
+        Assert.Throws<InvalidOrderStatusException>(() => _service.StartOrder(order.Id));
     }
 }
