@@ -13,4 +13,7 @@ public class OrderHistoryEntry
         ActorId = employee.Id,
         ActorDisplayName = employee.DisplayName
     };
+
+    public ActivityType Type { get; set; }
+    public string? Note { get; set; }
 }

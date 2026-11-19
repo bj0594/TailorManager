@@ -76,4 +76,18 @@ public class OrderServiceTests
         // Act + Assert
         Assert.Throws<InvalidOrderStatusException>(() => _service.StartOrder(order.Id));
     }
+
+    [Fact]
+    public void AddWorkNote_OrderInProgress_AddsWorkNote()
+    {
+        // Arrange
+        var order = _app.AddOrder();
+        _service.StartOrder(order.Id);
+        // Act
+        _service.AddWorkNote(order.Id, Examples.WorkNote, _app.Employee);
+
+        // Assert
+        var entry = Assert.Single(_service.GetOrder(order.Id).History, h => h.Type == ActivityType.WorkNoteAdded);
+        Assert.Equal(Examples.WorkNote, entry.Note);
+    }
 }

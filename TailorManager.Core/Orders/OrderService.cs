@@ -48,4 +48,9 @@ public class OrderService
         order.Status = OrderStatus.InProgress;
         _repository.Update(order);
     }
+
+    public Order AddWorkNote(Guid id, string note, User employee)
+    {
+        throw new NotImplementedException();
+    }
 }

@@ -94,8 +94,14 @@ namespace TailorManager.Infrastructure.Migrations
                     b.Property<Guid?>("ActorId")
                         .HasColumnType("uuid");
 
+                    b.Property<string>("Note")
+                        .HasColumnType("text");
+
                     b.Property<Guid?>("OrderId")
                         .HasColumnType("uuid");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("integer");
 
                     b.HasKey("Id");
 
