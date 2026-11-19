@@ -5,37 +5,34 @@ namespace TailorManager.Tests;
 
 public class OrderServiceTests
 {
-    private readonly FakeCustomerRepository _customerRepository = new();
+    private const string WorkDescription = "Shorten the trousers by 3 cm";
+
     private readonly OrderService _service;
+    private readonly Customer _customer;
+    private readonly User _employee = new() { Id = Guid.NewGuid(), FirstName = "Kari", LastName = "Nordmann" };
 
     public OrderServiceTests()
     {
-        _service = new(new FakeOrderRepository(), _customerRepository);
+        var customerRepository = new FakeCustomerRepository();
+        _service = new(new FakeOrderRepository(), customerRepository);
+        _customer = new CustomerService(customerRepository).AddCustomer("Anna Hansen", "98765432", "anna@example.com", "Storgata 1, 0155 Oslo");
     }
 
     [Fact]
-    public void CreateOrder_ValidInput_ReturnsTheOrder()
+    public void AddOrder_ValidInput_ReturnsTheOrder()
     {
-        // Arrange
-        var customer = new CustomerService(_customerRepository).AddCustomer("Anna Hansen", "98765432", "anna@example.com", "Storgata 1, 0155 Oslo");
-        var workDescription = "Shorten the trousers by 3 cm";
-
         // Act
-        var order = _service.AddOrder(customer.Id, OrderType.NewGarment, workDescription, 450m, null, new User());
+        var order = AddOrder();
 
         // Assert
-        Assert.Equal(workDescription, order.WorkDescription);
+        Assert.Equal(WorkDescription, order.WorkDescription);
     }
 
     [Fact]
     public void AddOrder_WithEmployee_StoresTheEmployeeInTheHistory()
     {
-        // Arrange
-        var customer = new CustomerService(_customerRepository).AddCustomer("Anna Hansen", "98765432", "anna@example.com", "Storgata 1, 0155 Oslo");
-        var employee = new User { Id = Guid.NewGuid(), FirstName = "Kari", LastName = "Nordmann" };
-
         // Act
-        var order = _service.AddOrder(customer.Id, OrderType.NewGarment, "Shorten the trousers by 3 cm", 450m, null, employee);
+        var order = AddOrder();
 
         // Assert
         Assert.Equal("Kari N.", order.History.First().ActorDisplayName);
@@ -45,10 +42,8 @@ public class OrderServiceTests
     public void GetOrder_ExistingId_ReturnsThatOrder()
     {
         // Arrange
-        var customer = new CustomerService(_customerRepository).AddCustomer("Anna Hansen", "98765432", "anna@example.com", "Storgata 1, 0155 Oslo");
-        var employee = new User { Id = Guid.NewGuid(), FirstName = "Kari", LastName = "Nordmann" };
-        _service.AddOrder(customer.Id, OrderType.NewGarment, "Take in the waist by 2 cm", 450m, null, employee);
-        var order = _service.AddOrder(customer.Id, OrderType.NewGarment, "Shorten the trousers by 3 cm", 450m, null, employee);
+        AddOrder("Take in the waist by 2 cm");
+        var order = AddOrder();
 
         // Act
         var found = _service.GetOrder(order.Id);
@@ -61,9 +56,7 @@ public class OrderServiceTests
     public void StartOrder_ExistingOrder_SetsInProgress()
     {
         // Arrange
-        var customer = new CustomerService(_customerRepository).AddCustomer("Anna Hansen", "98765432", "anna@example.com", "Storgata 1, 0155 Oslo");
-        var employee = new User { Id = Guid.NewGuid(), FirstName = "Kari", LastName = "Nordmann" };
-        var order = _service.AddOrder(customer.Id, OrderType.NewGarment, "Shorten the trousers by 3 cm", 450m, null, employee);
+        var order = AddOrder();
 
         // Act
         _service.StartOrder(order.Id);
@@ -71,4 +64,7 @@ public class OrderServiceTests
         // Assert
         Assert.Equal(OrderStatus.InProgress, _service.GetOrder(order.Id).Status);
     }
+
+    private Order AddOrder(string workDescription = WorkDescription) =>
+        _service.AddOrder(_customer.Id, OrderType.NewGarment, workDescription, 450m, null, _employee);
 }
