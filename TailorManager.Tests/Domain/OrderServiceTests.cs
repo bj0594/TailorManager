@@ -65,4 +65,15 @@ public class OrderServiceTests
         // Assert
         Assert.Equal(OrderStatus.InProgress, _service.GetOrder(order.Id).Status);
     }
+
+    [Fact]
+    public void StartOrder_NotSubmitted_ThrowsInvalidOperationException()
+    {
+        // Arrange
+        var order = _app.AddOrder();
+        _service.StartOrder(order.Id);
+
+        // Act + Assert
+        Assert.Throws<InvalidOperationException>(() => _service.StartOrder(order.Id));
+    }
 }
