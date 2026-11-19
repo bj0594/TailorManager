@@ -41,5 +41,9 @@ public class OrdersClient : IOrdersClient
         return Order!;
     }
 
-    public Task StartOrderAsync(Guid id) => throw new NotImplementedException();
+    public async Task StartOrderAsync(Guid id)
+    {
+        var response = await _http.PatchAsync($"orders/{id}/start", null);
+        response.EnsureSuccessStatusCode();
+    }
 }
