@@ -88,4 +88,21 @@ public class OrdersClientTests
         // Assert
         Assert.Equal("The order is not submitted.", ex.Message);
     }
+
+    [Fact]
+    public async Task AddWorkNoteAsync_Always_PostsTheWorkNote()
+    {
+        // Arrange
+        var id = Guid.NewGuid();
+        _handler.Respond($"/orders/{id}/notes", "{}");
+
+        // Act
+        await _client.AddWorkNoteAsync(id, "");
+
+        // Assert
+        var request = _handler.Requests.Single();
+        Assert.Equal(HttpMethod.Post, request.Method);
+        Assert.Equal($"/orders/{id}/notes", request.RequestUri!.AbsolutePath);
+        Assert.Contains("", _handler.Bodies.Single());
+    }
 }
