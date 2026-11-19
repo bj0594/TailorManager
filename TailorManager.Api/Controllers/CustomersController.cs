@@ -13,7 +13,7 @@ public class CustomersController : ControllerBase
 
     public CustomersController(CustomerService service) => _service = service;
 
-    [Authorize(Roles = "FrontDesk")]
+    [Authorize(Roles = Roles.FrontDesk)]
     [HttpPost]
     public IActionResult Create(CreateCustomerRequest request)
     {

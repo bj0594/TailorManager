@@ -13,7 +13,7 @@ public class AuthClientTests
 
     public AuthClientTests()
     {
-        _auth = new AuthClient(new HttpClient(_handler) { BaseAddress = new Uri("http://api.test/") }, _tokens);
+        _auth = new AuthClient(_handler.CreateHttpClient(), _tokens);
     }
 
     [Fact]

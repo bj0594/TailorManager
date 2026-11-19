@@ -10,6 +10,9 @@ public class StubHttpMessageHandler : HttpMessageHandler
     public List<HttpRequestMessage> Requests { get; } = [];
     public List<string?> Bodies { get; } = [];
 
+    // An HttpClient that sends to this stub instead of the API: new CustomersClient(_handler.CreateHttpClient(), tokens).
+    public HttpClient CreateHttpClient() => new(this) { BaseAddress = new Uri("http://api.test/") };
+
     public StubHttpMessageHandler Respond(string path, string json, HttpStatusCode status = HttpStatusCode.OK)
     {
         _responses[path] = (status, json);

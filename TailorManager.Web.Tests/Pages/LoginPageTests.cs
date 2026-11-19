@@ -6,18 +6,9 @@ using TailorManager.Web.Components.Pages;
 
 namespace TailorManager.Web.Tests;
 
-// Renders LoginPage with the fake auth client.
-public class LoginPageTests : BunitContext
+// Renders LoginPage with the fake auth client and the TokenStore from PageTestContext.
+public class LoginPageTests : PageTestContext
 {
-    private readonly FakeAuthClient _auth = new();
-    private readonly TokenStore _tokens = new();
-
-    public LoginPageTests()
-    {
-        Services.AddSingleton<IAuthClient>(_auth);
-        Services.AddSingleton(_tokens);
-    }
-
     [Fact]
     public void LoginPage_WrongPassword_ShowsError()
     {

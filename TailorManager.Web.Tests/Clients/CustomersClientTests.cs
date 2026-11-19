@@ -1,6 +1,6 @@
+using System.Net;
 using System.Text.Json;
 using TailorManager.Web.Api;
-using System.Net;
 
 namespace TailorManager.Web.Tests;
 
@@ -12,14 +12,14 @@ public class CustomersClientTests
 
     public CustomersClientTests()
     {
-        _client = CreateClient(new TokenStore());
+        _client = new CustomersClient(_handler.CreateHttpClient(), new TokenStore());
     }
 
     [Fact]
     public async Task GetCustomersAsync_ApiReturnsTwo_ReturnsBoth()
     {
         // Arrange
-        _handler.Respond("/customers", JsonSerializer.Serialize(new[] { new { id = Guid.NewGuid() }, new { id = Guid.NewGuid() } }));
+        _handler.Respond("/customers", TestDtos.ToJson(new[] { TestDtos.NewCustomer(), TestDtos.NewCustomer(Examples.OtherCustomerName) }));
 
         // Act
         var result = await _client.GetCustomersAsync();
@@ -35,7 +35,7 @@ public class CustomersClientTests
     public async Task GetCustomersAsync_LoggedIn_SendsTheToken()
     {
         // Arrange
-        var client = CreateClient(new TokenStore { Token = "abc" });
+        var client = new CustomersClient(_handler.CreateHttpClient(), new TokenStore { Token = "abc" });
         _handler.Respond("/customers", "[]");
 
         // Act
@@ -47,41 +47,32 @@ public class CustomersClientTests
 
     [Fact]
     public async Task AddCustomerAsync_Valid_PostsTheFields()
-{
+    {
         // Arrange
         _handler.Respond("/customers", "{}", HttpStatusCode.Created);
 
         // Act
-        await _client.AddCustomerAsync("Anna Hansen", "98765432", "anna@example.com", "Storgata 1, 0155 Oslo");
+        await _client.AddCustomerAsync(Examples.CustomerName, Examples.CustomerPhone, Examples.CustomerEmail, Examples.CustomerAddress);
 
         // Assert
         var request = _handler.Requests.Single();
         Assert.Equal(HttpMethod.Post, request.Method);
         Assert.Equal("/customers", request.RequestUri!.AbsolutePath);
-        Assert.Equal("Anna Hansen", JsonDocument.Parse(_handler.Bodies.Single()!).RootElement.GetProperty("name").GetString());
+        Assert.Equal(Examples.CustomerName, JsonDocument.Parse(_handler.Bodies.Single()!).RootElement.GetProperty("name").GetString());
     }
 
     [Fact]
     public async Task GetCustomerAsync_ExistingId_ReadsIt()
-{
+    {
         // Arrange
-        var id = Guid.NewGuid();
-        _handler.Respond($"/customers/{id}", JsonSerializer.Serialize(new {id, 
-            name = "Anna Hansen",
-            phone = "98765432",
-            email = "anna@example.com",
-            address = "Storgata 1, 0155 Oslo"
-            }));
+        var customer = TestDtos.NewCustomer();
+        _handler.Respond($"/customers/{customer.Id}", TestDtos.ToJson(customer));
 
         // Act
-        var result = await _client.GetCustomerAsync(id);
+        var result = await _client.GetCustomerAsync(customer.Id);
 
         // Assert
         Assert.Equal(HttpMethod.Get, _handler.Requests.Single().Method);
-        Assert.Equal("Anna Hansen", result.Name);
+        Assert.Equal(Examples.CustomerName, result.Name);
     }
-
-    // A client that talks to the stub instead of the API.
-    private CustomersClient CreateClient(TokenStore tokens) =>
-        new(new HttpClient(_handler) { BaseAddress = new Uri("http://api.test/") }, tokens);
 }

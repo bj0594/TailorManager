@@ -13,7 +13,7 @@ public abstract class CustomerRepositoryContractTests
     {
         // Arrange
         var repository = CreateRepository();
-        var customer = new Customer { Id = Guid.NewGuid(), Name = "Anna Hansen" };
+        var customer = TestData.NewCustomer();
 
         // Act
         repository.Add(customer);
@@ -21,7 +21,7 @@ public abstract class CustomerRepositoryContractTests
         // Assert
         var found = repository.GetById(customer.Id);
         Assert.NotNull(found);
-        Assert.Equal("Anna Hansen", found.Name);
+        Assert.Equal(Examples.CustomerName, found.Name);
     }
 
     [Fact]
@@ -38,12 +38,12 @@ public abstract class CustomerRepositoryContractTests
     }
 
     [Fact]
-    public void GetAllCustomers_AfterTwoAdded_ContainsBoth()
+    public void GetAll_AfterTwoAdded_ContainsBoth()
     {
         // Arrange
         var repository = CreateRepository();
-        var first = new Customer { Id = Guid.NewGuid(), Name = "Anna Hansen" };
-        var second = new Customer { Id = Guid.NewGuid(), Name = "Peter Jensen" };
+        var first = TestData.NewCustomer();
+        var second = TestData.NewCustomer(Examples.OtherCustomerName);
         repository.Add(first);
         repository.Add(second);
 

@@ -6,12 +6,13 @@ using TailorManager.Core;
 namespace TailorManager.Tests;
 
 // Registers and logs in a user through the API, and gives a client that sends the token with every request.
+// The shortcuts _factory.LogInAsFrontDeskAsync() and _factory.LogInAsWorkshopAsync() are in ApiTestData.
 public static class AuthHelper
 {
-    public static async Task<HttpClient> CreateLoggedInClientAsync(WebApplicationFactory<Program> factory, string username, string role = Roles.Workshop)
+    public static async Task<HttpClient> CreateLoggedInClientAsync(WebApplicationFactory<Program> factory, string username, string role = Roles.Workshop, string firstName = Examples.EmployeeFirstName, string lastName = Examples.EmployeeLastName)
     {
         var client = factory.CreateClient();
-        var credentials = new { Username = username, Password = "Test-password-1", FirstName = "Kari", LastName = "Nordmann", Role = role };
+        var credentials = ApiTestData.RegisterRequest(username, role, firstName, lastName);
 
         await client.PostAsJsonAsync("/auth/register", credentials);
         var response = await client.PostAsJsonAsync("/auth/login", credentials);

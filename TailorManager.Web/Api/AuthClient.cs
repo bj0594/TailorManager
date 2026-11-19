@@ -1,4 +1,3 @@
-using System.Net.Http.Headers;
 using System.Net.Http.Json;
 
 namespace TailorManager.Web.Api;
@@ -27,7 +26,7 @@ public class AuthClient : IAuthClient
         _tokens.Token = body!.Token;
 
         // Asks the API who is logged in, and keeps the role.
-        _http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _tokens.Token);
+        _http.UseToken(_tokens);
         var claims = await _http.GetFromJsonAsync<List<ClaimResponse>>("auth/me");
         _tokens.Role = claims?.FirstOrDefault(c => c.Type == "role" || c.Type.EndsWith("/role"))?.Value;
         return true;

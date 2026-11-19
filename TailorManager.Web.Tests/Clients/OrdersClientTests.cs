@@ -1,6 +1,5 @@
-using System.Text.Json;
-using TailorManager.Web.Api;
 using System.Net;
+using TailorManager.Web.Api;
 
 namespace TailorManager.Web.Tests;
 
@@ -12,14 +11,14 @@ public class OrdersClientTests
 
     public OrdersClientTests()
     {
-        _client = CreateClient(new TokenStore());
+        _client = new OrdersClient(_handler.CreateHttpClient(), new TokenStore());
     }
 
     [Fact]
     public async Task GetOrdersAsync_ApiReturnsTwo_ReturnsBoth()
     {
         // Arrange
-        _handler.Respond("/orders", JsonSerializer.Serialize(new[] { new { id = Guid.NewGuid() }, new { id = Guid.NewGuid() } }));
+        _handler.Respond("/orders", TestDtos.ToJson(new[] { TestDtos.NewOrder(), TestDtos.NewOrder(workDescription: Examples.OtherWorkDescription) }));
 
         // Act
         var result = await _client.GetOrdersAsync();
@@ -35,7 +34,7 @@ public class OrdersClientTests
     public async Task GetOrdersAsync_LoggedIn_SendsTheToken()
     {
         // Arrange
-        var client = CreateClient(new TokenStore { Token = "abc" });
+        var client = new OrdersClient(_handler.CreateHttpClient(), new TokenStore { Token = "abc" });
         _handler.Respond("/orders", "[]");
 
         // Act
@@ -49,15 +48,15 @@ public class OrdersClientTests
     public async Task GetOrderAsync_ExistingId_ReadsIt()
     {
         // Arrange
-        var id = Guid.NewGuid();
-        _handler.Respond($"/orders/{id}", JsonSerializer.Serialize(new { id, workDescription = "Shorten the trousers by 3 cm" }));
+        var order = TestDtos.NewOrder();
+        _handler.Respond($"/orders/{order.Id}", TestDtos.ToJson(order));
 
         // Act
-        var result = await _client.GetOrderAsync(id);
+        var result = await _client.GetOrderAsync(order.Id);
 
         // Assert
         Assert.Equal(HttpMethod.Get, _handler.Requests.Single().Method);
-        Assert.Equal("Shorten the trousers by 3 cm", result.WorkDescription);
+        Assert.Equal(Examples.WorkDescription, result.WorkDescription);
     }
 
     [Fact]
@@ -75,8 +74,4 @@ public class OrdersClientTests
         Assert.Equal(HttpMethod.Patch, request.Method);
         Assert.Equal($"/orders/{id}/start", request.RequestUri!.AbsolutePath);
     }
-
-    // A client that talks to the stub instead of the API.
-    private OrdersClient CreateClient(TokenStore tokens) =>
-        new(new HttpClient(_handler) { BaseAddress = new Uri("http://api.test/") }, tokens);
 }

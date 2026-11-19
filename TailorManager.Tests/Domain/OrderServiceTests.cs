@@ -1,49 +1,50 @@
 ﻿using TailorManager.Core;
-using TailorManager.Core.Repository;
 
 namespace TailorManager.Tests;
 
 public class OrderServiceTests
 {
-    private const string WorkDescription = "Shorten the trousers by 3 cm";
-
+    // The services with fake repositories, a customer and an employee ready to use (TestData/FakeServices.cs).
+    private readonly FakeServices _app = new();
     private readonly OrderService _service;
-    private readonly Customer _customer;
-    private readonly User _employee = new() { Id = Guid.NewGuid(), FirstName = "Kari", LastName = "Nordmann" };
 
     public OrderServiceTests()
     {
-        var customerRepository = new FakeCustomerRepository();
-        _service = new(new FakeOrderRepository(), customerRepository);
-        _customer = new CustomerService(customerRepository).AddCustomer("Anna Hansen", "98765432", "anna@example.com", "Storgata 1, 0155 Oslo");
+        _service = _app.Orders;
     }
 
     [Fact]
     public void AddOrder_ValidInput_ReturnsTheOrder()
     {
+        // Arrange
+        var customer = _app.AddCustomer();
+
         // Act
-        var order = AddOrder();
+        var order = _service.AddOrder(customer.Id, OrderType.NewGarment, Examples.WorkDescription, Examples.AgreedPrice, null, _app.Employee);
 
         // Assert
-        Assert.Equal(WorkDescription, order.WorkDescription);
+        Assert.Equal(Examples.WorkDescription, order.WorkDescription);
     }
 
     [Fact]
     public void AddOrder_WithEmployee_StoresTheEmployeeInTheHistory()
     {
+        // Arrange
+        var customer = _app.AddCustomer();
+
         // Act
-        var order = AddOrder();
+        var order = _service.AddOrder(customer.Id, OrderType.NewGarment, Examples.WorkDescription, Examples.AgreedPrice, null, _app.Employee);
 
         // Assert
-        Assert.Equal("Kari N.", order.History.First().ActorDisplayName);
+        Assert.Equal(Examples.EmployeeDisplayName, order.History.First().ActorDisplayName);
     }
 
     [Fact]
     public void GetOrder_ExistingId_ReturnsThatOrder()
     {
         // Arrange
-        AddOrder("Take in the waist by 2 cm");
-        var order = AddOrder();
+        _app.AddOrder(workDescription: Examples.OtherWorkDescription);
+        var order = _app.AddOrder();
 
         // Act
         var found = _service.GetOrder(order.Id);
@@ -56,7 +57,7 @@ public class OrderServiceTests
     public void StartOrder_ExistingOrder_SetsInProgress()
     {
         // Arrange
-        var order = AddOrder();
+        var order = _app.AddOrder();
 
         // Act
         _service.StartOrder(order.Id);
@@ -64,7 +65,4 @@ public class OrderServiceTests
         // Assert
         Assert.Equal(OrderStatus.InProgress, _service.GetOrder(order.Id).Status);
     }
-
-    private Order AddOrder(string workDescription = WorkDescription) =>
-        _service.AddOrder(_customer.Id, OrderType.NewGarment, workDescription, 450m, null, _employee);
 }

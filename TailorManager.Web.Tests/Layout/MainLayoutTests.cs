@@ -6,15 +6,9 @@ using TailorManager.Web.Components.Layout;
 namespace TailorManager.Web.Tests;
 
 // The menu shows each part only its own pages (Menu: in §4).
-public class MainLayoutTests : BunitContext
+// The TokenStore is _tokens from PageTestContext.
+public class MainLayoutTests : PageTestContext
 {
-    private readonly TokenStore _tokens = new();
-
-    public MainLayoutTests()
-    {
-        Services.AddSingleton(_tokens);
-    }
-
     [Fact]
     public void MainLayout_FrontDesk_LinksOnlyTheirPages()
     {

@@ -23,7 +23,7 @@ public class AuthApiTests : IDisposable
     public async Task PostAuthRegister_NewUser_ReturnsCreated()
     {
         // Act
-        var response = await _client.PostAsJsonAsync("/auth/register", new { Username = "employee", Password = "Test-password-1", FirstName = "Kari", LastName = "Nordmann", Role = Roles.FrontDesk });
+        var response = await _client.PostAsJsonAsync("/auth/register", ApiTestData.RegisterRequest("employee"));
 
         // Assert
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
@@ -33,7 +33,7 @@ public class AuthApiTests : IDisposable
     public async Task PostAuthRegister_TakenUsername_ReturnsConflict()
     {
         // Arrange
-        var credentials = new { Username = "owner", Password = "Test-password-1", FirstName = "Kari", LastName = "Nordmann", Role = Roles.FrontDesk };
+        var credentials = ApiTestData.RegisterRequest();
         await _client.PostAsJsonAsync("/auth/register", credentials);
 
         // Act
@@ -46,15 +46,12 @@ public class AuthApiTests : IDisposable
     [Fact]
     public async Task PostAuthRegister_NewUser_StoresOnlyHash()
     {
-        // Arrange
-        var password = "Test-password-1";
-
         // Act
-        await _client.PostAsJsonAsync("/auth/register", new { Username = "owner", Password = password, FirstName = "Kari", LastName = "Nordmann", Role = Roles.FrontDesk });
+        await _client.PostAsJsonAsync("/auth/register", ApiTestData.RegisterRequest());
 
         // Assert
         var user = _factory.Services.GetRequiredService<IUserRepository>().GetByUsername("owner");
-        Assert.NotEqual(password, user!.PasswordHash);
+        Assert.NotEqual(Examples.Password, user!.PasswordHash);
         Assert.StartsWith("$2", user.PasswordHash);
     }
 
@@ -62,7 +59,7 @@ public class AuthApiTests : IDisposable
     public async Task PostAuthLogin_ValidCredentials_ReturnsToken()
     {
         // Arrange
-        var credentials = new { Username = "owner", Password = "Test-password-1", FirstName = "Kari", LastName = "Nordmann", Role = Roles.FrontDesk };
+        var credentials = ApiTestData.RegisterRequest();
         await _client.PostAsJsonAsync("/auth/register", credentials);
 
         // Act
@@ -74,13 +71,11 @@ public class AuthApiTests : IDisposable
         Assert.False(string.IsNullOrEmpty(body!.Token));
     }
 
-    private record LoginResponse(string Token);
-
     [Fact]
     public async Task PostAuthLogin_WrongPassword_ReturnsUnauthorized()
     {
         // Arrange
-        await _client.PostAsJsonAsync("/auth/register", new { Username = "owner", Password = "Test-password-1", FirstName = "Kari", LastName = "Nordmann", Role = Roles.FrontDesk });
+        await _client.PostAsJsonAsync("/auth/register", ApiTestData.RegisterRequest());
 
         // Act
         var response = await _client.PostAsJsonAsync("/auth/login", new { Username = "owner", Password = "Wrong-password-1" });
@@ -108,7 +103,7 @@ public class AuthApiTests : IDisposable
     public async Task PostAuthRegister_InvalidRole_ReturnsBadRequest()
     {
         // Act
-        var response = await _client.PostAsJsonAsync("/auth/register", new { Username = "owner", Password = "Test-password-1", FirstName = "Kari", LastName = "Nordmann", Role = "Janitor" });
+        var response = await _client.PostAsJsonAsync("/auth/register", ApiTestData.RegisterRequest(role: "Janitor"));
 
         // Assert
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
@@ -117,8 +112,8 @@ public class AuthApiTests : IDisposable
     [Fact]
     public async Task PostAuthRegister_MissingName_ReturnsBadRequest()
     {
-        // Act
-        var response = await _client.PostAsJsonAsync("/auth/register", new { Username = "owner", Password = "Test-password-1", Role = Roles.FrontDesk });
+        // Act: no firstName or lastName in the body
+        var response = await _client.PostAsJsonAsync("/auth/register", new { Username = "owner", Password = Examples.Password, Role = Roles.FrontDesk });
 
         // Assert
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
@@ -128,12 +123,12 @@ public class AuthApiTests : IDisposable
     public async Task PostAuthRegister_NewUser_StoresTheNames()
     {
         // Act
-        await _client.PostAsJsonAsync("/auth/register", new { Username = "kari", Password = "Test-password-1", FirstName = "Kari", LastName = "Nordmann", Role = Roles.FrontDesk });
+        await _client.PostAsJsonAsync("/auth/register", ApiTestData.RegisterRequest("kari"));
 
         // Assert
         var user = _factory.Services.GetRequiredService<IUserRepository>().GetByUsername("kari");
-        Assert.Equal("Kari", user!.FirstName);
-        Assert.Equal("Nordmann", user.LastName);
+        Assert.Equal(Examples.EmployeeFirstName, user!.FirstName);
+        Assert.Equal(Examples.EmployeeLastName, user.LastName);
     }
 
     [Fact]
@@ -150,5 +145,6 @@ public class AuthApiTests : IDisposable
         Assert.Contains(claims!, c => c.Type.EndsWith("role") && c.Value == Roles.FrontDesk);
     }
 
+    private record LoginResponse(string Token);
     private record ClaimResponse(string Type, string Value);
 }

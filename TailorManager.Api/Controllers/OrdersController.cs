@@ -20,12 +20,11 @@ public class OrdersController : ControllerBase
         _userRepository = userRepository;
     }
 
-    [Authorize(Roles = "FrontDesk")]
+    [Authorize(Roles = Roles.FrontDesk)]
     [HttpPost]
     public IActionResult Create(CreateOrderRequest request)
     {
-        var employee = _userRepository.GetByUsername(User.Identity!.Name!)!;
-        var order = _service.AddOrder(request.CustomerId, request.Type, request.WorkDescription, request.AgreedPrice, request.RelatedOrderId, employee); 
+        var order = _service.AddOrder(request.CustomerId, request.Type, request.WorkDescription, request.AgreedPrice, request.RelatedOrderId, CurrentEmployee());
         return Created($"/orders/{order.Id}", order);
     }
 
@@ -41,4 +40,7 @@ public class OrdersController : ControllerBase
         _service.StartOrder(id);
         return NoContent();
     }
+
+    // The logged-in employee, from the username in the token. Every action that writes the history sends it to the service.
+    private User CurrentEmployee() => _userRepository.GetByUsername(User.Identity!.Name!)!;
 }

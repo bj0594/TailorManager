@@ -1,6 +1,5 @@
 using System.Net;
 using System.Net.Http.Json;
-using TailorManager.Core;
 
 namespace TailorManager.Tests;
 
@@ -21,11 +20,11 @@ public class OrdersApiTests : IDisposable
     public async Task PostOrders_ValidOrder_ReturnsCreated()
     {
         // Arrange
-        var client = await LogInAsFrontDeskAsync();
-        var customer = await CreateCustomerAsync(client);
+        var client = await _factory.LogInAsFrontDeskAsync();
+        var customer = await client.CreateCustomerAsync();
 
         // Act
-        var response = await PostOrderAsync(client, customer.Id);
+        var response = await client.PostOrderAsync(customer.Id);
 
         // Assert
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
@@ -47,7 +46,7 @@ public class OrdersApiTests : IDisposable
     public async Task PostOrders_NotFrontDesk_ReturnsForbidden()
     {
         // Arrange: a logged-in user without the role
-        var user = await AuthHelper.CreateLoggedInClientAsync(_factory, "user", Roles.Workshop);
+        var user = await _factory.LogInAsWorkshopAsync();
 
         // Act
         var response = await user.PostAsJsonAsync("/orders", new { });
@@ -60,23 +59,23 @@ public class OrdersApiTests : IDisposable
     public async Task PostOrders_LoggedIn_StoresTheEmployeeInTheHistory()
     {
         // Arrange
-        var client = await LogInAsFrontDeskAsync();
-        var customer = await CreateCustomerAsync(client);
+        var client = await _factory.LogInAsFrontDeskAsync();
+        var customer = await client.CreateCustomerAsync();
 
         // Act
-        var response = await PostOrderAsync(client, customer.Id);
+        var response = await client.PostOrderAsync(customer.Id);
 
         // Assert
         var body = await response.Content.ReadFromJsonAsync<OrderResponse>();
-        Assert.Equal("Kari N.", body!.History[0].ActorDisplayName);
+        Assert.Equal(Examples.EmployeeDisplayName, body!.History[0].ActorDisplayName);
     }
 
     [Fact]
     public async Task GetOrder_ExistingId_ReturnsOk()
     {
         // Arrange
-        var client = await LogInAsFrontDeskAsync();
-        var order = await CreateOrderAsync(client);
+        var client = await _factory.LogInAsFrontDeskAsync();
+        var order = await client.CreateOrderAsync();
 
         // Act
         var response = await client.GetAsync($"/orders/{order.Id}");
@@ -91,38 +90,13 @@ public class OrdersApiTests : IDisposable
     public async Task PatchOrdersStart_ExistingOrder_ReturnsNoContent()
     {
         // Arrange
-        var client = await LogInAsFrontDeskAsync();
-        var order = await CreateOrderAsync(client);
+        var client = await _factory.LogInAsFrontDeskAsync();
+        var order = await client.CreateOrderAsync();
 
         // Act
         var response = await client.PatchAsync($"/orders/{order.Id}/start", null);
 
         // Assert
         Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
-    }
-
-    private record OrderResponse(Guid Id, Guid CustomerId, string WorkDescription, decimal InitialAgreedPrice, List<OrderHistoryResponse> History);
-    private record OrderHistoryResponse(string? ActorDisplayName);
-    private record CustomerResponse(Guid Id, string Name, string Email, string Phone, string Address);
-
-    private Task<HttpClient> LogInAsFrontDeskAsync() =>
-        AuthHelper.CreateLoggedInClientAsync(_factory, "kari", Roles.FrontDesk);
-
-    private static async Task<CustomerResponse> CreateCustomerAsync(HttpClient client)
-    {
-        var response = await client.PostAsJsonAsync("/customers", new { name = "Anna Hansen", phone = "98765432", email = "anna@example.com", address = "Storgata 1, 0155 Oslo" });
-        response.EnsureSuccessStatusCode();
-        return (await response.Content.ReadFromJsonAsync<CustomerResponse>())!;
-    }
-
-    private static Task<HttpResponseMessage> PostOrderAsync(HttpClient client, Guid customerId) =>
-        client.PostAsJsonAsync("/orders", new { customerId, type = "NewGarment", workDescription = "Shorten the trousers by 3 cm", agreedPrice = 450, relatedOrderId = (Guid?)null });
-
-    private static async Task<OrderResponse> CreateOrderAsync(HttpClient client)
-    {
-        var customer = await CreateCustomerAsync(client);
-        var response = await PostOrderAsync(client, customer.Id);
-        response.EnsureSuccessStatusCode();
-        return (await response.Content.ReadFromJsonAsync<OrderResponse>())!;
     }
 }

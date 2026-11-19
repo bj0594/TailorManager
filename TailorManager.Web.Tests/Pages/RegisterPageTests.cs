@@ -6,16 +6,9 @@ using TailorManager.Web.Components.Pages;
 
 namespace TailorManager.Web.Tests;
 
-// Renders RegisterPage with the fake auth client.
-public class RegisterPageTests : BunitContext
+// Renders RegisterPage with the fake auth client from PageTestContext.
+public class RegisterPageTests : PageTestContext
 {
-    private readonly FakeAuthClient _auth = new();
-
-    public RegisterPageTests()
-    {
-        Services.AddSingleton<IAuthClient>(_auth);
-    }
-
     [Fact]
     public void RegisterPage_UsernameTaken_ShowsError()
     {

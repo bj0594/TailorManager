@@ -17,10 +17,16 @@
 
   <ItemGroup>
     <Using Include="Xunit" />
+    <Using Include="TailorManager.Tests" />
+  </ItemGroup>
+
+  <!-- The example values from §4, shared with TailorManager.Tests, so both test projects use the same ones. -->
+  <ItemGroup>
+    <Compile Include="..\TailorManager.Tests\TestData\Examples.cs" Link="TestData\Examples.cs" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\TailorManager.Web\TailorManager.Web.csproj" />
   </ItemGroup>
 
-</Project>
+</Project>

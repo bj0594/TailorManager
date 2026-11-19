@@ -21,7 +21,7 @@ public class OrderService
             WorkDescription = workDescription,
             InitialAgreedPrice = agreedPrice,
             RelatedOrderId = relatedOrderId,
-            History = [new() { Id = Guid.NewGuid(), ActorId = employee.Id, ActorDisplayName = string.IsNullOrEmpty(employee.LastName) ? employee.FirstName : $"{employee.FirstName} {employee.LastName[0]}." }]
+            History = [OrderHistoryEntry.By(employee)]
         };
         _repository.Add(order);
         return order;

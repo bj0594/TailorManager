@@ -1,31 +1,22 @@
 using Bunit;
-using Microsoft.Extensions.DependencyInjection;
-using TailorManager.Web.Api;
 using TailorManager.Web.Components.Pages;
 
 namespace TailorManager.Web.Tests;
 
-// Renders CustomersPage with the fake client, so the tests need no API.
-public class CustomersPageTests : BunitContext
+// Renders CustomerDetailsPage with the fake clients from PageTestContext, so the tests need no API.
+public class CustomerDetailsPageTests : PageTestContext
 {
-    private readonly FakeCustomersClient _client = new ();
-
-    public CustomersPageTests()
-{
-    Services.AddSingleton<ICustomersClient>(_client);
-}
-
     [Fact]
     public void CustomerDetailsPage_ExistingId_ShowsIt()
     {
         // Arrange
-        var customer = new CustomerDto(Guid.NewGuid(), "Anna Hansen", "98765432", "anna@example.com", "Storgata 1, 0155 Oslo");
-        _client.Items.Add(customer);
+        var customer = TestDtos.NewCustomer();
+        _customers.Items.Add(customer);
 
         // Act
-        var page = Render<CustomerDetailsPage> (p => p.Add(x => x.Id, customer.Id));
+        var page = Render<CustomerDetailsPage>(p => p.Add(x => x.Id, customer.Id));
 
         // Assert
-        Assert.Contains("Anna Hansen", page.Find("h1").TextContent);
+        Assert.Contains(Examples.CustomerName, page.Find("h1").TextContent);
     }
 }

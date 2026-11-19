@@ -1,31 +1,34 @@
 using TailorManager.Core;
-using TailorManager.Core.Repository;
 
 namespace TailorManager.Tests;
 
 public class CustomerServiceTests
 {
-    private readonly CustomerService _service = new(new FakeCustomerRepository());
+    // The services with fake repositories (TestData/FakeServices.cs).
+    private readonly FakeServices _app = new();
+    private readonly CustomerService _service;
+
+    public CustomerServiceTests()
+    {
+        _service = _app.Customers;
+    }
 
     [Fact]
     public void AddCustomer_ValidInput_ReturnsTheCustomer()
     {
-        // Arrange
-        var name = "Anna Hansen";
-
         // Act
-        var customer = _service.AddCustomer(name, "98765432", "anna@example.com", "Storgata 1, 0155 Oslo");
+        var customer = _service.AddCustomer(Examples.CustomerName, Examples.CustomerPhone, Examples.CustomerEmail, Examples.CustomerAddress);
 
         // Assert
-        Assert.Equal(name, customer.Name);
+        Assert.Equal(Examples.CustomerName, customer.Name);
     }
 
     [Fact]
     public void GetCustomer_ExistingId_ReturnsThatCustomer()
-{
+    {
         // Arrange
-        _service.AddCustomer("Ola Nordmann", "12345678", "ola@example.com", "Kirkegata 2, 0153 Oslo");
-        var customer = _service.AddCustomer("Anna Hansen", "98765432", "anna@example.com", "Storgata 1, 0155 Oslo");
+        _app.AddCustomer(Examples.OtherCustomerName);
+        var customer = _app.AddCustomer();
 
         // Act
         var found = _service.GetCustomer(customer.Id);
