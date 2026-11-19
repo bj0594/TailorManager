@@ -129,4 +129,22 @@ public class OrdersApiTests : IDisposable
         // Assert
         Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
     }
+
+    [Fact]
+    public async Task PostOrdersNotes_OrderInProgress_ReturnsOk()
+    {
+        // Arrange
+        var client = await _factory.LogInAsFrontDeskAsync();
+        var workshop = await _factory.LogInAsWorkshopAsync();
+        var order = await client.CreateOrderAsync();
+        await workshop.PatchAsync($"/orders/{order.Id}/start", null);
+
+        // Act
+        var response = await workshop.PostAsJsonAsync($"/orders/{order.Id}/notes", new { note = Examples.WorkNote });
+
+        // Assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var body = await response.Content.ReadFromJsonAsync<OrderResponse>();
+        Assert.Contains(body!.History, h => h.Type == "WorkNoteAdded" && h.Note == Examples.WorkNote);
+    }
 }
