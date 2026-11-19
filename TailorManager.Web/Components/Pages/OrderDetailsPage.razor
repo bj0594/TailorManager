@@ -11,6 +11,11 @@ else
 {
     <h1>@_item.WorkDescription</h1>
 
+    <form class="note" @onsubmit="AddNote">
+        <input @bind="_newNote" />
+        <button type="submit">Add</button>
+    </form>
+
     @if (_error is not null)
     {
         <p class="error">@_error</p>
@@ -45,5 +50,14 @@ else
         {
             _error = ex.Message;
         }
+    }
+
+    private string _newNote = "";
+
+    private async Task AddNote()
+    {
+        await Client.AddWorkNoteAsync(Id, _newNote);
+        _newNote = "";
+        _item = await Client.GetOrderAsync(Id);
     }
 }
