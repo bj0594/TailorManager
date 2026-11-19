@@ -53,5 +53,9 @@ public class OrdersClient : IOrdersClient
         }
     }
 
-    public Task AddWorkNoteAsync(Guid id, string Note) => throw new NotImplementedException();
+    public async Task AddWorkNoteAsync(Guid id, string note)
+    {
+        var response = await _http.PostAsJsonAsync($"orders/{id}/notes", new { note });
+        response.EnsureSuccessStatusCode();
+    }
 }
