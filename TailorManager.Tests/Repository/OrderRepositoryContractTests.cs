@@ -6,6 +6,8 @@ namespace TailorManager.Tests;
 // The same tests for every implementation of IOrderRepository.
 public abstract class OrderRepositoryContractTests
 {
+    private const string WorkDescription = "Shorten the trousers by 3 cm";
+
     protected abstract IOrderRepository CreateRepository();
 
     [Fact]
@@ -13,7 +15,7 @@ public abstract class OrderRepositoryContractTests
     {
         // Arrange
         var repository = CreateRepository();
-        var order = new Order { Id = Guid.NewGuid(), WorkDescription = "Shorten trousers by 3cm" };
+        var order = NewOrder();
 
         // Act
         repository.Add(order);
@@ -21,7 +23,7 @@ public abstract class OrderRepositoryContractTests
         // Assert
         var found = repository.GetById(order.Id);
         Assert.NotNull(found);
-        Assert.Equal("Shorten trousers by 3cm", found.WorkDescription);
+        Assert.Equal(WorkDescription, found.WorkDescription);
     }
 
     [Fact]
@@ -38,12 +40,12 @@ public abstract class OrderRepositoryContractTests
     }
 
     [Fact]
-    public void GetAllOrders_AfterTwoAdded_ContainsBoth()
+    public void GetAll_AfterTwoAdded_ContainsBoth()
     {
         // Arrange
         var repository = CreateRepository();
-        var first = new Order { Id = Guid.NewGuid(), WorkDescription = "Shorten trousers by 3cm" };
-        var second = new Order { Id = Guid.NewGuid(), WorkDescription = "Replace zipper on jacket" };
+        var first = NewOrder();
+        var second = NewOrder("Replace zipper on jacket");
         repository.Add(first);
         repository.Add(second);
 
@@ -56,43 +58,11 @@ public abstract class OrderRepositoryContractTests
     }
 
     [Fact]
-    public void AddOrder_ThenGetById_ReturnsTheSameObject()
-    {
-        // Arrange
-        var repository = CreateRepository();
-        var order = new Order
-        {
-            Id = Guid.NewGuid(),
-            CustomerId = Guid.NewGuid(),
-            Type = OrderType.NewGarment,
-            WorkDescription = "Shorten the trousers by 3 cm",
-            InitialAgreedPrice = 450m,
-            RelatedOrderId = null
-        };
-
-        // Act
-        repository.Add(order);
-
-        // Assert
-        var found = repository.GetById(order.Id);
-        Assert.NotNull(found);
-        Assert.Equal("Shorten the trousers by 3 cm", found.WorkDescription);
-    }
-
-    [Fact]
     public void Update_ChangedOrder_IsStored()
     {
         // Arrange
         var repository = CreateRepository();
-        var order = new Order
-        {
-            Id = Guid.NewGuid(),
-            CustomerId = Guid.NewGuid(),
-            Type = OrderType.NewGarment,
-            WorkDescription = "Shorten the trousers by 3 cm",
-            InitialAgreedPrice = 450m,
-            RelatedOrderId = null
-        };
+        var order = NewOrder();
         repository.Add(order);
 
         // Act
@@ -102,6 +72,15 @@ public abstract class OrderRepositoryContractTests
         // Assert
         Assert.Equal(OrderStatus.InProgress, repository.GetById(order.Id)!.Status);
     }
+
+    private static Order NewOrder(string workDescription = WorkDescription) => new()
+    {
+        Id = Guid.NewGuid(),
+        CustomerId = Guid.NewGuid(),
+        Type = OrderType.NewGarment,
+        WorkDescription = workDescription,
+        InitialAgreedPrice = 450m
+    };
 }
 
 public class FakeOrderRepositoryTests : OrderRepositoryContractTests
