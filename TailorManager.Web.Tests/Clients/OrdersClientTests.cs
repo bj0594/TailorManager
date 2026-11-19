@@ -74,4 +74,18 @@ public class OrdersClientTests
         Assert.Equal(HttpMethod.Patch, request.Method);
         Assert.Equal($"/orders/{id}/start", request.RequestUri!.AbsolutePath);
     }
+
+    [Fact]
+    public async Task StartOrderAsync_ApiAnswers409_ThrowsWithTheMessage()
+    {
+        // Arrange
+        var id = Guid.NewGuid();
+        _handler.Respond($"/orders/{id}/start", "The order is not submitted.", HttpStatusCode.Conflict);
+
+        // Act
+        var ex = await Assert.ThrowsAsync<HttpRequestException>(() => _client.StartOrderAsync(id));
+
+        // Assert
+        Assert.Equal("The order is not submitted.", ex.Message);
+    }
 }
