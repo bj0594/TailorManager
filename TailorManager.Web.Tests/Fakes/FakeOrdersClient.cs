@@ -46,4 +46,12 @@ public class FakeOrdersClient : IOrdersClient
         StartIds.Add(id);
         return Task.CompletedTask;
     }
+
+    public List<(Guid Id, string Note)> AddedWorkNotes { get; } = [];
+
+    public Task AddWorkNoteAsync(Guid id, string Note)
+    {
+        AddedWorkNotes.Add((id, Note));
+        return Task.CompletedTask;
+    }
 }

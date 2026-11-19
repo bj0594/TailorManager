@@ -52,4 +52,6 @@ public class OrdersClient : IOrdersClient
             throw new HttpRequestException(message.Trim('"'), null, response.StatusCode);
         }
     }
+
+    public Task AddWorkNoteAsync(Guid id, string Note) => throw new NotImplementedException();
 }

@@ -4,7 +4,7 @@ using TailorManager.Web.Api;
 
 namespace TailorManager.Web.Tests;
 
-// Renders OrderDetailsPage with the fake clients from PageTestContext, so the tests need no API.
+// Renders OrderDetailsPage with the fake orderss from PageTestContext, so the tests need no API.
 public class OrderDetailsPageTests : PageTestContext
 {
     [Fact]
@@ -67,5 +67,21 @@ public class OrderDetailsPageTests : PageTestContext
 
         // Assert
         page.WaitForAssertion(() => Assert.Contains("The order is not Submitted.", page.Find(".error").TextContent));
+    }
+
+    [Fact]
+    public void OrderDetailsPage_SubmitWorkNote_SendsItToTheApi()
+    {
+        // Arrange
+        var order = TestDtos.NewOrder() with { Status = "InProgress" };
+        _orders.Items.Add(order);
+        var page = Render<OrderDetailsPage> (p => p.Add(x => x.Id, order.Id));
+
+        // Act
+        page.Find("form.note input").Change(Examples.WorkNote);
+        page.Find("form.note").Submit();
+
+        // Assert
+        page.WaitForAssertion(() => Assert.Contains((order.Id, Examples.WorkNote), _orders.AddedWorkNotes));
     }
 }
