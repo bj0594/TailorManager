@@ -38,8 +38,15 @@ public class OrdersController : ControllerBase
     [HttpPatch("{id}/start")]
     public IActionResult Start(Guid id)
     {
-        _service.StartOrder(id);
-        return NoContent();
+        try
+        {
+            _service.StartOrder(id);
+            return NoContent();
+        }
+        catch (InvalidOrderStatusException ex)
+        {
+            return Conflict(ex.Message);
+        }
     }
 
     // The logged-in employee, from the username in the token. Every action that writes the history sends it to the service.
