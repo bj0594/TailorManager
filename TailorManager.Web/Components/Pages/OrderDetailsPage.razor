@@ -9,6 +9,7 @@
 else
 {
     <h1>@_item.WorkDescription</h1>
+    <button class="start" @onclick="Start">Start</button>
 }
 
 @code {
@@ -20,4 +21,10 @@ else
     {
         _item = await Client.GetOrderAsync(Id);
     }
+
+    private async Task Start()
+{
+    await Client.StartOrderAsync(Id);
+    _item = await Client.GetOrderAsync(Id);
+}
 }
