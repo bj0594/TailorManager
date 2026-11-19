@@ -5,6 +5,7 @@ namespace TailorManager.Web.Tests;
 // Answers like the API, without HTTP. The tests fill Items with what the page should get.
 public class FakeOrdersClient : IOrdersClient
 {
+    public Exception? Fail { get; set; }
     public List<OrderDto> Items { get; } = [];
 
     public Task<List<OrderDto>> GetOrdersAsync() => Task.FromResult(Items);
@@ -41,7 +42,8 @@ public class FakeOrdersClient : IOrdersClient
 
     public Task StartOrderAsync(Guid id)
     {
-    StartIds.Add(id);
+        if (Fail is not null) throw Fail;
+        StartIds.Add(id);
         return Task.CompletedTask;
     }
 }

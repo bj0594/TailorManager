@@ -51,4 +51,21 @@ public class OrderDetailsPageTests : PageTestContext
         // Assert
         Assert.Empty(page.FindAll("button.start"));
     }
+
+    [Fact]
+    public void OrderDetailsPage_StartRejected_ShowsMessage()
+    {
+        // Arrange
+        var order = TestDtos.NewOrder();
+        _orders.Items.Add(order);
+        _orders.Fail = new HttpRequestException("The order is not Submitted.");
+        _tokens.Role = Roles.Workshop;
+        var page = Render<OrderDetailsPage>(p => p.Add(x => x.Id, order.Id));
+
+        // Act
+        page.Find("button.start").Click();
+
+        // Assert
+        page.WaitForAssertion(() => Assert.Contains("The order is not Submitted.", page.Find(".error").TextContent));
+    }
 }

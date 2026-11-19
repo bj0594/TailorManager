@@ -43,7 +43,7 @@ public class OrderService
         var order = GetOrder(id);
         if (order.Status != OrderStatus.Submitted)
         {
-            throw new InvalidOrderStatusException("The order is not Submitted.");
+            throw new InvalidOrderStatusException("The order is not submitted.");
         }
         order.Status = OrderStatus.InProgress;
         _repository.Update(order);
