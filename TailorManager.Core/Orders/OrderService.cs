@@ -51,6 +51,12 @@ public class OrderService
 
     public Order AddWorkNote(Guid id, string note, User employee)
     {
-        throw new NotImplementedException();
+        var order = GetOrder(id);
+        var entry = OrderHistoryEntry.By(employee);
+        entry.Type = ActivityType.WorkNoteAdded;
+        entry.Note = note;
+        order.History.Add(entry);
+        _repository.Update(order);
+        return order;
     }
 }
