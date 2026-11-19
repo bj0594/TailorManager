@@ -1,5 +1,6 @@
 using Bunit;
 using TailorManager.Web.Components.Pages;
+using TailorManager.Web.Api;
 
 namespace TailorManager.Web.Tests;
 
@@ -33,5 +34,20 @@ public class OrderDetailsPageTests : PageTestContext
 
         // Assert
         page.WaitForAssertion(() => Assert.Contains(order.Id, _orders.StartIds));
+    }
+
+    [Fact]
+    public void OrderDetailsPage_NotWorkshop_HidesTheStartButton()
+    {
+        // Arrange
+        var order = TestDtos.NewOrder();
+        _orders.Items.Add(order);
+        _tokens.Role = Roles.FrontDesk;
+
+        // Act
+        var page = Render<OrderDetailsPage>(p => p.Add(x => x.Id, order.Id));
+
+        // Assert
+        Assert.Empty(page.FindAll("button.start"));
     }
 }
