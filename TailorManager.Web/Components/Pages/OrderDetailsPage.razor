@@ -1,6 +1,7 @@
 @page "/orders/{Id:guid}"
 @using TailorManager.Web.Api
 @inject IOrdersClient Client
+@inject TokenStore Tokens
 
 @if (_item is null)
 {
@@ -9,7 +10,11 @@
 else
 {
     <h1>@_item.WorkDescription</h1>
-    <button class="start" @onclick="Start">Start</button>
+
+    @if (Tokens.Role == Roles.Workshop)
+    {
+        <button class="start" @onclick="Start">Start</button>
+    }
 }
 
 @code {

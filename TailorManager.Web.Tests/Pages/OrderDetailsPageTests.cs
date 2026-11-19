@@ -25,6 +25,7 @@ public class OrderDetailsPageTests : PageTestContext
     public void OrderDetailsPage_ClickStart_SendsItToTheApi()
     {
         // Arrange
+        _tokens.Role = Roles.Workshop;
         var order = TestDtos.NewOrder();
         _orders.Items.Add(order);
         var page = Render<OrderDetailsPage>(p => p.Add(x => x.Id, order.Id));
