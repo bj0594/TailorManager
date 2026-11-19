@@ -99,4 +99,17 @@ public class OrdersApiTests : IDisposable
         // Assert
         Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
     }
+
+    [Fact]
+    public async Task PatchOrdersStart_NotWorkshop_ReturnsForbidden()
+    {
+        // Arrange: a logged-in user without the role
+        var client = await _factory.LogInAsFrontDeskAsync();
+
+        // Act
+        var response = await client.PatchAsync($"/orders/{Guid.NewGuid()}/start", null);
+
+        // Assert
+        Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+    }
 }
