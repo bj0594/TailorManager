@@ -40,6 +40,8 @@ public class OrderService
 
     public void StartOrder(Guid id)
     {
-        throw new NotImplementedException();
+        var order = GetOrder(id);
+        order.Status = OrderStatus.InProgress;
+        _repository.Update(order);
     }
 }
