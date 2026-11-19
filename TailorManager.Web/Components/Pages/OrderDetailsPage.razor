@@ -11,6 +11,11 @@ else
 {
     <h1>@_item.WorkDescription</h1>
 
+    @if (_error is not null)
+    {
+        <p class="error">@_error</p>
+    }
+
     @if (Tokens.Role == Roles.Workshop)
     {
         <button class="start" @onclick="Start">Start</button>
@@ -21,6 +26,7 @@ else
     [Parameter] public Guid Id { get; set; }
 
     private OrderDto? _item;
+    private string? _error;
 
     protected override async Task OnParametersSetAsync()
     {
@@ -28,8 +34,16 @@ else
     }
 
     private async Task Start()
-{
-    await Client.StartOrderAsync(Id);
-    _item = await Client.GetOrderAsync(Id);
-}
+    {
+        try
+        {
+            _error = null;
+            await Client.StartOrderAsync(Id);
+            _item = await Client.GetOrderAsync(Id);
+        }
+        catch (HttpRequestException ex)
+        {
+            _error = ex.Message;
+        }
+    }
 }
