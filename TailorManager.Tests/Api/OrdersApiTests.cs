@@ -113,4 +113,20 @@ public class OrdersApiTests : IDisposable
         // Assert
         Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
     }
+
+    [Fact]
+    public async Task PatchOrdersStart_NotSubmitted_ReturnsConflict()
+    {
+        // Arrange
+        var client = await _factory.LogInAsFrontDeskAsync();
+        var order = await client.CreateOrderAsync();
+        var workshop = await _factory.LogInAsWorkshopAsync();
+        await workshop.PatchAsync($"/orders/{order.Id}/start", null);
+
+        // Act
+        var response = await workshop.PatchAsync($"/orders/{order.Id}/start", null);
+
+        // Assert
+        Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
+    }
 }
