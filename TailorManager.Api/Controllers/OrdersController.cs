@@ -64,6 +64,12 @@ public class OrdersController : ControllerBase
         return NoContent();
     }
 
+    [HttpPost("{id}/payments")]
+    public IActionResult AddPayment(Guid id, AddPaymentRequest request)
+    {
+        return Ok(_service.AddPayment(id, request.Amount));
+    }
+
     // The logged-in employee, from the username in the token. Every action that writes the history sends it to the service.
     private User CurrentEmployee() => _userRepository.GetByUsername(User.Identity!.Name!)!;
     public record AddWorkNoteRequest(string Note);
