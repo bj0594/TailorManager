@@ -16,6 +16,8 @@ else
         <button type="submit">Add</button>
     </form>
 
+    <button class="readyforpickup" @onclick="MarkOrderReadyForPickup">Ready for pickup</button>
+
     @if (_error is not null)
     {
         <p class="error">@_error</p>
@@ -58,6 +60,12 @@ else
     {
         await Client.AddWorkNoteAsync(Id, _newNote);
         _newNote = "";
+        _item = await Client.GetOrderAsync(Id);
+    }
+
+    private async Task MarkOrderReadyForPickup()
+    {
+        await Client.MarkOrderReadyForPickupAsync(Id);
         _item = await Client.GetOrderAsync(Id);
     }
 }
