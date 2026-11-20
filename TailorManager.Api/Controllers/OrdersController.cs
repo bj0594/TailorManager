@@ -49,6 +49,7 @@ public class OrdersController : ControllerBase
         }
     }
 
+    [Authorize(Roles = Roles.Workshop)]
     [HttpPost("{id}/notes")]
     public IActionResult AddWorkNote(Guid id, AddWorkNoteRequest request)
     {
