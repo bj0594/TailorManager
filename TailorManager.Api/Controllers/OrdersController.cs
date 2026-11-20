@@ -56,6 +56,14 @@ public class OrdersController : ControllerBase
         return Ok(_service.AddWorkNote(id, request.Note, CurrentEmployee()));
     }
 
+    [Authorize(Roles = Roles.Workshop)]
+    [HttpPatch("{id}/readyforpickup")]
+    public IActionResult ReadyForPickup(Guid id)
+    {
+        _service.ReadyForPickup(id);
+        return NoContent();
+    }
+
     // The logged-in employee, from the username in the token. Every action that writes the history sends it to the service.
     private User CurrentEmployee() => _userRepository.GetByUsername(User.Identity!.Name!)!;
     public record AddWorkNoteRequest(string Note);
