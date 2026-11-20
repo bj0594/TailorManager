@@ -65,5 +65,9 @@ public class OrdersClient : IOrdersClient
         response.EnsureSuccessStatusCode();
     }
 
-    public Task AddPaymentAsync(Guid id, decimal amount) => throw new NotImplementedException();
+    public async Task AddPaymentAsync(Guid id, decimal amount)
+    {
+        var response = await _http.PostAsJsonAsync($"orders/{id}/payments", new { amount });
+        response.EnsureSuccessStatusCode();
+    }
 }
