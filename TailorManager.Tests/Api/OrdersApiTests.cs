@@ -147,4 +147,23 @@ public class OrdersApiTests : IDisposable
         var body = await response.Content.ReadFromJsonAsync<OrderResponse>();
         Assert.Contains(body!.History, h => h.Type == "WorkNoteAdded" && h.Note == Examples.WorkNote);
     }
+
+    [Fact]
+    public async Task PostOrdersNotes_NotWorkshop_ReturnsForbidden()
+    {
+        // Arrange
+        var frontDesk = await _factory.LogInAsFrontDeskAsync();
+        var order = await frontDesk.CreateOrderAsync();
+
+        var workshop = await _factory.LogInAsWorkshopAsync();
+        await workshop.PatchAsync($"/orders/{order.Id}/start", null);
+
+        // Act
+        var response = await frontDesk.PostAsJsonAsync(
+            $"/orders/{order.Id}/notes",
+            new { note = Examples.WorkNote });
+
+        // Assert
+        Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+    }
 }
