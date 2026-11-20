@@ -84,4 +84,19 @@ public class OrderDetailsPageTests : PageTestContext
         // Assert
         page.WaitForAssertion(() => Assert.Contains((order.Id, Examples.WorkNote), _orders.AddedWorkNotes));
     }
+
+    [Fact]
+    public void OrderDetailsPage_NotWorkshop_HidesWorkNote()
+    {
+        // Arrange
+        _tokens.Role = Roles.FrontDesk;
+        var order = TestDtos.NewOrder() with { Status = "InProgress" };
+        _orders.Items.Add(order);
+
+        // Act
+        var page = Render <OrderDetailsPage > (p => p.Add(x => x.Id, order.Id));
+
+        // Assert
+        Assert.Empty(page.FindAll("button.worknote"));
+    }
 }
