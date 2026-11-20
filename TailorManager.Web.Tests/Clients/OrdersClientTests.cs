@@ -126,4 +126,21 @@ public class OrdersClientTests
             $"/orders/{id}/readyforpickup",
             request.RequestUri!.AbsolutePath);
     }
+
+    [Fact]
+    public async Task AddPaymentAsync_Always_PostsThePayment()
+    {
+        // Arrange
+        var id = Guid.NewGuid();
+        _handler.Respond($"/orders/{id}/payments", "{}");
+
+        // Act
+        await _client.AddPaymentAsync(id, Examples.PaymentAmount);
+
+        // Assert
+        var request = _handler.Requests.Single();
+        Assert.Equal(HttpMethod.Post, request.Method);
+        Assert.Equal($"/orders/{id}/payments", request.RequestUri!.AbsolutePath);
+        Assert.Contains(Examples.PaymentAmount.ToString(), _handler.Bodies.Single());
+    }
 }

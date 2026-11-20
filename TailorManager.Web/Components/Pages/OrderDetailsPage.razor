@@ -16,6 +16,11 @@ else
         <button type="submit">Add</button>
     </form>
 
+    <form class="payment" @onsubmit="AddPayment">
+        <input @bind="_newAmount" />
+        <button type="submit">Add</button>
+    </form>
+
     <button class="readyforpickup" @onclick="MarkOrderReadyForPickup">Ready for pickup</button>
 
     @if (_error is not null)
@@ -38,6 +43,7 @@ else
     protected override async Task OnParametersSetAsync()
     {
         _item = await Client.GetOrderAsync(Id);
+        _newAmount = _item.OutstandingBalance;
     }
 
     private async Task Start()
@@ -67,5 +73,14 @@ else
     {
         await Client.MarkOrderReadyForPickupAsync(Id);
         _item = await Client.GetOrderAsync(Id);
+    }
+
+    private decimal _newAmount;
+
+    private async Task AddPayment()
+    {
+        await Client.AddPaymentAsync(Id, _newAmount);
+        _item = await Client.GetOrderAsync(Id);
+        _newAmount = _item.OutstandingBalance;
     }
 }
