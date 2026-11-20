@@ -8,6 +8,9 @@ public abstract class OrderRepositoryContractTests
 {
     protected abstract IOrderRepository CreateRepository();
 
+    // Reads through a new repository, so nothing comes from what EF remembers.
+    protected virtual IOrderRepository Reopen(IOrderRepository repository) => repository;
+
     [Fact]
     public void Add_ThenGetById_ReturnsTheSameObject()
     {
@@ -69,6 +72,31 @@ public abstract class OrderRepositoryContractTests
 
         // Assert
         Assert.Equal(OrderStatus.InProgress, repository.GetById(order.Id)!.Status);
+    }
+
+    [Fact]
+    public void Update_NewPayment_IsStored()
+    {
+        // Arrange
+        var repository = CreateRepository();
+        var order = TestData.NewOrder();
+        repository.Add(order);
+
+        const decimal paymentAmount = Examples.PaymentAmount;
+
+        // Act
+        order.Payments.Add(new Payment
+        {
+            Id = Guid.NewGuid(),
+            Amount = paymentAmount
+        });
+
+        repository.Update(order);
+
+        // Assert
+        var stored = Reopen(repository).GetById(order.Id)!;
+        var payment = Assert.Single(stored.Payments);
+        Assert.Equal(paymentAmount, payment.Amount);
     }
 }
 

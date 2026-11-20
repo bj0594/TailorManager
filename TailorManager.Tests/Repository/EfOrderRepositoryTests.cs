@@ -11,4 +11,6 @@ public class EfOrderRepositoryTests : OrderRepositoryContractTests, IClassFixtur
     public EfOrderRepositoryTests(EfDatabaseFixture db) => _db = db;
 
     protected override IOrderRepository CreateRepository() => new EfOrderRepository(_db.CreateContext());
+
+    protected override IOrderRepository Reopen(IOrderRepository repository) => CreateRepository();
 }
