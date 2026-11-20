@@ -60,8 +60,10 @@ public class OrderService
         return order;
     }
 
-    public void AddReadyForPickup(Guid id)
+    public void ReadyForPickup(Guid id)
     {
-        throw new NotImplementedException();
+        var order = GetOrder(id);
+        order.IsReadyForPickup = true;
+        _repository.Update(order);
     }
 }

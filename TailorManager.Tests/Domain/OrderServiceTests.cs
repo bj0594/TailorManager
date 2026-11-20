@@ -99,7 +99,7 @@ public class OrderServiceTests
         var order = _app.AddOrder();
 
         // Act
-        _service.StartOrder(order.Id);
+        _service.ReadyForPickup(order.Id);
 
         // Assert
         Assert.True(_service.GetOrder(order.Id).IsReadyForPickup);
