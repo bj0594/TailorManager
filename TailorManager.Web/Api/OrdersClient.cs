@@ -59,5 +59,9 @@ public class OrdersClient : IOrdersClient
         response.EnsureSuccessStatusCode();
     }
 
-    public Task MarkOrderReadyForPickupAsync(Guid id) => throw new NotImplementedException();
+    public async Task MarkOrderReadyForPickupAsync(Guid id)
+    {
+        var response = await _http.PatchAsync($"orders/{id}/readyforpickup", null);
+        response.EnsureSuccessStatusCode();
+    }
 }
