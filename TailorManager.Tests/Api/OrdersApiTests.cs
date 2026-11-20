@@ -154,7 +154,6 @@ public class OrdersApiTests : IDisposable
         // Arrange
         var frontDesk = await _factory.LogInAsFrontDeskAsync();
         var order = await frontDesk.CreateOrderAsync();
-
         var workshop = await _factory.LogInAsWorkshopAsync();
         await workshop.PatchAsync($"/orders/{order.Id}/start", null);
 
@@ -165,5 +164,21 @@ public class OrdersApiTests : IDisposable
 
         // Assert
         Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task PatchOrdersReadyForPickup_ExistingOrder_ReturnsNoContent()
+    {
+        // Arrange
+        var client = await _factory.LogInAsFrontDeskAsync();
+        var workshop = await _factory.LogInAsWorkshopAsync();
+        var order = await client.CreateOrderAsync();
+        await workshop.PatchAsync($"/orders/{order.Id}/start", null);
+
+        // Act
+        var response = await _client.PatchAsync($"/orders/{order !.Id}/<action>", null);
+
+        // Assert
+        Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
     }
 }
