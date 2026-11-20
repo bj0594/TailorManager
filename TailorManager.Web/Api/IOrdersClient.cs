@@ -22,4 +22,6 @@ public interface IOrdersClient
     Task AddWorkNoteAsync(Guid id, string note);
 
     Task StartOrderAsync(Guid id);
+
+    Task MarkOrderReadyForPickupAsync(Guid id);
 }

@@ -99,4 +99,23 @@ public class OrderDetailsPageTests : PageTestContext
         // Assert
         Assert.Empty(page.FindAll("button.worknote"));
     }
+
+    [Fact]
+    public void OrderDetailsPage_ClickReadyForPickup_SendsItToTheApi()
+    {
+        // Arrange
+        _tokens.Role = Roles.Workshop;
+        var order = TestDtos.NewOrder() with { Status = "InProgress" };
+        _orders.Items.Add(order);
+
+        var page = Render<OrderDetailsPage>(
+            p => p.Add(x => x.Id, order.Id));
+
+        // Act
+        page.Find("button.readyforpickup").Click();
+
+        // Assert
+        page.WaitForAssertion(() =>
+            Assert.Contains(order.Id, _orders.ReadyForPickupIds));
+    }
 }

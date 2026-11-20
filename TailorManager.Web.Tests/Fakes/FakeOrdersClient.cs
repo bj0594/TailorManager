@@ -54,4 +54,12 @@ public class FakeOrdersClient : IOrdersClient
         AddedWorkNotes.Add((id, Note));
         return Task.CompletedTask;
     }
+
+    public List<Guid> ReadyForPickupIds { get; } = [];
+
+    public Task MarkOrderReadyForPickupAsync(Guid id)
+    {
+        ReadyForPickupIds.Add(id);
+        return Task.CompletedTask;
+    }
 }

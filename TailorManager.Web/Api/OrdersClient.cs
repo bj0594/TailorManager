@@ -58,4 +58,6 @@ public class OrdersClient : IOrdersClient
         var response = await _http.PostAsJsonAsync($"orders/{id}/notes", new { note });
         response.EnsureSuccessStatusCode();
     }
+
+    public Task MarkOrderReadyForPickupAsync(Guid id) => throw new NotImplementedException();
 }
