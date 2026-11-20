@@ -203,4 +203,41 @@ public class OrdersApiTests : IDisposable
         // Assert
         Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
     }
+
+    [Fact]
+    public async Task PostOrdersPayments_ExistingOrder_ReturnsOk()
+    {
+        // Arrange
+        var client = await _factory.LogInAsFrontDeskAsync();
+        var order = await client.CreateOrderAsync();
+        const decimal paymentAmount = 500m;
+
+        // Act
+        var response = await client.PostAsJsonAsync(
+            $"/orders/{order.Id}/payments",
+            new { amount = paymentAmount });
+
+        // Assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        var body = await response.Content.ReadFromJsonAsync<OrderResponse>();
+
+        Assert.Contains(body!.Payments, payment => payment.Amount == paymentAmount);
+    }
+
+    private record OrderResponse(
+    Guid Id,
+    Guid CustomerId,
+    decimal OutstandingBalance,
+    List<PaymentResponse> Payments,
+    List<HistoryResponse> History);
+
+    private record PaymentResponse(
+        Guid Id,
+        decimal Amount);
+
+    private record HistoryResponse(
+        string Type,
+        string? Note,
+        string ActorDisplayName);
 }
