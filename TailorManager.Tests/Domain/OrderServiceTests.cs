@@ -83,11 +83,25 @@ public class OrderServiceTests
         // Arrange
         var order = _app.AddOrder();
         _service.StartOrder(order.Id);
+
         // Act
         _service.AddWorkNote(order.Id, Examples.WorkNote, _app.Employee);
 
         // Assert
         var entry = Assert.Single(_service.GetOrder(order.Id).History, h => h.Type == ActivityType.WorkNoteAdded);
         Assert.Equal(Examples.WorkNote, entry.Note);
+    }
+
+    [Fact]
+    public void MarkOrder_ExistingOrder_SetsReadyForPickup()
+    {
+        // Arrange
+        var order = _app.AddOrder();
+
+        // Act
+        _service.StartOrder(order.Id);
+
+        // Assert
+        Assert.True(_service.GetOrder(order.Id).IsReadyForPickup);
     }
 }

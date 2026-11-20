@@ -94,7 +94,7 @@ public class OrderDetailsPageTests : PageTestContext
         _orders.Items.Add(order);
 
         // Act
-        var page = Render <OrderDetailsPage > (p => p.Add(x => x.Id, order.Id));
+        var page = Render <OrderDetailsPage> (p => p.Add(x => x.Id, order.Id));
 
         // Assert
         Assert.Empty(page.FindAll("button.worknote"));

@@ -59,4 +59,9 @@ public class OrderService
         _repository.Update(order);
         return order;
     }
+
+    public void AddReadyForPickup(Guid id)
+    {
+        throw new NotImplementedException();
+    }
 }

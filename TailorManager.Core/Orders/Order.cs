@@ -11,4 +11,5 @@ public class Order
     public DateTimeOffset CreatedAt { get; set; }
     public Guid? RelatedOrderId { get; set; }
     public List<OrderHistoryEntry> History { get; set; } = [];
+    public bool IsReadyForPickup { get; set; }
 }
