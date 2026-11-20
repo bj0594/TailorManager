@@ -105,4 +105,25 @@ public class OrdersClientTests
         Assert.Equal($"/orders/{id}/notes", request.RequestUri!.AbsolutePath);
         Assert.Contains("", _handler.Bodies.Single());
     }
+
+    [Fact]
+    public async Task MarkOrderReadyForPickupAsync_Always_SendsPatch()
+    {
+        // Arrange
+        var id = Guid.NewGuid();
+        _handler.Respond(
+            $"/orders/{id}/readyforpickup",
+            "",
+            HttpStatusCode.NoContent);
+
+        // Act
+        await _client.MarkOrderReadyForPickupAsync(id);
+
+        // Assert
+        var request = _handler.Requests.Single();
+        Assert.Equal(HttpMethod.Patch, request.Method);
+        Assert.Equal(
+            $"/orders/{id}/readyforpickup",
+            request.RequestUri!.AbsolutePath);
+    }
 }
