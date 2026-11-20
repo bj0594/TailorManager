@@ -107,7 +107,6 @@ public class OrderDetailsPageTests : PageTestContext
         _tokens.Role = Roles.Workshop;
         var order = TestDtos.NewOrder() with { Status = "InProgress" };
         _orders.Items.Add(order);
-
         var page = Render<OrderDetailsPage>(
             p => p.Add(x => x.Id, order.Id));
 
@@ -117,5 +116,27 @@ public class OrderDetailsPageTests : PageTestContext
         // Assert
         page.WaitForAssertion(() =>
             Assert.Contains(order.Id, _orders.ReadyForPickupIds));
+    }
+
+    [Fact]
+    public void OrderDetailsPage_SubmitPayment_SendsItToTheApi()
+    {
+        // Arrange
+        _tokens.Role = Roles.FrontDesk;
+        var order = TestDtos.NewOrder() with
+        {
+            Status = "ReadyForPickup",
+            OutstandingBalance = Examples.PaymentAmount
+        };
+        _orders.Items.Add(order);
+        var page = Render<OrderDetailsPage>(p => p.Add(x => x.Id, order.Id));
+
+        // Act
+        page.Find("form.payment input").Change(Examples.PaymentAmount.ToString());
+        page.Find("form.payment").Submit();
+
+        // Assert
+        page.WaitForAssertion(() =>
+            Assert.Contains((order.Id, Examples.PaymentAmount), _orders.Addedpayments));
     }
 }

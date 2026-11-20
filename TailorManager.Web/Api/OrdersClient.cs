@@ -64,4 +64,6 @@ public class OrdersClient : IOrdersClient
         var response = await _http.PatchAsync($"orders/{id}/readyforpickup", null);
         response.EnsureSuccessStatusCode();
     }
+
+    public Task AddPaymentAsync(Guid id, decimal amount) => throw new NotImplementedException();
 }

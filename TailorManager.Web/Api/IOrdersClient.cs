@@ -24,4 +24,6 @@ public interface IOrdersClient
     Task StartOrderAsync(Guid id);
 
     Task MarkOrderReadyForPickupAsync(Guid id);
+
+    Task AddPaymentAsync(Guid id, decimal amount);
 }

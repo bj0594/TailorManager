@@ -62,4 +62,12 @@ public class FakeOrdersClient : IOrdersClient
         ReadyForPickupIds.Add(id);
         return Task.CompletedTask;
     }
+
+    public List<(Guid Id, decimal Amount)> Addedpayments { get; } = [];
+
+    public Task AddPaymentAsync(Guid id, decimal amount)
+    {
+        Addedpayments.Add((id, amount));
+        return Task.CompletedTask;
+    }
 }
