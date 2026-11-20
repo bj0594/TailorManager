@@ -66,4 +66,9 @@ public class OrderService
         order.IsReadyForPickup = true;
         _repository.Update(order);
     }
+
+    public Order AddPayment(Guid id, decimal amount)
+{
+    throw new NotImplementedException();
+}
 }

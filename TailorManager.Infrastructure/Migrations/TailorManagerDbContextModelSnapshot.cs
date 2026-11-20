@@ -113,6 +113,25 @@ namespace TailorManager.Infrastructure.Migrations
                     b.ToTable("OrderHistoryEntry");
                 });
 
+            modelBuilder.Entity("TailorManager.Core.Payment", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal>("Amount")
+                        .HasColumnType("numeric");
+
+                    b.Property<Guid?>("OrderId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OrderId");
+
+                    b.ToTable("Payment");
+                });
+
             modelBuilder.Entity("TailorManager.Core.User", b =>
                 {
                     b.Property<Guid>("Id")
@@ -154,9 +173,18 @@ namespace TailorManager.Infrastructure.Migrations
                         .HasForeignKey("OrderId");
                 });
 
+            modelBuilder.Entity("TailorManager.Core.Payment", b =>
+                {
+                    b.HasOne("TailorManager.Core.Order", null)
+                        .WithMany("Payments")
+                        .HasForeignKey("OrderId");
+                });
+
             modelBuilder.Entity("TailorManager.Core.Order", b =>
                 {
                     b.Navigation("History");
+
+                    b.Navigation("Payments");
                 });
 #pragma warning restore 612, 618
         }

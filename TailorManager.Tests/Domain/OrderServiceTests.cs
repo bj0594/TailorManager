@@ -104,4 +104,19 @@ public class OrderServiceTests
         // Assert
         Assert.True(_service.GetOrder(order.Id).IsReadyForPickup);
     }
+
+    [Fact]
+    public void AddPayment_ExistingOrder_AddsPayment()
+    {
+        // Arrange
+        var order = _app.AddOrder();
+        const decimal paymentAmount = 500m;
+
+        // Act
+        _service.AddPayment(order.Id, paymentAmount);
+
+        // Assert
+        var payment = Assert.Single(_service.GetOrder(order.Id).Payments);
+        Assert.Equal(paymentAmount, payment.Amount);
+    }
 }

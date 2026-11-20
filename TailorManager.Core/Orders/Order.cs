@@ -12,4 +12,6 @@ public class Order
     public Guid? RelatedOrderId { get; set; }
     public List<OrderHistoryEntry> History { get; set; } = [];
     public bool IsReadyForPickup { get; set; }
+
+    public List<Payment> Payments { get; set; } = [];
 }
