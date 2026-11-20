@@ -68,7 +68,10 @@ public class OrderService
     }
 
     public Order AddPayment(Guid id, decimal amount)
-{
-    throw new NotImplementedException();
-}
+    {
+        var order = GetOrder(id);
+        order.Payments.Add(new Payment { Id = Guid.NewGuid(), Amount = amount });
+        _repository.Update(order);
+        return order;
+    }
 }
