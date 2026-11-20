@@ -1,5 +1,6 @@
 using TailorManager.Core;
 using TailorManager.Core.Repository;
+using Microsoft.EntityFrameworkCore;
 
 namespace TailorManager.Infrastructure;
 
@@ -20,11 +21,13 @@ public class EfOrderRepository : IOrderRepository
 
     public List<Order> GetAll() => _db.Orders.ToList();
 
-    public Order? GetById(Guid id) => _db.Orders.Find(id);
+    public Order? GetById(Guid id) =>
+        _db.Orders.Include(t => t.Payments).FirstOrDefault(t => t.Id == id);
 
     public void Update(Order order)
     {
-        _db.Orders.Update(order);
+        if (_db.Entry(order).State == EntityState.Detached)
+            _db.Orders.Update(order);
         _db.SaveChanges();
     }
 }

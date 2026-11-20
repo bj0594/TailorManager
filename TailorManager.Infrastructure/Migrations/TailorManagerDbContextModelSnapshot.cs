@@ -116,7 +116,6 @@ namespace TailorManager.Infrastructure.Migrations
             modelBuilder.Entity("TailorManager.Core.Payment", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
                     b.Property<decimal>("Amount")
