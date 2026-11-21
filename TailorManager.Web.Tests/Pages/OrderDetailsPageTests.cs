@@ -139,4 +139,18 @@ public class OrderDetailsPageTests : PageTestContext
         page.WaitForAssertion(() =>
             Assert.Contains((order.Id, Examples.PaymentAmount), _orders.Addedpayments));
     }
+
+    [Fact]
+    public void OrderDetailsPage_NotWorkshop_HidesRegister()
+    {
+        // Arrange
+        _tokens.Role = Roles.FrontDesk;
+        var order = TestDtos.NewOrder();
+
+        // Act
+        var page = Render<OrderDetailsPage>(p => p.Add(x => x.Id, order.Id));
+
+        // Assert
+        Assert.Empty(page.FindAll("button.register"));
+    }
 }
