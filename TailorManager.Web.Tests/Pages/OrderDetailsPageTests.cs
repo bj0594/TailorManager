@@ -140,6 +140,23 @@ public class OrderDetailsPageTests : PageTestContext
         Assert.Empty(page.FindAll("button.register"));
     }
 
+    [Fact]
+    public void OrderDetailsPage_FreeOrder_ShowsZeroOutstandingBalance()
+    {
+        // Arrange
+        var order = TestDtos.NewOrder() with
+        {
+            OutstandingBalance = 0m
+        };
+
+        var page = RenderOrder(order);
+
+        // Assert
+        Assert.Contains(
+            "Outstanding balance: 0",
+            page.Find(".outstanding-balance").TextContent);
+    }
+
     private IRenderedComponent<OrderDetailsPage> RenderOrder(OrderDto order)
     {
         _orders.Items.Add(order);
