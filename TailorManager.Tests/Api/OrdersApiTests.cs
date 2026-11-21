@@ -225,6 +225,23 @@ public class OrdersApiTests : IDisposable
         Assert.Contains(body!.Payments, payment => payment.Amount == paymentAmount);
     }
 
+    [Fact]
+    public async Task PostOrdersPayment_NotFrontDesk_ReturnsForbidden()
+{
+        // Arrange
+        var workshop = await _factory.LogInAsWorkshopAsync();
+        var order = await workshop.CreateOrderAsync();
+        const decimal paymentAmount = 500m;
+
+        // Act
+        var response = await workshop.PostAsJsonAsync(
+                    $"/orders/{order.Id}/payments",
+                    new { amount = paymentAmount });
+
+        // Assert
+        Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+    }
+
     private record OrderResponse(
     Guid Id,
     Guid CustomerId,
