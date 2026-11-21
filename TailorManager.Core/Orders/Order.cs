@@ -14,4 +14,6 @@ public class Order
     public bool IsReadyForPickup { get; set; }
 
     public List<Payment> Payments { get; set; } = [];
+    public decimal OutstandingBalance =>
+    InitialAgreedPrice - Payments.Sum(payment => payment.Amount);
 }

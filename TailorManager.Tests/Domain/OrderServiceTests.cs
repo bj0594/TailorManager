@@ -127,7 +127,13 @@ public class OrderServiceTests
         var customer = _app.AddCustomer();
 
         // Act
-        var order = _app.AddOrder();
+        var order = _service.AddOrder(
+            customer.Id,
+            OrderType.NewGarment,
+            Examples.WorkDescription,
+            0m,
+            null,
+            _app.Employee);
 
         // Assert
         Assert.Equal(0m, order.OutstandingBalance);
@@ -140,7 +146,13 @@ public class OrderServiceTests
         var customer = _app.AddCustomer();
 
         // Act
-        var order = _app.AddOrder();
+        var order = _service.AddOrder(
+            customer.Id,
+            OrderType.NewGarment,
+            Examples.WorkDescription,
+            Examples.AgreedPrice,
+            null,
+            _app.Employee);
 
         // Assert
         Assert.Equal(Examples.AgreedPrice, order.OutstandingBalance);
