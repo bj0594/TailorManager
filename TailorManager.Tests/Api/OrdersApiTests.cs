@@ -56,7 +56,8 @@ public class OrdersApiTests : IDisposable
 
         var body = await response.Content.ReadFromJsonAsync<OrderResponse>();
 
-        Assert.Equal(0m, body!.OutstandingBalance);
+        Assert.NotNull(body);
+        Assert.Equal(0m, body.OutstandingBalance);
     }
 
     [Fact]

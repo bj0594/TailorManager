@@ -24,7 +24,14 @@ public class OrdersController : ControllerBase
     [HttpPost]
     public IActionResult Create(CreateOrderRequest request)
     {
-        var order = _service.AddOrder(request.CustomerId, request.Type, request.WorkDescription, request.AgreedPrice, request.RelatedOrderId, CurrentEmployee());
+        var order = _service.AddOrder(
+            request.CustomerId,
+            request.Type,
+            request.WorkDescription,
+            request.AgreedPrice,
+            request.RelatedOrderId,
+            CurrentEmployee());
+
         return Created($"/orders/{order.Id}", order);
     }
 
