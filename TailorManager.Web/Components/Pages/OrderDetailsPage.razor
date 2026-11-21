@@ -16,6 +16,10 @@ else
         <button type="submit">Add</button>
     </form>
 
+    <p class="outstanding-balance">
+        Outstanding balance: @_item.OutstandingBalance
+    </p>
+
     <form class="payment" @onsubmit="AddPayment">
         <input @bind="_newAmount" />
         <button type="submit">Add</button>
