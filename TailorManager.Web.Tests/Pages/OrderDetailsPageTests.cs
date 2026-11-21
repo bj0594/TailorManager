@@ -146,6 +146,7 @@ public class OrderDetailsPageTests : PageTestContext
         // Arrange
         _tokens.Role = Roles.FrontDesk;
         var order = TestDtos.NewOrder();
+        _orders.Items.Add(order);
 
         // Act
         var page = Render<OrderDetailsPage>(p => p.Add(x => x.Id, order.Id));
