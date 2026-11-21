@@ -64,6 +64,7 @@ public class OrdersController : ControllerBase
         return NoContent();
     }
 
+    [Authorize(Roles = Roles.FrontDesk)]
     [HttpPost("{id}/payments")]
     public IActionResult AddPayment(Guid id, AddPaymentRequest request)
     {

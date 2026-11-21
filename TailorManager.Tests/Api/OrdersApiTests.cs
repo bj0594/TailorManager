@@ -210,7 +210,7 @@ public class OrdersApiTests : IDisposable
         // Arrange
         var client = await _factory.LogInAsFrontDeskAsync();
         var order = await client.CreateOrderAsync();
-        const decimal paymentAmount = 500m;
+        var paymentAmount = Examples.PaymentAmount;
 
         // Act
         var response = await client.PostAsJsonAsync(
@@ -227,16 +227,15 @@ public class OrdersApiTests : IDisposable
 
     [Fact]
     public async Task PostOrdersPayment_NotFrontDesk_ReturnsForbidden()
-{
+    {
         // Arrange
         var workshop = await _factory.LogInAsWorkshopAsync();
-        var order = await workshop.CreateOrderAsync();
-        const decimal paymentAmount = 500m;
+        var orderId = Guid.NewGuid();
 
         // Act
         var response = await workshop.PostAsJsonAsync(
-                    $"/orders/{order.Id}/payments",
-                    new { amount = paymentAmount });
+            $"/orders/{orderId}/payments",
+            new { amount = Examples.PaymentAmount });
 
         // Assert
         Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
