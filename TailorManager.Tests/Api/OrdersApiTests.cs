@@ -33,6 +33,33 @@ public class OrdersApiTests : IDisposable
     }
 
     [Fact]
+    public async Task PostOrders_FreeOrder_ReturnsZeroOutstandingBalance()
+    {
+        // Arrange
+        var client = await _factory.LogInAsFrontDeskAsync();
+        var customer = await client.CreateCustomerAsync();
+
+        // Act
+        var response = await client.PostAsJsonAsync(
+            "/orders",
+            new
+            {
+                customerId = customer.Id,
+                type = "NewGarment",
+                workDescription = Examples.WorkDescription,
+                agreedPrice = 0m,
+                relatedOrderId = (Guid?)null
+            });
+
+        // Assert
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+
+        var body = await response.Content.ReadFromJsonAsync<OrderResponse>();
+
+        Assert.Equal(0m, body!.OutstandingBalance);
+    }
+
+    [Fact]
     public async Task PostOrders_WithoutToken_ReturnsUnauthorized()
     {
         // Act
