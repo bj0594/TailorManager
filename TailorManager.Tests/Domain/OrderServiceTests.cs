@@ -119,4 +119,30 @@ public class OrderServiceTests
         var payment = Assert.Single(_service.GetOrder(order.Id).Payments);
         Assert.Equal(paymentAmount, payment.Amount);
     }
+
+    [Fact]
+    public void AddOrder_FreeOrder_HasZeroOutstandingBalance()
+    {
+        // Arrange
+        var customer = _app.AddCustomer();
+
+        // Act
+        var order = _app.AddOrder();
+
+        // Assert
+        Assert.Equal(0m, order.OutstandingBalance);
+    }
+
+    [Fact]
+    public void AddOrder_WithAgreedPrice_HasFullOutstandingBalance()
+    {
+        // Arrange
+        var customer = _app.AddCustomer();
+
+        // Act
+        var order = _app.AddOrder();
+
+        // Assert
+        Assert.Equal(Examples.AgreedPrice, order.OutstandingBalance);
+    }
 }
