@@ -28,6 +28,23 @@ public abstract class OrderRepositoryContractTests
     }
 
     [Fact]
+    public void Add_ThenGetById_KeepsTheHistory()
+    {
+        // Arrange
+        var repository = CreateRepository();
+        var order = TestData.NewOrder();
+        order.History.Add(OrderHistoryEntry.By(TestData.NewEmployee()));
+
+        // Act
+        repository.Add(order);
+
+        // Assert
+        var stored = Reopen(repository).GetById(order.Id)!;
+        var entry = Assert.Single(stored.History);
+        Assert.Equal(Examples.EmployeeDisplayName, entry.ActorDisplayName);
+    }
+
+    [Fact]
     public void GetById_UnknownId_ReturnsNull()
     {
         // Arrange
@@ -97,6 +114,25 @@ public abstract class OrderRepositoryContractTests
         var stored = Reopen(repository).GetById(order.Id)!;
         var payment = Assert.Single(stored.Payments);
         Assert.Equal(paymentAmount, payment.Amount);
+    }
+
+    [Fact]
+    public void Update_NewHistoryEntry_IsStored()
+    {
+        // Arrange
+        var repository = CreateRepository();
+        var order = TestData.NewOrder();
+        repository.Add(order);
+
+        // Act
+        var entry = OrderHistoryEntry.By(TestData.NewEmployee());
+        entry.Type = ActivityType.StatusChanged;
+        order.History.Add(entry);
+        repository.Update(order);
+
+        // Assert
+        var stored = Reopen(repository).GetById(order.Id)!;
+        Assert.Equal(ActivityType.StatusChanged, Assert.Single(stored.History).Type);
     }
 }
 
