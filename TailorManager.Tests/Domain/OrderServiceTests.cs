@@ -107,16 +107,19 @@ public class OrderServiceTests
     }
 
     [Fact]
-    public void MarkOrder_ExistingOrder_SetsReadyForPickup()
+    public void MarkReadyForPickup_OrderInProgress_SetsReadyForPickup()
     {
         // Arrange
         var order = _app.AddOrder();
+        _service.StartOrder(order.Id, _app.Employee);
 
         // Act
-        _service.ReadyForPickup(order.Id);
+        var result = _service.MarkReadyForPickup(order.Id, _app.Employee);
 
         // Assert
-        Assert.True(_service.GetOrder(order.Id).IsReadyForPickup);
+        Assert.Equal(OrderStatus.ReadyForPickup, result.Status);
+        Assert.Equal(2, result.History.Count(h => h.Type == ActivityType.StatusChanged));
+        Assert.Single(result.History, h => h.Type == ActivityType.NotificationRequested);
     }
 
     [Fact]
@@ -179,7 +182,7 @@ public class OrderServiceTests
         var order = _app.AddOrder();
 
         _service.AddPayment(order.Id, order.OutstandingBalance);
-        _service.ReadyForPickup(order.Id);
+        _service.MarkReadyForPickup(order.Id, _app.Employee);
 
         // Act
         _service.DeliverOrder(order.Id);

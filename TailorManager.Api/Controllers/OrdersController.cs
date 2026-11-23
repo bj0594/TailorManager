@@ -66,7 +66,7 @@ public class OrdersController : ControllerBase
     [HttpPatch("{id}/readyforpickup")]
     public IActionResult ReadyForPickup(Guid id)
     {
-        _service.ReadyForPickup(id);
+        _service.MarkReadyForPickup(id, CurrentEmployee());
         return NoContent();
     }
 

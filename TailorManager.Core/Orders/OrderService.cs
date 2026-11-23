@@ -59,11 +59,12 @@ public class OrderService
         return order;
     }
 
-    public void ReadyForPickup(Guid id)
+    public Order MarkReadyForPickup(Guid id, User employee)
     {
         var order = GetOrder(id);
         order.IsReadyForPickup = true;
         _repository.Update(order);
+        return order;
     }
 
     public Order AddPayment(Guid id, decimal amount)
