@@ -139,42 +139,18 @@ public class OrderServiceTests
         Assert.Single(result.History, h => h.Type == ActivityType.PaymentReceived);
     }
 
-    [Fact]
-    public void AddOrder_FreeOrder_HasZeroOutstandingBalance()
-    {
-        // Arrange
-        var customer = _app.AddCustomer();
+    // Nothing is paid yet, so the balance is the agreed price: zero for a free order (§4 Calculated values).
+    public static TheoryData<decimal> AgreedPrices => new() { 0m, Examples.AgreedPrice };
 
+    [Theory]
+    [MemberData(nameof(AgreedPrices))]
+    public void AddOrder_NothingPaid_OutstandingBalanceIsTheAgreedPrice(decimal agreedPrice)
+    {
         // Act
-        var order = _service.AddOrder(
-            customer.Id,
-            OrderType.NewGarment,
-            Examples.WorkDescription,
-            0m,
-            null,
-            _app.Employee);
+        var order = _app.AddOrder(agreedPrice: agreedPrice);
 
         // Assert
-        Assert.Equal(0m, order.OutstandingBalance);
-    }
-
-    [Fact]
-    public void AddOrder_WithAgreedPrice_HasFullOutstandingBalance()
-    {
-        // Arrange
-        var customer = _app.AddCustomer();
-
-        // Act
-        var order = _service.AddOrder(
-            customer.Id,
-            OrderType.NewGarment,
-            Examples.WorkDescription,
-            Examples.AgreedPrice,
-            null,
-            _app.Employee);
-
-        // Assert
-        Assert.Equal(Examples.AgreedPrice, order.OutstandingBalance);
+        Assert.Equal(agreedPrice, order.OutstandingBalance);
     }
 
     [Fact]
