@@ -43,7 +43,7 @@ public class OrderService
         var order = GetOrder(id);
         if (order.Status != OrderStatus.Submitted)
         {
-            throw new InvalidOrderStatusException("The order is not submitted.");
+            throw new InvalidOrderStatusException("The order is not Submitted.");
         }
         order.Status = OrderStatus.InProgress;
         AddHistory(order, employee, ActivityType.StatusChanged);
