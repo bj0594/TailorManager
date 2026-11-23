@@ -157,4 +157,20 @@ public class OrderServiceTests
         // Assert
         Assert.Equal(Examples.AgreedPrice, order.OutstandingBalance);
     }
+
+    [Fact]
+    public void DeliverOrder_NoOutstandingBalance_SetsDelivered()
+    {
+        // Arrange
+        var order = _app.AddOrder();
+
+        _service.AddPayment(order.Id, order.OutstandingBalance);
+        _service.ReadyForPickup(order.Id);
+
+        // Act
+        _service.DeliverOrder(order.Id);
+
+        // Assert
+        Assert.True(_service.GetOrder(order.Id).IsDelivered);
+    }
 }

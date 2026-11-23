@@ -74,4 +74,9 @@ public class OrderService
         _repository.Update(order);
         return order;
     }
+
+    public void DeliverOrder(Guid id)
+    {
+        throw new NotImplementedException();
+    }
 }
