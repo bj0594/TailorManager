@@ -77,11 +77,10 @@ public class OrdersController : ControllerBase
     }
 
     [Authorize(Roles = Roles.FrontDesk)]
-    [HttpPatch("{id}/deliver")]
-    public IActionResult Deliver(Guid id)
+    [HttpPatch("{id}/delivered")]
+    public IActionResult MarkDelivered(Guid id)
     {
-        _service.MarkDelivered(id, CurrentEmployee());
-        return NoContent();
+        return Ok(_service.MarkDelivered(id, CurrentEmployee()));
     }
 
     // The logged-in employee, from the username in the token. Every action that writes the history sends it to the service.
