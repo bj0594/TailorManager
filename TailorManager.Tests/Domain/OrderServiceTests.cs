@@ -24,6 +24,9 @@ public class OrderServiceTests
 
         // Assert
         Assert.Equal(Examples.WorkDescription, order.WorkDescription);
+        Assert.Equal(Examples.AgreedPrice, order.InitialAgreedPrice);
+        Assert.Equal(OrderStatus.Submitted, order.Status);
+        Assert.Equal(ActivityType.OrderCreated, Assert.Single(order.History).Type);
     }
 
     [Fact]
