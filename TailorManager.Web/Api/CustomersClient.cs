@@ -22,7 +22,7 @@ public class CustomersClient : ICustomersClient
     {
         var response = await _http.PostAsJsonAsync("customers", new { name, phone, email, address });
         response.EnsureSuccessStatusCode();
-        return null!;
+        return (await response.Content.ReadFromJsonAsync<CustomerDto>())!;
     }
 
     public async Task<CustomerDto> GetCustomerAsync(Guid id)

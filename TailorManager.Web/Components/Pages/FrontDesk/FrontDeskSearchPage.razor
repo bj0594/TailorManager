@@ -12,20 +12,25 @@
     <button type="submit">Add</button>
 </form>
 
+<ul class="results">
+    @foreach (var customer in _results)
+    {
+        <li>@customer.Name, @customer.Phone</li>
+    }
+</ul>
+
 @code {
+    // The customers to show. A new customer is added here; the search fills it in "Find customers".
+    private readonly List<CustomerDto> _results = [];
+
     private string _newName = "";
     private string _newPhone = "";
     private string _newEmail = "";
     private string _newAddress = "";
 
-
     private async Task Add()
     {
-        await Client.AddCustomerAsync(_newName, _newPhone, _newEmail, _newAddress);
-        _newName = "";
-        _newPhone = "";
-        _newEmail = "";
-        _newAddress = "";
-
+        _results.Add(await Client.AddCustomerAsync(_newName, _newPhone, _newEmail, _newAddress));
+        _newName = _newPhone = _newEmail = _newAddress = "";
     }
 }
