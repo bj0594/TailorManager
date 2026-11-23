@@ -269,12 +269,35 @@ public class OrdersApiTests : IDisposable
         Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
     }
 
+    [Fact]
+    public async Task PatchOrdersDeliver_NoOutstandingBalance_ReturnsNoContent()
+    {
+        // Arrange
+        var frontDesk = await _factory.LogInAsFrontDeskAsync();
+        var order = await frontDesk.CreateOrderAsync();
+        var orderDetails = await frontDesk.GetFromJsonAsync<OrderResponse>($"/orders/{order.Id}");
+        Assert.NotNull(orderDetails);
+        // Pay the full outstanding balance.
+        var paymentResponse = await frontDesk.PostAsJsonAsync($"/orders/{order.Id}/payments",
+        new { amount = orderDetails.OutstandingBalance });
+        Assert.Equal(HttpStatusCode.OK, paymentResponse.StatusCode);
+
+        // Act
+        var response = await frontDesk.PatchAsync($"/orders/{order.Id}/deliver",null);
+
+        // Assert
+        Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
+        var deliveredOrder = await frontDesk.GetFromJsonAsync<OrderResponse>($"/orders/{order.Id}");
+        Assert.True(deliveredOrder!.IsDelivered);
+    }
+
     private record OrderResponse(
     Guid Id,
     Guid CustomerId,
     decimal OutstandingBalance,
     List<PaymentResponse> Payments,
-    List<HistoryResponse> History);
+    List<HistoryResponse> History,
+    bool IsDelivered);
 
     private record PaymentResponse(
         Guid Id,
