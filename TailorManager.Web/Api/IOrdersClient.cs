@@ -9,6 +9,6 @@ public interface IOrdersClient
     Task StartWorkAsync(Guid id);
     Task AddWorkNoteAsync(Guid id, string note);
     Task MarkReadyForPickupAsync(Guid id);
-    Task RegisterPaymentAsync(Guid id, decimal amount);
+    Task RegisterPaymentAsync(Guid id, decimal amount, string transactionReference);
     Task MarkDeliveredAsync(Guid id);
 }

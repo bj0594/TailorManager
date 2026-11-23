@@ -159,13 +159,14 @@ public class OrderDetailsPageTests : PageTestContext
         var page = RenderOrder(order);
 
         // Act
-        page.Find("form.payment input").Change(Examples.PaymentAmount.ToString());
+        page.Find("form.payment input.amount").Change(Examples.PaymentAmount.ToString());
+        page.Find("form.payment input.reference").Change(Examples.TransactionReference);
         page.Find("form.payment").Submit();
 
         // Assert
         page.WaitForAssertion(() =>
         {
-            Assert.Contains((order.Id, Examples.PaymentAmount), _orders.Payments);
+            Assert.Contains((order.Id, Examples.PaymentAmount, Examples.TransactionReference), _orders.Payments);
             Assert.Contains("Delivered", page.Find(".status").TextContent);
         });
     }

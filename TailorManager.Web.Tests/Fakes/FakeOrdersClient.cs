@@ -13,7 +13,7 @@ public class FakeOrdersClient : IOrdersClient
     public List<Guid> StartIds { get; } = [];
     public List<(Guid Id, string Note)> AddedWorkNotes { get; } = [];
     public List<Guid> ReadyForPickupIds { get; } = [];
-    public List<(Guid Id, decimal Amount)> Payments { get; } = [];
+    public List<(Guid Id, decimal Amount, string TransactionReference)> Payments { get; } = [];
     public List<Guid> DeliveredIds { get; } = [];
 
     public Task<List<OrderDto>> GetOrdersAsync() => Task.FromResult(Items);
@@ -26,7 +26,8 @@ public class FakeOrdersClient : IOrdersClient
 
     public Task MarkReadyForPickupAsync(Guid id) => Record(() => ReadyForPickupIds.Add(id), id, "ReadyForPickup");
 
-    public Task RegisterPaymentAsync(Guid id, decimal amount) => Record(() => Payments.Add((id, amount)), id, "Delivered");
+    public Task RegisterPaymentAsync(Guid id, decimal amount, string transactionReference) =>
+        Record(() => Payments.Add((id, amount, transactionReference)), id, "Delivered");
 
     public Task MarkDeliveredAsync(Guid id) => Record(() => DeliveredIds.Add(id), id, "Delivered");
 

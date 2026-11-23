@@ -91,10 +91,11 @@ else
     }
 
     private decimal _newAmount;
+    private string _newReference = "";
 
     private async Task AddPayment()
     {
-        await Client.RegisterPaymentAsync(Id, _newAmount);
+        await Client.RegisterPaymentAsync(Id, _newAmount, _newReference);
         _item = await Client.GetOrderAsync(Id);
         _newAmount = _item.OutstandingBalance;
     }

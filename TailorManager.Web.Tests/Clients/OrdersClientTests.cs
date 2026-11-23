@@ -130,13 +130,15 @@ public class OrdersClientTests
         _handler.Respond($"/orders/{id}/payments", "{}");
 
         // Act
-        await _client.RegisterPaymentAsync(id, Examples.PaymentAmount);
+        await _client.RegisterPaymentAsync(id, Examples.PaymentAmount, Examples.TransactionReference);
 
         // Assert
         var request = _handler.Requests.Single();
         Assert.Equal(HttpMethod.Post, request.Method);
         Assert.Equal($"/orders/{id}/payments", request.RequestUri!.AbsolutePath);
-        Assert.Contains(Examples.PaymentAmount.ToString(), _handler.Bodies.Single());
+        var body = _handler.Bodies.Single();
+        Assert.Contains(Examples.PaymentAmount.ToString(), body);
+        Assert.Contains(Examples.TransactionReference, body);
     }
 
     [Fact]
