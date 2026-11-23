@@ -273,4 +273,17 @@ public class OrdersApiTests : IDisposable
         var body = await response.Content.ReadFromJsonAsync<OrderResponse>();
         Assert.Equal("Delivered", body!.Status);
     }
+
+    [Fact]
+    public async Task PatchOrdersDelivered_NotFrontDesk_ReturnsForbidden()
+    {
+        // Arrange
+        var workshop = await _factory.LogInAsWorkshopAsync();
+
+        // Act
+        var response = await workshop.MarkDeliveredAsync(Guid.NewGuid());
+
+        // Assert
+        Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+    }
 }
