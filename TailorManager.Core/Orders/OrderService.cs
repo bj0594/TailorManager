@@ -62,7 +62,9 @@ public class OrderService
     public Order MarkReadyForPickup(Guid id, User employee)
     {
         var order = GetOrder(id);
-        order.IsReadyForPickup = true;
+        order.Status = OrderStatus.ReadyForPickup;
+        AddHistory(order, employee, ActivityType.StatusChanged);
+        AddHistory(order, employee, ActivityType.NotificationRequested);
         _repository.Update(order);
         return order;
     }
