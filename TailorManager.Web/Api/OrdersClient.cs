@@ -27,7 +27,7 @@ public class OrdersClient : IOrdersClient
 
     public Task RegisterPaymentAsync(Guid id, decimal amount) => SendAsync(_http.PostAsJsonAsync($"orders/{id}/payments", new { amount }));
 
-    public Task MarkDeliveredAsync(Guid id) => SendAsync(_http.PatchAsync($"orders/{id}/deliver", null));
+    public Task MarkDeliveredAsync(Guid id) => SendAsync(_http.PatchAsync($"orders/{id}/delivered", null));
 
     // Waits for the answer, and throws with the API's own message when it says no, so the page can show it.
     private static async Task SendAsync(Task<HttpResponseMessage> sending)
