@@ -84,8 +84,7 @@ public class OrderServiceTests
     public void StartOrder_NotSubmitted_ThrowsInvalidOrderStatusException()
     {
         // Arrange
-        var order = _app.AddOrder();
-        _service.StartOrder(order.Id, _app.Employee);
+        var order = _app.AddOrderInProgress();
 
         // Act + Assert
         Assert.Throws<InvalidOrderStatusException>(() => _service.StartOrder(order.Id, _app.Employee));
@@ -95,8 +94,7 @@ public class OrderServiceTests
     public void AddWorkNote_OrderInProgress_AddsWorkNote()
     {
         // Arrange
-        var order = _app.AddOrder();
-        _service.StartOrder(order.Id, _app.Employee);
+        var order = _app.AddOrderInProgress();
 
         // Act
         _service.AddWorkNote(order.Id, Examples.WorkNote, _app.Employee);
@@ -110,8 +108,7 @@ public class OrderServiceTests
     public void MarkReadyForPickup_OrderInProgress_SetsReadyForPickup()
     {
         // Arrange
-        var order = _app.AddOrder();
-        _service.StartOrder(order.Id, _app.Employee);
+        var order = _app.AddOrderInProgress();
 
         // Act
         var result = _service.MarkReadyForPickup(order.Id, _app.Employee);

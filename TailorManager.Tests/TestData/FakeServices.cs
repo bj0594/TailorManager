@@ -29,4 +29,15 @@ public class FakeServices
     // Makes a new customer for the order, unless the test gives the id of one.
     public Order AddOrder(Guid? customerId = null, string workDescription = Examples.WorkDescription, decimal agreedPrice = Examples.AgreedPrice) =>
         Orders.AddOrder(customerId ?? AddCustomer().Id, OrderType.NewGarment, workDescription, agreedPrice, null, Employee);
+
+    // An order that is InProgress: made and started by Employee.
+    public Order AddOrderInProgress(decimal agreedPrice = Examples.AgreedPrice)
+    {
+        var order = AddOrder(agreedPrice: agreedPrice);
+        return Orders.StartOrder(order.Id, Employee);
+    }
+
+    // An order that is ReadyForPickup: made, started and marked by Employee.
+    public Order AddOrderReadyForPickup(decimal agreedPrice = Examples.AgreedPrice) =>
+        Orders.MarkReadyForPickup(AddOrderInProgress(agreedPrice).Id, Employee);
 }

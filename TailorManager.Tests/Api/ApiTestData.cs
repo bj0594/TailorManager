@@ -17,6 +17,10 @@ public static class ApiTestData
     public static object NewCustomerRequest(string name = Examples.CustomerName) =>
         new { name, phone = Examples.CustomerPhone, email = Examples.CustomerEmail, address = Examples.CustomerAddress };
 
+    // POST /orders/{orderId}/payments
+    public static object NewPaymentRequest(decimal amount = Examples.PaymentAmount) =>
+        new { amount, transactionReference = Examples.TransactionReference };
+
     // POST /orders
     public static object NewOrderRequest(Guid customerId, string workDescription = Examples.WorkDescription, decimal agreedPrice = Examples.AgreedPrice, Guid? relatedOrderId = null) =>
         new { customerId, type = "NewGarment", workDescription, agreedPrice, relatedOrderId };
@@ -42,13 +46,35 @@ public static class ApiTestData
         client.PostAsJsonAsync("/orders", NewOrderRequest(customerId, workDescription, agreedPrice));
 
     // A new customer and an order for them, and the order from the answer. The client must be logged in as FrontDesk.
-    public static async Task<OrderResponse> CreateOrderAsync(this HttpClient client, string workDescription = Examples.WorkDescription)
+    public static async Task<OrderResponse> CreateOrderAsync(this HttpClient client, string workDescription = Examples.WorkDescription, decimal agreedPrice = Examples.AgreedPrice)
     {
         var customer = await client.CreateCustomerAsync();
-        var response = await client.PostOrderAsync(customer.Id, workDescription);
+        var response = await client.PostOrderAsync(customer.Id, workDescription, agreedPrice);
         response.EnsureSuccessStatusCode();
         return (await response.Content.ReadFromJsonAsync<OrderResponse>())!;
     }
+
+    // An order that is ReadyForPickup: Kari (frontDesk) makes it, and Ola (workshop) starts it and marks it.
+    public static async Task<OrderResponse> CreateOrderReadyForPickupAsync(this HttpClient frontDesk, HttpClient workshop, decimal agreedPrice = Examples.AgreedPrice)
+    {
+        var order = await frontDesk.CreateOrderAsync(agreedPrice: agreedPrice);
+        (await workshop.StartWorkAsync(order.Id)).EnsureSuccessStatusCode();
+        (await workshop.MarkReadyForPickupAsync(order.Id)).EnsureSuccessStatusCode();
+        return order;
+    }
+
+    // The order actions in api.md. Each one gives the whole answer, so a test can check the status code.
+    public static Task<HttpResponseMessage> StartWorkAsync(this HttpClient client, Guid orderId) =>
+        client.PatchAsync($"/orders/{orderId}/start", null);
+
+    public static Task<HttpResponseMessage> AddWorkNoteAsync(this HttpClient client, Guid orderId, string note = Examples.WorkNote) =>
+        client.PostAsJsonAsync($"/orders/{orderId}/notes", new { note });
+
+    public static Task<HttpResponseMessage> MarkReadyForPickupAsync(this HttpClient client, Guid orderId) =>
+        client.PatchAsync($"/orders/{orderId}/ready-for-pickup", null);
+
+    public static Task<HttpResponseMessage> RegisterPaymentAsync(this HttpClient client, Guid orderId, decimal amount = Examples.PaymentAmount) =>
+        client.PostAsJsonAsync($"/orders/{orderId}/payments", NewPaymentRequest(amount));
 }
 
 // The answers as the API tests read them. Add a field when a test checks it, with the name from the response in api.md.

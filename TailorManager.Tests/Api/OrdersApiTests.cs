@@ -123,7 +123,7 @@ public class OrdersApiTests : IDisposable
         var workshop = await _factory.LogInAsWorkshopAsync();
 
         // Act
-        var response = await workshop.PatchAsync($"/orders/{order.Id}/start", null);
+        var response = await workshop.StartWorkAsync(order.Id);
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -139,7 +139,7 @@ public class OrdersApiTests : IDisposable
         var client = await _factory.LogInAsFrontDeskAsync();
 
         // Act
-        var response = await client.PatchAsync($"/orders/{Guid.NewGuid()}/start", null);
+        var response = await client.StartWorkAsync(Guid.NewGuid());
 
         // Assert
         Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
@@ -152,10 +152,10 @@ public class OrdersApiTests : IDisposable
         var client = await _factory.LogInAsFrontDeskAsync();
         var order = await client.CreateOrderAsync();
         var workshop = await _factory.LogInAsWorkshopAsync();
-        await workshop.PatchAsync($"/orders/{order.Id}/start", null);
+        await workshop.StartWorkAsync(order.Id);
 
         // Act
-        var response = await workshop.PatchAsync($"/orders/{order.Id}/start", null);
+        var response = await workshop.StartWorkAsync(order.Id);
 
         // Assert
         Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
@@ -169,10 +169,10 @@ public class OrdersApiTests : IDisposable
         var client = await _factory.LogInAsFrontDeskAsync();
         var workshop = await _factory.LogInAsWorkshopAsync();
         var order = await client.CreateOrderAsync();
-        await workshop.PatchAsync($"/orders/{order.Id}/start", null);
+        await workshop.StartWorkAsync(order.Id);
 
         // Act
-        var response = await workshop.PostAsJsonAsync($"/orders/{order.Id}/notes", new { note = Examples.WorkNote });
+        var response = await workshop.AddWorkNoteAsync(order.Id);
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -185,14 +185,9 @@ public class OrdersApiTests : IDisposable
     {
         // Arrange
         var frontDesk = await _factory.LogInAsFrontDeskAsync();
-        var order = await frontDesk.CreateOrderAsync();
-        var workshop = await _factory.LogInAsWorkshopAsync();
-        await workshop.PatchAsync($"/orders/{order.Id}/start", null);
 
         // Act
-        var response = await frontDesk.PostAsJsonAsync(
-            $"/orders/{order.Id}/notes",
-            new { note = Examples.WorkNote });
+        var response = await frontDesk.AddWorkNoteAsync(Guid.NewGuid());
 
         // Assert
         Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
@@ -205,10 +200,10 @@ public class OrdersApiTests : IDisposable
         var frontDesk = await _factory.LogInAsFrontDeskAsync();
         var order = await frontDesk.CreateOrderAsync();
         var workshop = await _factory.LogInAsWorkshopAsync();
-        await workshop.PatchAsync($"/orders/{order.Id}/start", null);
+        await workshop.StartWorkAsync(order.Id);
 
         // Act
-        var response = await workshop.PatchAsync($"/orders/{order.Id}/ready-for-pickup", null);
+        var response = await workshop.MarkReadyForPickupAsync(order.Id);
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -222,13 +217,9 @@ public class OrdersApiTests : IDisposable
     {
         // Arrange
         var frontDesk = await _factory.LogInAsFrontDeskAsync();
-        var order = await frontDesk.CreateOrderAsync();
-
-        var workshop = await _factory.LogInAsWorkshopAsync();
-        await workshop.PatchAsync($"/orders/{order.Id}/start", null);
 
         // Act
-        var response = await frontDesk.PatchAsync($"/orders/{order.Id}/ready-for-pickup", null);
+        var response = await frontDesk.MarkReadyForPickupAsync(Guid.NewGuid());
 
         // Assert
         Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
@@ -260,12 +251,9 @@ public class OrdersApiTests : IDisposable
     {
         // Arrange
         var workshop = await _factory.LogInAsWorkshopAsync();
-        var orderId = Guid.NewGuid();
 
         // Act
-        var response = await workshop.PostAsJsonAsync(
-            $"/orders/{orderId}/payments",
-            new { amount = Examples.PaymentAmount });
+        var response = await workshop.RegisterPaymentAsync(Guid.NewGuid());
 
         // Assert
         Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
