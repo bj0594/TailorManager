@@ -144,7 +144,7 @@ public class OrdersClientTests
     {
         // Arrange
         var id = Guid.NewGuid();
-        _handler.Respond($"/orders/{id}/deliver", "", HttpStatusCode.NoContent);
+        _handler.Respond($"/orders/{id}/delivered", "{}");
 
         // Act
         await _client.MarkDeliveredAsync(id);
@@ -152,6 +152,6 @@ public class OrdersClientTests
         // Assert
         var request = _handler.Requests.Single();
         Assert.Equal(HttpMethod.Patch, request.Method);
-        Assert.Equal($"/orders/{id}/deliver", request.RequestUri!.AbsolutePath);
+        Assert.Equal($"/orders/{id}/delivered", request.RequestUri!.AbsolutePath);
     }
 }
