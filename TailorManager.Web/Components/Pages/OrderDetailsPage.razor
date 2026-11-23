@@ -15,23 +15,9 @@ else
     <p class="status">Status: @_item.Status</p>
     <p class="customer">@_customer?.Name, @_customer?.Phone</p>
 
-    <form class="note" @onsubmit="AddNote">
-        <input @bind="_newNote" />
-        <button type="submit">Add</button>
-    </form>
-
     <p class="outstanding-balance">
         Outstanding balance: @_item.OutstandingBalance
     </p>
-
-    <form class="payment" @onsubmit="AddPayment">
-        <input @bind="_newAmount" />
-        <button type="submit">Add</button>
-    </form>
-
-    <button class="readyforpickup" @onclick="MarkOrderReadyForPickup">Ready for pickup</button>
-
-    <button class="deliver" @onclick="Deliver">Deliver</button>
 
     @if (_error is not null)
     {
@@ -41,6 +27,23 @@ else
     @if (Tokens.Role == Roles.Workshop)
     {
         <button class="start" @onclick="Start">Start</button>
+
+        <form class="note" @onsubmit="AddNote">
+            <input @bind="_newNote" />
+            <button type="submit">Add</button>
+        </form>
+
+        <button class="readyforpickup" @onclick="MarkOrderReadyForPickup">Ready for pickup</button>
+    }
+
+    @if (Tokens.Role == Roles.FrontDesk)
+    {
+        <form class="payment" @onsubmit="AddPayment">
+            <input @bind="_newAmount" />
+            <button type="submit">Add</button>
+        </form>
+
+        <button class="deliver" @onclick="Deliver">Deliver</button>
     }
 }
 
