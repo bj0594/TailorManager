@@ -19,6 +19,28 @@ public class OrderDetailsPageTests : PageTestContext
     }
 
     [Fact]
+    public void OrderDetailsPage_ExistingId_ShowsTheStatus()
+    {
+        // Arrange
+        var page = RenderOrder(TestDtos.NewOrder());
+
+        // Assert
+        Assert.Contains("Submitted", page.Find(".status").TextContent);
+    }
+
+    [Fact]
+    public void OrderDetailsPage_ExistingId_ShowsTheCustomer()
+    {
+        // Arrange
+        var page = RenderOrder(TestDtos.NewOrder());
+
+        // Assert
+        var customer = page.Find(".customer").TextContent;
+        Assert.Contains(Examples.CustomerName, customer);
+        Assert.Contains(Examples.CustomerPhone, customer);
+    }
+
+    [Fact]
     public void OrderDetailsPage_ClickStart_SendsItToTheApi()
     {
         // Arrange
@@ -31,7 +53,10 @@ public class OrderDetailsPageTests : PageTestContext
 
         // Assert
         page.WaitForAssertion(() =>
-            Assert.Contains(order.Id, _orders.StartIds));
+        {
+            Assert.Contains(order.Id, _orders.StartIds);
+            Assert.Contains("InProgress", page.Find(".status").TextContent);
+        });
     }
 
     [Fact]
@@ -104,7 +129,10 @@ public class OrderDetailsPageTests : PageTestContext
 
         // Assert
         page.WaitForAssertion(() =>
-            Assert.Contains(order.Id, _orders.ReadyForPickupIds));
+        {
+            Assert.Contains(order.Id, _orders.ReadyForPickupIds);
+            Assert.Contains("ReadyForPickup", page.Find(".status").TextContent);
+        });
     }
 
     [Fact]
@@ -125,7 +153,10 @@ public class OrderDetailsPageTests : PageTestContext
 
         // Assert
         page.WaitForAssertion(() =>
-            Assert.Contains((order.Id, Examples.PaymentAmount), _orders.Payments));
+        {
+            Assert.Contains((order.Id, Examples.PaymentAmount), _orders.Payments);
+            Assert.Contains("Delivered", page.Find(".status").TextContent);
+        });
     }
 
     [Fact]
@@ -161,30 +192,25 @@ public class OrderDetailsPageTests : PageTestContext
     public void OrderDetailsPage_ClickDeliver_SendsItToTheApi()
     {
         // Arrange
-        var order = new OrderDto(
-            Guid.NewGuid(),
-            Guid.NewGuid(),
-            "NewGarment",
-            "Test work",
-            100m,
-            100m,
-            0m,
-            "ReadyForPickup",
-            DateTimeOffset.UtcNow,
-            null);
-        _orders.Items.Add(order);
-        var page = Render<OrderDetailsPage>(parameters => parameters.Add(p => p.Id, order.Id));
+        var order = TestDtos.NewOrder() with { Status = "ReadyForPickup", OutstandingBalance = 0m };
+        var page = RenderOrder(order);
 
         // Act
         page.Find("button.deliver").Click();
 
         // Assert
-        page.WaitForAssertion(() => Assert.Contains(order.Id, _orders.DeliveredIds));
+        page.WaitForAssertion(() =>
+        {
+            Assert.Contains(order.Id, _orders.DeliveredIds);
+            Assert.Contains("Delivered", page.Find(".status").TextContent);
+        });
     }
 
+    // The order, and its customer, as the fake clients give them to the page.
     private IRenderedComponent<OrderDetailsPage> RenderOrder(OrderDto order)
     {
         _orders.Items.Add(order);
+        _customers.Items.Add(TestDtos.NewCustomer() with { Id = order.CustomerId });
         return Render<OrderDetailsPage>(p => p.Add(x => x.Id, order.Id));
     }
 }
