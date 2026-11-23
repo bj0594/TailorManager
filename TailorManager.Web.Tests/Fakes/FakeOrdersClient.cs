@@ -70,4 +70,12 @@ public class FakeOrdersClient : IOrdersClient
         Addedpayments.Add((id, amount));
         return Task.CompletedTask;
     }
+
+    public List<Guid> DeliverIds { get; } = [];
+
+    public Task DeliverOrderAsync(Guid id)
+    {
+        DeliverIds.Add(id);
+        return Task.CompletedTask;
+    }
 }

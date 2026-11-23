@@ -157,6 +157,31 @@ public class OrderDetailsPageTests : PageTestContext
             page.Find(".outstanding-balance").TextContent);
     }
 
+    [Fact]
+    public void OrderDetailsPage_ClickDeliver_SendsItToTheApi()
+    {
+        // Arrange
+        var order = new OrderDto(
+            Guid.NewGuid(),
+            Guid.NewGuid(),
+            "NewGarment",
+            "Test work",
+            100m,
+            100m,
+            0m,
+            "ReadyForPickup",
+            DateTimeOffset.UtcNow,
+            null);
+        _orders.Items.Add(order);
+        var page = Render<OrderDetailsPage>(parameters => parameters.Add(p => p.Id, order.Id));
+
+        // Act
+        page.Find("button.deliver").Click();
+
+        // Assert
+        page.WaitForAssertion(() => Assert.Contains(order.Id, _orders.DeliverIds));
+    }
+
     private IRenderedComponent<OrderDetailsPage> RenderOrder(OrderDto order)
     {
         _orders.Items.Add(order);

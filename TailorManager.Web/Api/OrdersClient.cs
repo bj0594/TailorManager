@@ -70,4 +70,6 @@ public class OrdersClient : IOrdersClient
         var response = await _http.PostAsJsonAsync($"orders/{id}/payments", new { amount });
         response.EnsureSuccessStatusCode();
     }
+
+    public Task DeliverOrderAsync(Guid id) => throw new NotImplementedException();
 }
