@@ -258,23 +258,19 @@ public class OrdersApiTests : IDisposable
     }
 
     [Fact]
-    public async Task PatchOrdersDeliver_NoOutstandingBalance_ReturnsNoContent()
+    public async Task PatchOrdersDelivered_FreeOrderReadyForPickup_ReturnsOk()
     {
         // Arrange
         var frontDesk = await _factory.LogInAsFrontDeskAsync();
-        var order = await frontDesk.CreateOrderAsync();
-        var orderDetails = await frontDesk.GetFromJsonAsync<OrderResponse>($"/orders/{order.Id}");
-        Assert.NotNull(orderDetails);
-        // Pay the full outstanding balance.
-        var paymentResponse = await frontDesk.RegisterPaymentAsync(order.Id, orderDetails.OutstandingBalance);
-        Assert.Equal(HttpStatusCode.OK, paymentResponse.StatusCode);
+        var workshop = await _factory.LogInAsWorkshopAsync();
+        var order = await frontDesk.CreateOrderReadyForPickupAsync(workshop, agreedPrice: 0m);
 
         // Act
-        var response = await frontDesk.PatchAsync($"/orders/{order.Id}/deliver",null);
+        var response = await frontDesk.MarkDeliveredAsync(order.Id);
 
         // Assert
-        Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
-        var deliveredOrder = await frontDesk.GetFromJsonAsync<OrderResponse>($"/orders/{order.Id}");
-        Assert.Equal("Delivered", deliveredOrder!.Status);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var body = await response.Content.ReadFromJsonAsync<OrderResponse>();
+        Assert.Equal("Delivered", body!.Status);
     }
 }

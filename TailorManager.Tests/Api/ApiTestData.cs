@@ -73,6 +73,9 @@ public static class ApiTestData
     public static Task<HttpResponseMessage> MarkReadyForPickupAsync(this HttpClient client, Guid orderId) =>
         client.PatchAsync($"/orders/{orderId}/ready-for-pickup", null);
 
+    public static Task<HttpResponseMessage> MarkDeliveredAsync(this HttpClient client, Guid orderId) =>
+        client.PatchAsync($"/orders/{orderId}/delivered", null);
+
     public static Task<HttpResponseMessage> RegisterPaymentAsync(this HttpClient client, Guid orderId, decimal amount = Examples.PaymentAmount) =>
         client.PostAsJsonAsync($"/orders/{orderId}/payments", NewPaymentRequest(amount));
 }
