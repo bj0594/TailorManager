@@ -8,10 +8,11 @@ public class FakeCustomersClient : ICustomersClient
     public List<CustomerDto> Items { get; } = [];
 
     public Task<List<CustomerDto>> GetCustomersAsync() => Task.FromResult(Items);
-    public Task AddCustomerAsync(string name, string phone, string email, string address)
+    public Task<CustomerDto> AddCustomerAsync(string name, string phone, string email, string address)
     {
-        Items.Add(new CustomerDto(Guid.NewGuid(), name, phone, email, address));
-        return Task.CompletedTask;
+        var customer = new CustomerDto(Guid.NewGuid(), name, phone, email, address);
+        Items.Add(customer);
+        return Task.FromResult(customer);
     }
 
     public Task<CustomerDto> GetCustomerAsync(Guid id) => Task.FromResult(Items.Single(i => i.Id == id));

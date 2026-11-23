@@ -22,4 +22,19 @@ public class FrontDeskSearchPageTests : PageTestContext
         // Assert
         page.WaitForAssertion(() => Assert.Single(_customers.Items));
     }
+
+    [Fact]
+    public void FrontDeskSearchPage_AddCustomer_ShowsItInTheResults()
+    {
+        // Arrange
+        var page = Render<FrontDeskSearchPage>();
+
+        // Act
+        page.Find("#name").Change(Examples.CustomerName);
+        page.Find("#phone").Change(Examples.CustomerPhone);
+        page.Find("form").Submit();
+
+        // Assert
+        page.WaitForAssertion(() => Assert.Contains(Examples.CustomerName, page.Find(".results").TextContent));
+    }
 }

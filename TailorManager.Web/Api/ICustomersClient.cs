@@ -4,6 +4,6 @@ namespace TailorManager.Web.Api;
 public interface ICustomersClient
 {
     Task<List<CustomerDto>> GetCustomersAsync();
-    Task AddCustomerAsync(string name, string phone, string email, string address);
+    Task<CustomerDto> AddCustomerAsync(string name, string phone, string email, string address);
     Task<CustomerDto> GetCustomerAsync(Guid id);
 }

@@ -49,16 +49,17 @@ public class CustomersClientTests
     public async Task AddCustomerAsync_Valid_PostsTheFields()
     {
         // Arrange
-        _handler.Respond("/customers", "{}", HttpStatusCode.Created);
+        _handler.Respond("/customers", TestDtos.ToJson(TestDtos.NewCustomer()), HttpStatusCode.Created);
 
         // Act
-        await _client.AddCustomerAsync(Examples.CustomerName, Examples.CustomerPhone, Examples.CustomerEmail, Examples.CustomerAddress);
+        var result = await _client.AddCustomerAsync(Examples.CustomerName, Examples.CustomerPhone, Examples.CustomerEmail, Examples.CustomerAddress);
 
         // Assert
         var request = _handler.Requests.Single();
         Assert.Equal(HttpMethod.Post, request.Method);
         Assert.Equal("/customers", request.RequestUri!.AbsolutePath);
         Assert.Equal(Examples.CustomerName, JsonDocument.Parse(_handler.Bodies.Single()!).RootElement.GetProperty("name").GetString());
+        Assert.Equal(Examples.CustomerName, result.Name);
     }
 
     [Fact]

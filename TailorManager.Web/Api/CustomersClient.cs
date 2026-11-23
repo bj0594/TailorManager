@@ -18,10 +18,11 @@ public class CustomersClient : ICustomersClient
         return await _http.GetFromJsonAsync<List<CustomerDto>>("customers") ?? [];
     }
 
-    public async Task AddCustomerAsync(string name, string phone, string email, string address)
+    public async Task<CustomerDto> AddCustomerAsync(string name, string phone, string email, string address)
     {
         var response = await _http.PostAsJsonAsync("customers", new { name, phone, email, address });
         response.EnsureSuccessStatusCode();
+        return null!;
     }
 
     public async Task<CustomerDto> GetCustomerAsync(Guid id)
