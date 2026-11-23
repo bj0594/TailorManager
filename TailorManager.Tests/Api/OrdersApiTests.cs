@@ -1,21 +1,12 @@
 using System.Net;
 using System.Net.Http.Json;
+using TailorManager.Core;
 
 namespace TailorManager.Tests;
 
 // Starts the API in memory with the fake repository, so the tests need no database.
-public class OrdersApiTests : IDisposable
+public class OrdersApiTests : ApiTestBase
 {
-    private readonly TestApiFactory _factory = new();
-    private readonly HttpClient _client;
-
-    public OrdersApiTests()
-    {
-        _client = _factory.CreateClient();
-    }
-
-    public void Dispose() => _factory.Dispose();
-
     [Fact]
     public async Task PostOrders_ValidOrder_ReturnsCreated()
     {
@@ -132,14 +123,22 @@ public class OrdersApiTests : IDisposable
         Assert.Contains(body.History, h => h.Type == "StatusChanged" && h.ActorDisplayName == "Ola N.");
     }
 
-    [Fact]
-    public async Task PatchOrdersStart_NotWorkshop_ReturnsForbidden()
+    // Each order action is for one role only (§4). The other role gets 403 before the order is looked up,
+    // so a random id is enough. A new 403 cycle is one more line here (RED), and the [Authorize] on the action (GREEN).
+    [Theory]
+    [InlineData(Roles.FrontDesk, "PATCH", "start")]
+    [InlineData(Roles.FrontDesk, "POST", "notes")]
+    [InlineData(Roles.FrontDesk, "PATCH", "ready-for-pickup")]
+    [InlineData(Roles.Workshop, "POST", "payments")]
+    [InlineData(Roles.Workshop, "PATCH", "delivered")]
+    public async Task OrderActions_OtherRole_ReturnsForbidden(string role, string method, string action)
     {
-        // Arrange: a logged-in user without the role
-        var client = await _factory.LogInAsFrontDeskAsync();
+        // Arrange
+        var client = await _factory.LogInAsAsync(role);
+        var request = new HttpRequestMessage(new HttpMethod(method), $"/orders/{Guid.NewGuid()}/{action}") { Content = JsonContent.Create(new { }) };
 
         // Act
-        var response = await client.StartWorkAsync(Guid.NewGuid());
+        var response = await client.SendAsync(request);
 
         // Assert
         Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
@@ -181,19 +180,6 @@ public class OrdersApiTests : IDisposable
     }
 
     [Fact]
-    public async Task PostOrdersNotes_NotWorkshop_ReturnsForbidden()
-    {
-        // Arrange
-        var frontDesk = await _factory.LogInAsFrontDeskAsync();
-
-        // Act
-        var response = await frontDesk.AddWorkNoteAsync(Guid.NewGuid());
-
-        // Assert
-        Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
-    }
-
-    [Fact]
     public async Task PatchOrdersReadyForPickup_OrderInProgress_ReturnsOk()
     {
         // Arrange
@@ -210,19 +196,6 @@ public class OrdersApiTests : IDisposable
         var body = await response.Content.ReadFromJsonAsync<OrderResponse>();
         Assert.Equal("ReadyForPickup", body!.Status);
         Assert.Contains(body.History, h => h.Type == "NotificationRequested");
-    }
-
-    [Fact]
-    public async Task PatchOrdersReadyForPickup_NotWorkshop_ReturnsForbidden()
-    {
-        // Arrange
-        var frontDesk = await _factory.LogInAsFrontDeskAsync();
-
-        // Act
-        var response = await frontDesk.MarkReadyForPickupAsync(Guid.NewGuid());
-
-        // Assert
-        Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
     }
 
     [Fact]
@@ -245,19 +218,6 @@ public class OrdersApiTests : IDisposable
     }
 
     [Fact]
-    public async Task PostOrdersPayment_NotFrontDesk_ReturnsForbidden()
-    {
-        // Arrange
-        var workshop = await _factory.LogInAsWorkshopAsync();
-
-        // Act
-        var response = await workshop.RegisterPaymentAsync(Guid.NewGuid());
-
-        // Assert
-        Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
-    }
-
-    [Fact]
     public async Task PatchOrdersDelivered_FreeOrderReadyForPickup_ReturnsOk()
     {
         // Arrange
@@ -272,18 +232,5 @@ public class OrdersApiTests : IDisposable
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var body = await response.Content.ReadFromJsonAsync<OrderResponse>();
         Assert.Equal("Delivered", body!.Status);
-    }
-
-    [Fact]
-    public async Task PatchOrdersDelivered_NotFrontDesk_ReturnsForbidden()
-    {
-        // Arrange
-        var workshop = await _factory.LogInAsWorkshopAsync();
-
-        // Act
-        var response = await workshop.MarkDeliveredAsync(Guid.NewGuid());
-
-        // Assert
-        Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
     }
 }

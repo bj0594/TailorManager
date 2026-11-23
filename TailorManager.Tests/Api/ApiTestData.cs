@@ -33,6 +33,10 @@ public static class ApiTestData
     public static Task<HttpClient> LogInAsWorkshopAsync(this WebApplicationFactory<Program> factory) =>
         AuthHelper.CreateLoggedInClientAsync(factory, "ola", Roles.Workshop, "Ola", "Nordmann");
 
+    // Kari or Ola, by the role a test needs.
+    public static Task<HttpClient> LogInAsAsync(this WebApplicationFactory<Program> factory, string role) =>
+        role == Roles.FrontDesk ? factory.LogInAsFrontDeskAsync() : factory.LogInAsWorkshopAsync();
+
     // POST /customers, and the customer from the answer. The client must be logged in as FrontDesk.
     public static async Task<CustomerResponse> CreateCustomerAsync(this HttpClient client, string name = Examples.CustomerName)
     {

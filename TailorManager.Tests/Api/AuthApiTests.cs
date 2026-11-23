@@ -7,18 +7,8 @@ using TailorManager.Core.Repository;
 namespace TailorManager.Tests;
 
 // Register, log in and /auth/me, through the API with the fake repositories.
-public class AuthApiTests : IDisposable
+public class AuthApiTests : ApiTestBase
 {
-    private readonly TestApiFactory _factory = new();
-    private readonly HttpClient _client;
-
-    public AuthApiTests()
-    {
-        _client = _factory.CreateClient();
-    }
-
-    public void Dispose() => _factory.Dispose();
-
     [Fact]
     public async Task PostAuthRegister_NewUser_ReturnsCreated()
     {

@@ -4,18 +4,8 @@ using System.Net.Http.Json;
 namespace TailorManager.Tests;
 
 // Starts the API in memory with the fake repository, so the tests need no database.
-public class CustomersApiTests : IDisposable
+public class CustomersApiTests : ApiTestBase
 {
-    private readonly TestApiFactory _factory = new();
-    private readonly HttpClient _client;
-
-    public CustomersApiTests()
-    {
-        _client = _factory.CreateClient();
-    }
-
-    public void Dispose() => _factory.Dispose();
-
     [Fact]
     public async Task PostCustomers_ValidCustomer_ReturnsCreated()
     {
