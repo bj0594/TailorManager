@@ -115,7 +115,7 @@ public class OrdersApiTests : IDisposable
     }
 
     [Fact]
-    public async Task PatchOrdersStart_ExistingOrder_ReturnsNoContent()
+    public async Task PatchOrdersStart_ExistingOrder_ReturnsOk()
     {
         // Arrange
         var client = await _factory.LogInAsFrontDeskAsync();
@@ -126,7 +126,10 @@ public class OrdersApiTests : IDisposable
         var response = await workshop.PatchAsync($"/orders/{order.Id}/start", null);
 
         // Assert
-        Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var body = await response.Content.ReadFromJsonAsync<OrderResponse>();
+        Assert.Equal("InProgress", body!.Status);
+        Assert.Contains(body.History, h => h.Type == "StatusChanged" && h.ActorDisplayName == "Ola N.");
     }
 
     [Fact]
