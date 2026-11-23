@@ -143,4 +143,20 @@ public class OrdersClientTests
         Assert.Equal($"/orders/{id}/payments", request.RequestUri!.AbsolutePath);
         Assert.Contains(Examples.PaymentAmount.ToString(), _handler.Bodies.Single());
     }
+
+    [Fact]
+    public async Task DeliverOrderAsync_Always_SendsPatch()
+    {
+        // Arrange
+        var id = Guid.NewGuid();
+        _handler.Respond($"/orders/{id}/deliver", "", HttpStatusCode.NoContent);
+
+        // Act
+        await _client.DeliverOrderAsync(id);
+
+        // Assert
+        var request = _handler.Requests.Single();
+        Assert.Equal(HttpMethod.Patch, request.Method);
+        Assert.Equal($"/orders/{id}/deliver", request.RequestUri!.AbsolutePath);
+    }
 }
