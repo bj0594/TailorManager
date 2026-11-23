@@ -99,21 +99,14 @@ public abstract class OrderRepositoryContractTests
         var order = TestData.NewOrder();
         repository.Add(order);
 
-        const decimal paymentAmount = Examples.PaymentAmount;
-
         // Act
-        order.Payments.Add(new Payment
-        {
-            Id = Guid.NewGuid(),
-            Amount = paymentAmount
-        });
-
+        order.Payments.Add(new Payment { Id = Guid.NewGuid(), Amount = Examples.PaymentAmount, TransactionReference = Examples.TransactionReference });
         repository.Update(order);
 
         // Assert
-        var stored = Reopen(repository).GetById(order.Id)!;
-        var payment = Assert.Single(stored.Payments);
-        Assert.Equal(paymentAmount, payment.Amount);
+        var payment = Assert.Single(Reopen(repository).GetById(order.Id)!.Payments);
+        Assert.Equal(Examples.PaymentAmount, payment.Amount);
+        Assert.Equal(Examples.TransactionReference, payment.TransactionReference);
     }
 
     [Fact]
