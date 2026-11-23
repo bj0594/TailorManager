@@ -72,7 +72,10 @@ public class OrderService
     public Order RegisterPayment(Guid id, decimal amount, string transactionReference, User employee)
     {
         var order = GetOrder(id);
-        order.Payments.Add(new Payment { Id = Guid.NewGuid(), Amount = amount });
+        order.Payments.Add(new Payment { Id = Guid.NewGuid(), Amount = amount, TransactionReference = transactionReference });
+        AddHistory(order, employee, ActivityType.PaymentReceived);
+        order.Status = OrderStatus.Delivered;
+        AddHistory(order, employee, ActivityType.StatusChanged);
         _repository.Update(order);
         return order;
     }
