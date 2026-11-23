@@ -199,22 +199,22 @@ public class OrdersApiTests : IDisposable
     }
 
     [Fact]
-    public async Task PatchOrdersReadyForPickup_ExistingOrder_ReturnsNoContent()
+    public async Task PatchOrdersReadyForPickup_OrderInProgress_ReturnsOk()
     {
         // Arrange
         var frontDesk = await _factory.LogInAsFrontDeskAsync();
         var order = await frontDesk.CreateOrderAsync();
-
         var workshop = await _factory.LogInAsWorkshopAsync();
         await workshop.PatchAsync($"/orders/{order.Id}/start", null);
 
         // Act
-        var response = await workshop.PatchAsync(
-            $"/orders/{order.Id}/readyforpickup",
-            null);
+        var response = await workshop.PatchAsync($"/orders/{order.Id}/ready-for-pickup", null);
 
         // Assert
-        Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var body = await response.Content.ReadFromJsonAsync<OrderResponse>();
+        Assert.Equal("ReadyForPickup", body!.Status);
+        Assert.Contains(body.History, h => h.Type == "NotificationRequested");
     }
 
     [Fact]
@@ -228,9 +228,7 @@ public class OrdersApiTests : IDisposable
         await workshop.PatchAsync($"/orders/{order.Id}/start", null);
 
         // Act
-        var response = await frontDesk.PatchAsync(
-            $"/orders/{order.Id}/readyforpickup",
-            null);
+        var response = await frontDesk.PatchAsync($"/orders/{order.Id}/ready-for-pickup", null);
 
         // Assert
         Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
