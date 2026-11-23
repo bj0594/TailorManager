@@ -11,32 +11,37 @@ else
 {
     <h1>@_item.WorkDescription</h1>
 
-    <form class="note" @onsubmit="AddNote">
-        <input @bind="_newNote" />
-        <button type="submit">Add</button>
-    </form>
-
     <p class="outstanding-balance">
         Outstanding balance: @_item.OutstandingBalance
     </p>
 
-    <form class="payment" @onsubmit="AddPayment">
-        <input @bind="_newAmount" />
-        <button type="submit">Add</button>
-    </form>
+    @if (Tokens.Role == Roles.Workshop)
+    {
+        <form class="note" @onsubmit="AddNote">
+            <input @bind="_newNote" />
+            <button type="submit">Add</button>
+        </form>
 
-    <button class="readyforpickup" @onclick="MarkOrderReadyForPickup">Ready for pickup</button>
+        <button class="start" @onclick="Start">Start</button>
 
-    <button class="deliver" @onclick="Deliver">Deliver</button>
+        <button class="readyforpickup" @onclick="MarkOrderReadyForPickup">
+            Ready for pickup
+        </button>
+    }
+
+    @if (Tokens.Role == Roles.FrontDesk)
+    {
+        <form class="payment" @onsubmit="AddPayment">
+            <input @bind="_newAmount" />
+            <button type="submit">Add</button>
+        </form>
+
+        <button class="deliver" @onclick="Deliver">Deliver</button>
+    }
 
     @if (_error is not null)
     {
         <p class="error">@_error</p>
-    }
-
-    @if (Tokens.Role == Roles.Workshop)
-    {
-        <button class="start" @onclick="Start">Start</button>
     }
 }
 
@@ -45,6 +50,9 @@ else
 
     private OrderDto? _item;
     private string? _error;
+
+    private string _newNote = "";
+    private decimal _newAmount;
 
     protected override async Task OnParametersSetAsync()
     {
@@ -66,8 +74,6 @@ else
         }
     }
 
-    private string _newNote = "";
-
     private async Task AddNote()
     {
         await Client.AddWorkNoteAsync(Id, _newNote);
@@ -81,8 +87,6 @@ else
         _item = await Client.GetOrderAsync(Id);
     }
 
-    private decimal _newAmount;
-
     private async Task AddPayment()
     {
         await Client.AddPaymentAsync(Id, _newAmount);
@@ -91,8 +95,8 @@ else
     }
 
     private async Task Deliver()
-{
-    await Client.DeliverOrderAsync(Id);
-    _item = await Client.GetOrderAsync(Id);
-}
+    {
+        await Client.DeliverOrderAsync(Id);
+        _item = await Client.GetOrderAsync(Id);
+    }
 }

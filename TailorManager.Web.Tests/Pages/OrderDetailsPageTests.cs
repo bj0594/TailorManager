@@ -1,4 +1,3 @@
-
 using Bunit;
 using TailorManager.Web.Api;
 using TailorManager.Web.Components.Pages;
@@ -60,13 +59,16 @@ public class OrderDetailsPageTests : PageTestContext
 
         // Assert
         page.WaitForAssertion(() =>
-            Assert.Contains("The order is not Submitted.", page.Find(".error").TextContent));
+            Assert.Contains(
+                "The order is not Submitted.",
+                page.Find(".error").TextContent));
     }
 
     [Fact]
     public void OrderDetailsPage_SubmitWorkNote_SendsItToTheApi()
     {
         // Arrange
+        _tokens.Role = Roles.Workshop;
         var order = TestDtos.NewOrder() with { Status = "InProgress" };
         var page = RenderOrder(order);
 
@@ -76,7 +78,9 @@ public class OrderDetailsPageTests : PageTestContext
 
         // Assert
         page.WaitForAssertion(() =>
-            Assert.Contains((order.Id, Examples.WorkNote), _orders.AddedWorkNotes));
+            Assert.Contains(
+                (order.Id, Examples.WorkNote),
+                _orders.AddedWorkNotes));
     }
 
     [Fact]
@@ -88,7 +92,7 @@ public class OrderDetailsPageTests : PageTestContext
         var page = RenderOrder(order);
 
         // Assert
-        Assert.Empty(page.FindAll("button.worknote"));
+        Assert.Empty(page.FindAll("form.note"));
     }
 
     [Fact]
@@ -125,11 +129,13 @@ public class OrderDetailsPageTests : PageTestContext
 
         // Assert
         page.WaitForAssertion(() =>
-            Assert.Contains((order.Id, Examples.PaymentAmount), _orders.Addedpayments));
+            Assert.Contains(
+                (order.Id, Examples.PaymentAmount),
+                _orders.Addedpayments));
     }
 
     [Fact]
-    public void OrderDetailsPage_Workshop_HidesRegister()
+    public void OrderDetailsPage_Workshop_HidesPayment()
     {
         // Arrange
         _tokens.Role = Roles.Workshop;
@@ -137,7 +143,7 @@ public class OrderDetailsPageTests : PageTestContext
         var page = RenderOrder(order);
 
         // Assert
-        Assert.Empty(page.FindAll("button.register"));
+        Assert.Empty(page.FindAll("form.payment"));
     }
 
     [Fact]
@@ -161,6 +167,8 @@ public class OrderDetailsPageTests : PageTestContext
     public void OrderDetailsPage_ClickDeliver_SendsItToTheApi()
     {
         // Arrange
+        _tokens.Role = Roles.FrontDesk;
+
         var order = new OrderDto(
             Guid.NewGuid(),
             Guid.NewGuid(),
@@ -172,14 +180,15 @@ public class OrderDetailsPageTests : PageTestContext
             "ReadyForPickup",
             DateTimeOffset.UtcNow,
             null);
-        _orders.Items.Add(order);
-        var page = Render<OrderDetailsPage>(parameters => parameters.Add(p => p.Id, order.Id));
+
+        var page = RenderOrder(order);
 
         // Act
         page.Find("button.deliver").Click();
 
         // Assert
-        page.WaitForAssertion(() => Assert.Contains(order.Id, _orders.DeliverIds));
+        page.WaitForAssertion(() =>
+            Assert.Contains(order.Id, _orders.DeliverIds));
     }
 
     [Fact]
@@ -187,6 +196,7 @@ public class OrderDetailsPageTests : PageTestContext
     {
         // Arrange
         _tokens.Role = Roles.Workshop;
+
         var order = new OrderDto(
             Guid.NewGuid(),
             Guid.NewGuid(),
@@ -198,16 +208,18 @@ public class OrderDetailsPageTests : PageTestContext
             "ReadyForPickup",
             DateTimeOffset.UtcNow,
             null);
-        _orders.Items.Add(order);
-        var page = Render<OrderDetailsPage>(p => p.Add(x => x.Id, order.Id));
 
-        // Act + Assert
+        var page = RenderOrder(order);
+
+        // Assert
         Assert.Empty(page.FindAll("button.deliver"));
     }
 
     private IRenderedComponent<OrderDetailsPage> RenderOrder(OrderDto order)
     {
         _orders.Items.Add(order);
-        return Render<OrderDetailsPage>(p => p.Add(x => x.Id, order.Id));
+
+        return Render<OrderDetailsPage>(
+            p => p.Add(x => x.Id, order.Id));
     }
 }
