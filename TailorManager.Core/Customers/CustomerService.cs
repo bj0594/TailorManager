@@ -6,33 +6,17 @@ public class CustomerService
 {
     private readonly ICustomerRepository _repository;
 
-    public CustomerService(ICustomerRepository repository)
-    {
-        _repository = repository;
-    }
+    public CustomerService(ICustomerRepository repository) => _repository = repository;
+
     public Customer AddCustomer(string name, string phone, string email, string address)
     {
-        var customer = new Customer
-        {
-            Id = Guid.NewGuid(),
-            Name = name,
-            Phone = phone,
-            Email = email,
-            Address = address
-        };
+        var customer = new Customer { Id = Guid.NewGuid(), Name = name, Phone = phone, Email = email, Address = address };
         _repository.Add(customer);
-
         return customer;
     }
 
-    public List<Customer> GetCustomers()
-    {
-        return _repository.GetAll();
-    }
+    public List<Customer> GetCustomers() => _repository.GetAll();
 
-    public Customer GetCustomer(Guid id)
-    {
-        return _repository.GetById(id)
-        ?? throw new KeyNotFoundException($"Customer {id} was not found.");
-    }
+    public Customer GetCustomer(Guid id) =>
+        _repository.GetById(id) ?? throw new KeyNotFoundException($"Customer {id} was not found.");
 }

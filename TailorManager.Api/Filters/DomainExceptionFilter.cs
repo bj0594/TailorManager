@@ -4,7 +4,8 @@ using Microsoft.AspNetCore.Mvc.Filters;
 namespace TailorManager.Api;
 
 // Turns the exceptions from Core into the status codes in api.md, so the controllers need no try/catch:
-// KeyNotFoundException → 404, InvalidOperationException (like InvalidOrderStatusException) → 409, ArgumentException → 400.
+// KeyNotFoundException → 404, InvalidOperationException (like InvalidOrderStatusException) → 409, ArgumentException → 400,
+// and UnauthorizedAccessException (wrong username or password) → 401.
 // The body is the message, so the website can show it.
 public class DomainExceptionFilter : IExceptionFilter
 {
@@ -15,6 +16,7 @@ public class DomainExceptionFilter : IExceptionFilter
             KeyNotFoundException => StatusCodes.Status404NotFound,
             InvalidOperationException => StatusCodes.Status409Conflict,
             ArgumentException => StatusCodes.Status400BadRequest,
+            UnauthorizedAccessException => StatusCodes.Status401Unauthorized,
             _ => null
         };
         if (statusCode is null)
