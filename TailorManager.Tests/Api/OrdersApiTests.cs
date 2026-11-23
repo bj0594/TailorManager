@@ -159,6 +159,7 @@ public class OrdersApiTests : IDisposable
 
         // Assert
         Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
+        Assert.Equal("The order is not Submitted.", (await response.Content.ReadAsStringAsync()).Trim('"'));
     }
 
     [Fact]
