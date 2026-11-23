@@ -78,6 +78,14 @@ public class OrdersController : ControllerBase
         return Ok(_service.AddPayment(id, request.Amount));
     }
 
+    [Authorize(Roles = Roles.FrontDesk)]
+    [HttpPatch("{id}/deliver")]
+    public IActionResult Deliver(Guid id)
+    {
+        _service.DeliverOrder(id);
+        return NoContent();
+    }
+
     // The logged-in employee, from the username in the token. Every action that writes the history sends it to the service.
     private User CurrentEmployee() => _userRepository.GetByUsername(User.Identity!.Name!)!;
     public record AddWorkNoteRequest(string Note);
