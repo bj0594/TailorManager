@@ -63,11 +63,10 @@ public class OrdersController : ControllerBase
     }
 
     [Authorize(Roles = Roles.Workshop)]
-    [HttpPatch("{id}/readyforpickup")]
-    public IActionResult ReadyForPickup(Guid id)
+    [HttpPatch("{id}/ready-for-pickup")]
+    public IActionResult MarkReadyForPickup(Guid id)
     {
-        _service.MarkReadyForPickup(id, CurrentEmployee());
-        return NoContent();
+        return Ok(_service.MarkReadyForPickup(id, CurrentEmployee()));
     }
 
     [Authorize(Roles = Roles.FrontDesk)]
