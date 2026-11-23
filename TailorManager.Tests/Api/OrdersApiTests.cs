@@ -226,22 +226,22 @@ public class OrdersApiTests : IDisposable
     }
 
     [Fact]
-    public async Task PostOrdersPayments_ExistingOrder_ReturnsOk()
+    public async Task PostOrdersPayments_FullPayment_ReturnsOk()
     {
         // Arrange
-        var client = await _factory.LogInAsFrontDeskAsync();
-        var order = await client.CreateOrderAsync();
-        var paymentAmount = Examples.PaymentAmount;
+        var frontDesk = await _factory.LogInAsFrontDeskAsync();
+        var workshop = await _factory.LogInAsWorkshopAsync();
+        var order = await frontDesk.CreateOrderReadyForPickupAsync(workshop);
 
         // Act
-        var response = await client.RegisterPaymentAsync(order.Id, paymentAmount);
+        var response = await frontDesk.RegisterPaymentAsync(order.Id, Examples.PaymentAmount);
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-
         var body = await response.Content.ReadFromJsonAsync<OrderResponse>();
-
-        Assert.Contains(body!.Payments, payment => payment.Amount == paymentAmount);
+        Assert.Equal(0m, body!.OutstandingBalance);
+        Assert.Equal("Delivered", body.Status);
+        Assert.Equal(Examples.TransactionReference, Assert.Single(body.Payments).TransactionReference);
     }
 
     [Fact]
