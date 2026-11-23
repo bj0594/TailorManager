@@ -25,9 +25,7 @@ public class OrdersClientTests
 
         // Assert
         Assert.Equal(2, result.Count);
-        var request = _handler.Requests.Single();
-        Assert.Equal(HttpMethod.Get, request.Method);
-        Assert.Equal("/orders", request.RequestUri!.AbsolutePath);
+        _handler.AssertSent(HttpMethod.Get, "/orders");
     }
 
     [Fact]
@@ -55,7 +53,7 @@ public class OrdersClientTests
         var result = await _client.GetOrderAsync(order.Id);
 
         // Assert
-        Assert.Equal(HttpMethod.Get, _handler.Requests.Single().Method);
+        _handler.AssertSent(HttpMethod.Get, $"/orders/{order.Id}");
         Assert.Equal(Examples.WorkDescription, result.WorkDescription);
     }
 
@@ -70,9 +68,7 @@ public class OrdersClientTests
         await _client.StartWorkAsync(id);
 
         // Assert
-        var request = _handler.Requests.Single();
-        Assert.Equal(HttpMethod.Patch, request.Method);
-        Assert.Equal($"/orders/{id}/start", request.RequestUri!.AbsolutePath);
+        _handler.AssertSent(HttpMethod.Patch, $"/orders/{id}/start");
     }
 
     [Fact]
@@ -100,9 +96,7 @@ public class OrdersClientTests
         await _client.AddWorkNoteAsync(id, Examples.WorkNote);
 
         // Assert
-        var request = _handler.Requests.Single();
-        Assert.Equal(HttpMethod.Post, request.Method);
-        Assert.Equal($"/orders/{id}/notes", request.RequestUri!.AbsolutePath);
+        _handler.AssertSent(HttpMethod.Post, $"/orders/{id}/notes");
         Assert.Contains(Examples.WorkNote, _handler.Bodies.Single());
     }
 
@@ -117,9 +111,7 @@ public class OrdersClientTests
         await _client.MarkReadyForPickupAsync(id);
 
         // Assert
-        var request = _handler.Requests.Single();
-        Assert.Equal(HttpMethod.Patch, request.Method);
-        Assert.Equal($"/orders/{id}/ready-for-pickup", request.RequestUri!.AbsolutePath);
+        _handler.AssertSent(HttpMethod.Patch, $"/orders/{id}/ready-for-pickup");
     }
 
     [Fact]
@@ -133,9 +125,7 @@ public class OrdersClientTests
         await _client.RegisterPaymentAsync(id, Examples.PaymentAmount, Examples.TransactionReference);
 
         // Assert
-        var request = _handler.Requests.Single();
-        Assert.Equal(HttpMethod.Post, request.Method);
-        Assert.Equal($"/orders/{id}/payments", request.RequestUri!.AbsolutePath);
+        _handler.AssertSent(HttpMethod.Post, $"/orders/{id}/payments");
         var body = _handler.Bodies.Single();
         Assert.Contains(Examples.PaymentAmount.ToString(), body);
         Assert.Contains(Examples.TransactionReference, body);
@@ -152,8 +142,6 @@ public class OrdersClientTests
         await _client.MarkDeliveredAsync(id);
 
         // Assert
-        var request = _handler.Requests.Single();
-        Assert.Equal(HttpMethod.Patch, request.Method);
-        Assert.Equal($"/orders/{id}/delivered", request.RequestUri!.AbsolutePath);
+        _handler.AssertSent(HttpMethod.Patch, $"/orders/{id}/delivered");
     }
 }

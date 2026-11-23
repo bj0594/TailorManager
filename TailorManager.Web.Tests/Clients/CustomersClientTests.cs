@@ -26,9 +26,7 @@ public class CustomersClientTests
 
         // Assert
         Assert.Equal(2, result.Count);
-        var request = _handler.Requests.Single();
-        Assert.Equal(HttpMethod.Get, request.Method);
-        Assert.Equal("/customers", request.RequestUri!.AbsolutePath);
+        _handler.AssertSent(HttpMethod.Get, "/customers");
     }
 
     [Fact]
@@ -55,9 +53,7 @@ public class CustomersClientTests
         var result = await _client.AddCustomerAsync(Examples.CustomerName, Examples.CustomerPhone, Examples.CustomerEmail, Examples.CustomerAddress);
 
         // Assert
-        var request = _handler.Requests.Single();
-        Assert.Equal(HttpMethod.Post, request.Method);
-        Assert.Equal("/customers", request.RequestUri!.AbsolutePath);
+        _handler.AssertSent(HttpMethod.Post, "/customers");
         Assert.Equal(Examples.CustomerName, JsonDocument.Parse(_handler.Bodies.Single()!).RootElement.GetProperty("name").GetString());
         Assert.Equal(Examples.CustomerName, result.Name);
     }
@@ -73,7 +69,7 @@ public class CustomersClientTests
         var result = await _client.GetCustomerAsync(customer.Id);
 
         // Assert
-        Assert.Equal(HttpMethod.Get, _handler.Requests.Single().Method);
+        _handler.AssertSent(HttpMethod.Get, $"/customers/{customer.Id}");
         Assert.Equal(Examples.CustomerName, result.Name);
     }
 }

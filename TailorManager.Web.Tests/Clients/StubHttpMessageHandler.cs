@@ -19,6 +19,15 @@ public class StubHttpMessageHandler : HttpMessageHandler
         return this;
     }
 
+    // The one request the client sent, after checking its method and path: _handler.AssertSent(HttpMethod.Patch, $"/orders/{id}/start");
+    public HttpRequestMessage AssertSent(HttpMethod method, string path)
+    {
+        var request = Assert.Single(Requests);
+        Assert.Equal(method, request.Method);
+        Assert.Equal(path, request.RequestUri!.AbsolutePath);
+        return request;
+    }
+
     protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
     {
         Requests.Add(request);

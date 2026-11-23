@@ -59,16 +59,26 @@ public class OrderDetailsPageTests : PageTestContext
         });
     }
 
-    [Fact]
-    public void OrderDetailsPage_NotWorkshop_HidesTheStartButton()
+    // Each action is shown only to the role that may do it (§4). The test checks both roles,
+    // so a selector the page does not have cannot make it green. A new action is one more line here.
+    [Theory]
+    [InlineData(Roles.Workshop, Roles.FrontDesk, "button.start")]
+    [InlineData(Roles.Workshop, Roles.FrontDesk, "form.note")]
+    [InlineData(Roles.Workshop, Roles.FrontDesk, "button.readyforpickup")]
+    [InlineData(Roles.FrontDesk, Roles.Workshop, "form.payment")]
+    [InlineData(Roles.FrontDesk, Roles.Workshop, "button.deliver")]
+    public void OrderDetailsPage_OtherRole_HidesTheAction(string role, string otherRole, string action)
     {
         // Arrange
-        _tokens.Role = Roles.FrontDesk;
         var order = TestDtos.NewOrder();
-        var page = RenderOrder(order);
 
-        // Assert
-        Assert.Empty(page.FindAll("button.start"));
+        // Act and assert: the role sees it
+        _tokens.Role = role;
+        Assert.NotEmpty(RenderOrder(order).FindAll(action));
+
+        // Act and assert: the other role does not
+        _tokens.Role = otherRole;
+        Assert.Empty(Render<OrderDetailsPage>(p => p.Add(x => x.Id, order.Id)).FindAll(action));
     }
 
     [Fact]
@@ -103,28 +113,6 @@ public class OrderDetailsPageTests : PageTestContext
         // Assert
         page.WaitForAssertion(() =>
             Assert.Contains((order.Id, Examples.WorkNote), _orders.AddedWorkNotes));
-    }
-
-    [Fact]
-    public void OrderDetailsPage_NotWorkshop_HidesTheNoteForm()
-    {
-        // Arrange
-        _tokens.Role = Roles.FrontDesk;
-        var page = RenderOrder(TestDtos.NewOrder() with { Status = "InProgress" });
-
-        // Assert
-        Assert.Empty(page.FindAll("form.note"));
-    }
-
-    [Fact]
-    public void OrderDetailsPage_NotWorkshop_HidesTheReadyForPickupButton()
-    {
-        // Arrange
-        _tokens.Role = Roles.FrontDesk;
-        var page = RenderOrder(TestDtos.NewOrder() with { Status = "InProgress" });
-
-        // Assert
-        Assert.Empty(page.FindAll("button.readyforpickup"));
     }
 
     [Fact]
@@ -169,28 +157,6 @@ public class OrderDetailsPageTests : PageTestContext
             Assert.Contains((order.Id, Examples.PaymentAmount, Examples.TransactionReference), _orders.Payments);
             Assert.Contains("Delivered", page.Find(".status").TextContent);
         });
-    }
-
-    [Fact]
-    public void OrderDetailsPage_NotFrontDesk_HidesThePaymentForm()
-    {
-        // Arrange
-        _tokens.Role = Roles.Workshop;
-        var page = RenderOrder(TestDtos.NewOrder() with { Status = "ReadyForPickup" });
-
-        // Assert
-        Assert.Empty(page.FindAll("form.payment"));
-    }
-
-    [Fact]
-    public void OrderDetailsPage_NotFrontDesk_HidesTheDeliverButton()
-    {
-        // Arrange
-        _tokens.Role = Roles.Workshop;
-        var page = RenderOrder(TestDtos.NewOrder() with { Status = "ReadyForPickup", OutstandingBalance = 0m });
-
-        // Assert
-        Assert.Empty(page.FindAll("button.deliver"));
     }
 
     [Fact]
