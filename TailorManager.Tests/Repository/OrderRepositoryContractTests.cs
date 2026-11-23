@@ -88,7 +88,7 @@ public abstract class OrderRepositoryContractTests
         repository.Update(order);
 
         // Assert
-        Assert.Equal(OrderStatus.InProgress, repository.GetById(order.Id)!.Status);
+        Assert.Equal(OrderStatus.InProgress, Reopen(repository).GetById(order.Id)!.Status);
     }
 
     [Fact]
