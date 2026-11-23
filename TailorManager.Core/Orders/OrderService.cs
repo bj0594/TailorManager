@@ -15,28 +15,24 @@ public class OrderService
 
     public Order AddOrder(Guid customerId, OrderType type, string workDescription, decimal agreedPrice, Guid? relatedOrderId, User employee)
     {
-        var order = new Order { Id = Guid.NewGuid(),
+        var order = new Order
+        {
+            Id = Guid.NewGuid(),
             CustomerId = customerId,
             Type = type,
             WorkDescription = workDescription,
             InitialAgreedPrice = agreedPrice,
-            RelatedOrderId = relatedOrderId,
-            History = [OrderHistoryEntry.By(employee)]
+            RelatedOrderId = relatedOrderId
         };
+        AddHistory(order, employee, ActivityType.OrderCreated);
         _repository.Add(order);
         return order;
     }
 
-    public List<Order> GetOrders()
-    {
-        return _repository.GetAll().ToList();
-    }
+    public List<Order> GetOrders() => _repository.GetAll();
 
-    public Order GetOrder(Guid id)
-    {
-        return _repository.GetById(id)
-        ?? throw new KeyNotFoundException($"Order {id} was not found.");
-    }
+    public Order GetOrder(Guid id) =>
+        _repository.GetById(id) ?? throw new KeyNotFoundException($"Order {id} was not found.");
 
     public Order StartOrder(Guid id, User employee)
     {
@@ -45,48 +41,48 @@ public class OrderService
         {
             throw new InvalidOrderStatusException("The order is not Submitted.");
         }
-        order.Status = OrderStatus.InProgress;
-        AddHistory(order, employee, ActivityType.StatusChanged);
-        _repository.Update(order);
-        return order;
+        MoveTo(order, OrderStatus.InProgress, employee);
+        return Save(order);
     }
 
     public Order AddWorkNote(Guid id, string note, User employee)
     {
         var order = GetOrder(id);
         AddHistory(order, employee, ActivityType.WorkNoteAdded, note);
-        _repository.Update(order);
-        return order;
+        return Save(order);
     }
 
+    // The customer is told the order is ready: a notification request in the history (§4). Nothing is sent from Core.
     public Order MarkReadyForPickup(Guid id, User employee)
     {
         var order = GetOrder(id);
-        order.Status = OrderStatus.ReadyForPickup;
-        AddHistory(order, employee, ActivityType.StatusChanged);
+        MoveTo(order, OrderStatus.ReadyForPickup, employee);
         AddHistory(order, employee, ActivityType.NotificationRequested);
-        _repository.Update(order);
-        return order;
+        return Save(order);
     }
 
+    // A full payment delivers the order (§2).
     public Order RegisterPayment(Guid id, decimal amount, string transactionReference, User employee)
     {
         var order = GetOrder(id);
         order.Payments.Add(new Payment { Id = Guid.NewGuid(), Amount = amount, TransactionReference = transactionReference });
         AddHistory(order, employee, ActivityType.PaymentReceived);
-        order.Status = OrderStatus.Delivered;
-        AddHistory(order, employee, ActivityType.StatusChanged);
-        _repository.Update(order);
-        return order;
+        MoveTo(order, OrderStatus.Delivered, employee);
+        return Save(order);
     }
 
     public Order MarkDelivered(Guid id, User employee)
     {
         var order = GetOrder(id);
-        order.Status = OrderStatus.Delivered;
+        MoveTo(order, OrderStatus.Delivered, employee);
+        return Save(order);
+    }
+
+    // A new status, with a StatusChanged line in the history.
+    private static void MoveTo(Order order, OrderStatus status, User employee)
+    {
+        order.Status = status;
         AddHistory(order, employee, ActivityType.StatusChanged);
-        _repository.Update(order);
-        return order;
     }
 
     // A new line in the history, by the employee who did it. The history is append-only.
@@ -96,5 +92,11 @@ public class OrderService
         entry.Type = type;
         entry.Note = note;
         order.History.Add(entry);
+    }
+
+    private Order Save(Order order)
+    {
+        _repository.Update(order);
+        return order;
     }
 }
