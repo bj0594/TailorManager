@@ -26,25 +26,25 @@ else
 
     @if (Tokens.Role == Roles.Workshop)
     {
-        <button class="start" @onclick="Start">Start</button>
+        <button class="start" @onclick="StartWork">Start</button>
 
-        <form class="note" @onsubmit="AddNote">
+        <form class="note" @onsubmit="AddWorkNote">
             <input @bind="_newNote" />
             <button type="submit">Add</button>
         </form>
 
-        <button class="readyforpickup" @onclick="MarkOrderReadyForPickup">Ready for pickup</button>
+        <button class="readyforpickup" @onclick="MarkReadyForPickup">Ready for pickup</button>
     }
 
     @if (Tokens.Role == Roles.FrontDesk)
     {
-        <form class="payment" @onsubmit="AddPayment">
+        <form class="payment" @onsubmit="RegisterPayment">
             <input class="amount" @bind="_newAmount" />
             <input class="reference" @bind="_newReference" placeholder="Transaction reference" />
             <button type="submit">Register payment</button>
         </form>
 
-        <button class="deliver" @onclick="Deliver">Deliver</button>
+        <button class="deliver" @onclick="MarkDelivered">Deliver</button>
     }
 }
 
@@ -54,6 +54,9 @@ else
     private OrderDto? _item;
     private CustomerDto? _customer;
     private string? _error;
+    private string _newNote = "";
+    private decimal _newAmount;
+    private string _newReference = "";
 
     protected override async Task OnParametersSetAsync()
     {
@@ -62,48 +65,44 @@ else
         _newAmount = _item.OutstandingBalance;
     }
 
-    private async Task Start()
+    private Task StartWork() => Run(() => Client.StartWorkAsync(Id));
+
+    private Task MarkReadyForPickup() => Run(() => Client.MarkReadyForPickupAsync(Id));
+
+    private Task MarkDelivered() => Run(() => Client.MarkDeliveredAsync(Id));
+
+    private async Task AddWorkNote()
     {
+        if (await Run(() => Client.AddWorkNoteAsync(Id, _newNote)))
+        {
+            _newNote = "";
+        }
+    }
+
+    private async Task RegisterPayment()
+    {
+        if (await Run(() => Client.RegisterPaymentAsync(Id, _newAmount, _newReference)))
+        {
+            _newAmount = _item!.OutstandingBalance;
+            _newReference = "";
+        }
+    }
+
+    // Every action on the order: send it, and read the order again so the page shows the new status.
+    // When the API says no (like 409), the page shows its message instead.
+    private async Task<bool> Run(Func<Task> action)
+    {
+        _error = null;
         try
         {
-            _error = null;
-            await Client.StartWorkAsync(Id);
+            await action();
             _item = await Client.GetOrderAsync(Id);
+            return true;
         }
         catch (HttpRequestException ex)
         {
             _error = ex.Message;
+            return false;
         }
     }
-
-    private string _newNote = "";
-
-    private async Task AddNote()
-    {
-        await Client.AddWorkNoteAsync(Id, _newNote);
-        _newNote = "";
-        _item = await Client.GetOrderAsync(Id);
-    }
-
-    private async Task MarkOrderReadyForPickup()
-    {
-        await Client.MarkReadyForPickupAsync(Id);
-        _item = await Client.GetOrderAsync(Id);
-    }
-
-    private decimal _newAmount;
-    private string _newReference = "";
-
-    private async Task AddPayment()
-    {
-        await Client.RegisterPaymentAsync(Id, _newAmount, _newReference);
-        _item = await Client.GetOrderAsync(Id);
-        _newAmount = _item.OutstandingBalance;
-    }
-
-    private async Task Deliver()
-{
-    await Client.MarkDeliveredAsync(Id);
-    _item = await Client.GetOrderAsync(Id);
-}
 }
