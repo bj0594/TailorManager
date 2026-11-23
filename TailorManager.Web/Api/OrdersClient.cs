@@ -61,7 +61,7 @@ public class OrdersClient : IOrdersClient
 
     public async Task MarkOrderReadyForPickupAsync(Guid id)
     {
-        var response = await _http.PatchAsync($"orders/{id}/readyforpickup", null);
+        var response = await _http.PatchAsync($"orders/{id}/ready-for-pickup", null);
         response.EnsureSuccessStatusCode();
     }
 
