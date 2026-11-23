@@ -46,9 +46,7 @@ public class OrderService
             throw new InvalidOrderStatusException("The order is not submitted.");
         }
         order.Status = OrderStatus.InProgress;
-        var entry = OrderHistoryEntry.By(employee);
-        entry.Type = ActivityType.StatusChanged;
-        order.History.Add(entry);
+        AddHistory(order, employee, ActivityType.StatusChanged);
         _repository.Update(order);
         return order;
     }
@@ -56,10 +54,7 @@ public class OrderService
     public Order AddWorkNote(Guid id, string note, User employee)
     {
         var order = GetOrder(id);
-        var entry = OrderHistoryEntry.By(employee);
-        entry.Type = ActivityType.WorkNoteAdded;
-        entry.Note = note;
-        order.History.Add(entry);
+        AddHistory(order, employee, ActivityType.WorkNoteAdded, note);
         _repository.Update(order);
         return order;
     }
@@ -84,5 +79,14 @@ public class OrderService
         var order = GetOrder(id);
         order.IsDelivered = true;
         _repository.Update(order);
+    }
+
+    // A new line in the history, by the employee who did it. The history is append-only.
+    private static void AddHistory(Order order, User employee, ActivityType type, string? note = null)
+    {
+        var entry = OrderHistoryEntry.By(employee);
+        entry.Type = type;
+        entry.Note = note;
+        order.History.Add(entry);
     }
 }
