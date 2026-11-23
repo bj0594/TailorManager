@@ -13,67 +13,30 @@ public class OrdersClient : IOrdersClient
         _http.UseToken(tokens);
     }
 
-    public async Task<List<OrderDto>> GetOrdersAsync()
-    {
-        return await _http.GetFromJsonAsync<List<OrderDto>>("orders") ?? [];
-    }
+    public async Task<List<OrderDto>> GetOrdersAsync() =>
+        await _http.GetFromJsonAsync<List<OrderDto>>("orders") ?? [];
 
-    public Task AddOrderAsync(
-        Guid Id, 
-        Guid CustomerId, 
-        string Type, 
-        string WorkDescription, 
-        decimal InitialAgreedPrice, 
-        decimal CurrentAgreedPrice, 
-        decimal OutstandingBalance, 
-        string Status, 
-        DateTimeOffset CreatedAt, 
-        Guid? RelatedOrderId
-    ) => throw new NotImplementedException();
+    public async Task<OrderDto> GetOrderAsync(Guid id) =>
+        (await _http.GetFromJsonAsync<OrderDto>($"orders/{id}"))!;
 
-    public async Task<OrderDto> GetOrderAsync(Guid id)
-    {
-        var Order= await _http.GetFromJsonAsync<OrderDto>($"orders/{id}");
-        return Order!;
-    }
+    public Task StartWorkAsync(Guid id) => SendAsync(_http.PatchAsync($"orders/{id}/start", null));
 
-    public async Task StartOrderAsync(Guid id)
-    {
-        var response = await _http.PatchAsync($"orders/{id}/start", null);
-        await EnsureSuccessAsync(response);
-    }
+    public Task AddWorkNoteAsync(Guid id, string note) => SendAsync(_http.PostAsJsonAsync($"orders/{id}/notes", new { note }));
 
-    // Throws with the API's own message, so the page can show it.
-    private static async Task EnsureSuccessAsync(HttpResponseMessage response)
+    public Task MarkReadyForPickupAsync(Guid id) => SendAsync(_http.PatchAsync($"orders/{id}/ready-for-pickup", null));
+
+    public Task RegisterPaymentAsync(Guid id, decimal amount) => SendAsync(_http.PostAsJsonAsync($"orders/{id}/payments", new { amount }));
+
+    public Task MarkDeliveredAsync(Guid id) => SendAsync(_http.PatchAsync($"orders/{id}/deliver", null));
+
+    // Waits for the answer, and throws with the API's own message when it says no, so the page can show it.
+    private static async Task SendAsync(Task<HttpResponseMessage> sending)
     {
+        var response = await sending;
         if (!response.IsSuccessStatusCode)
         {
             var message = await response.Content.ReadAsStringAsync();
             throw new HttpRequestException(message.Trim('"'), null, response.StatusCode);
         }
-    }
-
-    public async Task AddWorkNoteAsync(Guid id, string note)
-    {
-        var response = await _http.PostAsJsonAsync($"orders/{id}/notes", new { note });
-        response.EnsureSuccessStatusCode();
-    }
-
-    public async Task MarkOrderReadyForPickupAsync(Guid id)
-    {
-        var response = await _http.PatchAsync($"orders/{id}/ready-for-pickup", null);
-        response.EnsureSuccessStatusCode();
-    }
-
-    public async Task AddPaymentAsync(Guid id, decimal amount)
-    {
-        var response = await _http.PostAsJsonAsync($"orders/{id}/payments", new { amount });
-        response.EnsureSuccessStatusCode();
-    }
-
-    public async Task DeliverOrderAsync(Guid id)
-    {
-        var response = await _http.PatchAsync($"orders/{id}/deliver", null);
-        response.EnsureSuccessStatusCode();
     }
 }

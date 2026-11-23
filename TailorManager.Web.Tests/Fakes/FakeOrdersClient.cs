@@ -3,79 +3,42 @@ using TailorManager.Web.Api;
 namespace TailorManager.Web.Tests;
 
 // Answers like the API, without HTTP. The tests fill Items with what the page should get.
+// Each action remembers the call, and gives the order the status the API would, so the page shows it after a reload.
+// Set Fail to make the next action throw, like the API answering 409.
 public class FakeOrdersClient : IOrdersClient
 {
     public Exception? Fail { get; set; }
     public List<OrderDto> Items { get; } = [];
 
-    public Task<List<OrderDto>> GetOrdersAsync() => Task.FromResult(Items);
+    public List<Guid> StartIds { get; } = [];
+    public List<(Guid Id, string Note)> AddedWorkNotes { get; } = [];
+    public List<Guid> ReadyForPickupIds { get; } = [];
+    public List<(Guid Id, decimal Amount)> Payments { get; } = [];
+    public List<Guid> DeliveredIds { get; } = [];
 
-    public Task AddOrderAsync(
-        Guid Id,
-        Guid CustomerId,
-        string Type,
-        string WorkDescription,
-        decimal InitialAgreedPrice,
-        decimal CurrentAgreedPrice,
-        decimal OutstandingBalance,
-        string Status,
-        DateTimeOffset CreatedAt,
-        Guid? RelatedOrderId
-    )
-    {
-        Items.Add(new OrderDto(Guid.NewGuid(),
-        CustomerId,
-        Type,
-        WorkDescription,
-        InitialAgreedPrice,
-        CurrentAgreedPrice,
-        OutstandingBalance,
-        Status,
-        CreatedAt,
-        RelatedOrderId));
-        return Task.CompletedTask;
-    }
+    public Task<List<OrderDto>> GetOrdersAsync() => Task.FromResult(Items);
 
     public Task<OrderDto> GetOrderAsync(Guid id) => Task.FromResult(Items.Single(i => i.Id == id));
 
-    public List<Guid> StartIds { get; } = [];
+    public Task StartWorkAsync(Guid id) => Record(() => StartIds.Add(id), id, "InProgress");
 
-    public Task StartOrderAsync(Guid id)
+    public Task AddWorkNoteAsync(Guid id, string note) => Record(() => AddedWorkNotes.Add((id, note)), id);
+
+    public Task MarkReadyForPickupAsync(Guid id) => Record(() => ReadyForPickupIds.Add(id), id, "ReadyForPickup");
+
+    public Task RegisterPaymentAsync(Guid id, decimal amount) => Record(() => Payments.Add((id, amount)), id, "Delivered");
+
+    public Task MarkDeliveredAsync(Guid id) => Record(() => DeliveredIds.Add(id), id, "Delivered");
+
+    private Task Record(Action remember, Guid id, string? newStatus = null)
     {
         if (Fail is not null) throw Fail;
-        StartIds.Add(id);
-        return Task.CompletedTask;
-    }
-
-    public List<(Guid Id, string Note)> AddedWorkNotes { get; } = [];
-
-    public Task AddWorkNoteAsync(Guid id, string Note)
-    {
-        AddedWorkNotes.Add((id, Note));
-        return Task.CompletedTask;
-    }
-
-    public List<Guid> ReadyForPickupIds { get; } = [];
-
-    public Task MarkOrderReadyForPickupAsync(Guid id)
-    {
-        ReadyForPickupIds.Add(id);
-        return Task.CompletedTask;
-    }
-
-    public List<(Guid Id, decimal Amount)> Addedpayments { get; } = [];
-
-    public Task AddPaymentAsync(Guid id, decimal amount)
-    {
-        Addedpayments.Add((id, amount));
-        return Task.CompletedTask;
-    }
-
-    public List<Guid> DeliverIds { get; } = [];
-
-    public Task DeliverOrderAsync(Guid id)
-    {
-        DeliverIds.Add(id);
+        remember();
+        var index = Items.FindIndex(i => i.Id == id);
+        if (newStatus is not null && index >= 0)
+        {
+            Items[index] = Items[index] with { Status = newStatus };
+        }
         return Task.CompletedTask;
     }
 }

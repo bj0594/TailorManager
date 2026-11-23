@@ -60,14 +60,14 @@ public class OrdersClientTests
     }
 
     [Fact]
-    public async Task StartOrderAsync_Always_SendsPatch()
+    public async Task StartWorkAsync_Always_SendsPatch()
     {
         // Arrange
         var id = Guid.NewGuid();
         _handler.Respond($"/orders/{id}/start", "", HttpStatusCode.NoContent);
 
         // Act
-        await _client.StartOrderAsync(id);
+        await _client.StartWorkAsync(id);
 
         // Assert
         var request = _handler.Requests.Single();
@@ -76,17 +76,17 @@ public class OrdersClientTests
     }
 
     [Fact]
-    public async Task StartOrderAsync_ApiAnswers409_ThrowsWithTheMessage()
+    public async Task StartWorkAsync_ApiAnswers409_ThrowsWithTheMessage()
     {
         // Arrange
         var id = Guid.NewGuid();
-        _handler.Respond($"/orders/{id}/start", "The order is not submitted.", HttpStatusCode.Conflict);
+        _handler.Respond($"/orders/{id}/start", "The order is not Submitted.", HttpStatusCode.Conflict);
 
         // Act
-        var ex = await Assert.ThrowsAsync<HttpRequestException>(() => _client.StartOrderAsync(id));
+        var ex = await Assert.ThrowsAsync<HttpRequestException>(() => _client.StartWorkAsync(id));
 
         // Assert
-        Assert.Equal("The order is not submitted.", ex.Message);
+        Assert.Equal("The order is not Submitted.", ex.Message);
     }
 
     [Fact]
@@ -97,24 +97,24 @@ public class OrdersClientTests
         _handler.Respond($"/orders/{id}/notes", "{}");
 
         // Act
-        await _client.AddWorkNoteAsync(id, "");
+        await _client.AddWorkNoteAsync(id, Examples.WorkNote);
 
         // Assert
         var request = _handler.Requests.Single();
         Assert.Equal(HttpMethod.Post, request.Method);
         Assert.Equal($"/orders/{id}/notes", request.RequestUri!.AbsolutePath);
-        Assert.Contains("", _handler.Bodies.Single());
+        Assert.Contains(Examples.WorkNote, _handler.Bodies.Single());
     }
 
     [Fact]
-    public async Task MarkOrderReadyForPickupAsync_Always_SendsPatch()
+    public async Task MarkReadyForPickupAsync_Always_SendsPatch()
     {
         // Arrange
         var id = Guid.NewGuid();
         _handler.Respond($"/orders/{id}/ready-for-pickup", "{}");
 
         // Act
-        await _client.MarkOrderReadyForPickupAsync(id);
+        await _client.MarkReadyForPickupAsync(id);
 
         // Assert
         var request = _handler.Requests.Single();
@@ -123,14 +123,14 @@ public class OrdersClientTests
     }
 
     [Fact]
-    public async Task AddPaymentAsync_Always_PostsThePayment()
+    public async Task RegisterPaymentAsync_Always_PostsThePayment()
     {
         // Arrange
         var id = Guid.NewGuid();
         _handler.Respond($"/orders/{id}/payments", "{}");
 
         // Act
-        await _client.AddPaymentAsync(id, Examples.PaymentAmount);
+        await _client.RegisterPaymentAsync(id, Examples.PaymentAmount);
 
         // Assert
         var request = _handler.Requests.Single();
@@ -140,14 +140,14 @@ public class OrdersClientTests
     }
 
     [Fact]
-    public async Task DeliverOrderAsync_Always_SendsPatch()
+    public async Task MarkDeliveredAsync_Always_SendsPatch()
     {
         // Arrange
         var id = Guid.NewGuid();
         _handler.Respond($"/orders/{id}/deliver", "", HttpStatusCode.NoContent);
 
         // Act
-        await _client.DeliverOrderAsync(id);
+        await _client.MarkDeliveredAsync(id);
 
         // Assert
         var request = _handler.Requests.Single();
