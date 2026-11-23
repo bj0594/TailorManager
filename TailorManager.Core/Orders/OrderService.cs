@@ -46,6 +46,9 @@ public class OrderService
             throw new InvalidOrderStatusException("The order is not submitted.");
         }
         order.Status = OrderStatus.InProgress;
+        var entry = OrderHistoryEntry.By(employee);
+        entry.Type = ActivityType.StatusChanged;
+        order.History.Add(entry);
         _repository.Update(order);
         return order;
     }
