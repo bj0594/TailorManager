@@ -77,6 +77,8 @@ public class OrderService
 
     public void DeliverOrder(Guid id)
     {
-        throw new NotImplementedException();
+        var order = GetOrder(id);
+        order.IsDelivered = true;
+        _repository.Update(order);
     }
 }
