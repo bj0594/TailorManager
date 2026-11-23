@@ -111,10 +111,7 @@ public class OrdersClientTests
     {
         // Arrange
         var id = Guid.NewGuid();
-        _handler.Respond(
-            $"/orders/{id}/readyforpickup",
-            "",
-            HttpStatusCode.NoContent);
+        _handler.Respond($"/orders/{id}/ready-for-pickup", "{}");
 
         // Act
         await _client.MarkOrderReadyForPickupAsync(id);
@@ -122,9 +119,7 @@ public class OrdersClientTests
         // Assert
         var request = _handler.Requests.Single();
         Assert.Equal(HttpMethod.Patch, request.Method);
-        Assert.Equal(
-            $"/orders/{id}/readyforpickup",
-            request.RequestUri!.AbsolutePath);
+        Assert.Equal($"/orders/{id}/ready-for-pickup", request.RequestUri!.AbsolutePath);
     }
 
     [Fact]
