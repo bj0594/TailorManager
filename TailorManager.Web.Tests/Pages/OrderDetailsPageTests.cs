@@ -182,6 +182,29 @@ public class OrderDetailsPageTests : PageTestContext
         page.WaitForAssertion(() => Assert.Contains(order.Id, _orders.DeliverIds));
     }
 
+    [Fact]
+    public void OrderDetailsPage_NotFrontDesk_HidesDeliver()
+    {
+        // Arrange
+        _tokens.Role = Roles.Workshop;
+        var order = new OrderDto(
+            Guid.NewGuid(),
+            Guid.NewGuid(),
+            "NewGarment",
+            "Test work",
+            100m,
+            100m,
+            0m,
+            "ReadyForPickup",
+            DateTimeOffset.UtcNow,
+            null);
+        _orders.Items.Add(order);
+        var page = Render<OrderDetailsPage>(p => p.Add(x => x.Id, order.Id));
+
+        // Act + Assert
+        Assert.Empty(page.FindAll("button.deliver"));
+    }
+
     private IRenderedComponent<OrderDetailsPage> RenderOrder(OrderDto order)
     {
         _orders.Items.Add(order);
