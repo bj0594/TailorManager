@@ -13,21 +13,15 @@ public class CustomersClient : ICustomersClient
         _http.UseToken(tokens);
     }
 
-    public async Task<List<CustomerDto>> GetCustomersAsync()
-    {
-        return await _http.GetFromJsonAsync<List<CustomerDto>>("customers") ?? [];
-    }
+    public async Task<List<CustomerDto>> GetCustomersAsync() =>
+        await _http.GetFromJsonAsync<List<CustomerDto>>("customers") ?? [];
 
     public async Task<CustomerDto> AddCustomerAsync(string name, string phone, string email, string address)
     {
-        var response = await _http.PostAsJsonAsync("customers", new { name, phone, email, address });
-        response.EnsureSuccessStatusCode();
+        var response = await _http.PostAsJsonAsync("customers", new { name, phone, email, address }).EnsureSuccessAsync();
         return (await response.Content.ReadFromJsonAsync<CustomerDto>())!;
     }
 
-    public async Task<CustomerDto> GetCustomerAsync(Guid id)
-    {
-        var customer = await _http.GetFromJsonAsync<CustomerDto>($"customers/{id}");
-        return customer!;
-    }
+    public async Task<CustomerDto> GetCustomerAsync(Guid id) =>
+        (await _http.GetFromJsonAsync<CustomerDto>($"customers/{id}"))!;
 }

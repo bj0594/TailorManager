@@ -19,24 +19,18 @@ public class OrdersClient : IOrdersClient
     public async Task<OrderDto> GetOrderAsync(Guid id) =>
         (await _http.GetFromJsonAsync<OrderDto>($"orders/{id}"))!;
 
-    public Task StartWorkAsync(Guid id) => SendAsync(_http.PatchAsync($"orders/{id}/start", null));
+    public Task StartWorkAsync(Guid id) =>
+        _http.PatchAsync($"orders/{id}/start", null).EnsureSuccessAsync();
 
-    public Task AddWorkNoteAsync(Guid id, string note) => SendAsync(_http.PostAsJsonAsync($"orders/{id}/notes", new { note }));
+    public Task AddWorkNoteAsync(Guid id, string note) =>
+        _http.PostAsJsonAsync($"orders/{id}/notes", new { note }).EnsureSuccessAsync();
 
-    public Task MarkReadyForPickupAsync(Guid id) => SendAsync(_http.PatchAsync($"orders/{id}/ready-for-pickup", null));
+    public Task MarkReadyForPickupAsync(Guid id) =>
+        _http.PatchAsync($"orders/{id}/ready-for-pickup", null).EnsureSuccessAsync();
 
-    public Task RegisterPaymentAsync(Guid id, decimal amount, string transactionReference) => SendAsync(_http.PostAsJsonAsync($"orders/{id}/payments", new { amount, transactionReference }));
+    public Task RegisterPaymentAsync(Guid id, decimal amount, string transactionReference) =>
+        _http.PostAsJsonAsync($"orders/{id}/payments", new { amount, transactionReference }).EnsureSuccessAsync();
 
-    public Task MarkDeliveredAsync(Guid id) => SendAsync(_http.PatchAsync($"orders/{id}/delivered", null));
-
-    // Waits for the answer, and throws with the API's own message when it says no, so the page can show it.
-    private static async Task SendAsync(Task<HttpResponseMessage> sending)
-    {
-        var response = await sending;
-        if (!response.IsSuccessStatusCode)
-        {
-            var message = await response.Content.ReadAsStringAsync();
-            throw new HttpRequestException(message.Trim('"'), null, response.StatusCode);
-        }
-    }
+    public Task MarkDeliveredAsync(Guid id) =>
+        _http.PatchAsync($"orders/{id}/delivered", null).EnsureSuccessAsync();
 }
