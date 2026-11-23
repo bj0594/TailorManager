@@ -214,9 +214,24 @@ erDiagram
         string FirstName
         string LastName
     }
+    Order ||--o{ OrderHistoryEntry : "History (OrderId)"
+    OrderHistoryEntry {
+        guid Id
+        guid ActorId
+        string ActorDisplayName
+        string Type
+        string Note
+    }
+    Order ||--o{ Payment : "Payments (OrderId)"
+    Payment {
+        guid Id
+        decimal Amount
+        string TransactionReference
+    }
 ```
 
 Users is its own table. The history stores the employee's id and display name, so Order has no foreign key to User either.
+The history and the payments are tables of their own, with OrderId as the foreign key. They are read with the order (`Include` in `EfOrderRepository`).
 
 ### Order status
 
@@ -520,9 +535,9 @@ No cycle, built on the module page: Register an employee and Log in (Innlogging)
 ### (FrontDesk) Add a customer
 
 - [x] Core: a new customer can be added with name, phone number, email and address
-- [ ] API: POST /customers → 201 Created
-- [ ] Web: the new customer form on the search page adds a customer and shows it in the results
-- [ ] Web client: AddCustomerAsync posts the customer to /customers
+- [x] API: POST /customers → 201 Created
+- [x] Web: the new customer form on the search page adds a customer and shows it in the results
+- [x] Web client: AddCustomerAsync posts the customer to /customers
 - [x] EF: an added customer can be read back by id
 
 ### Register an employee
@@ -548,120 +563,120 @@ No cycle, built on the module page: Register an employee and Log in (Innlogging)
 
 ### Customers require login
 
-- [ ] API: POST /customers without a token → 401 Unauthorized
+- [x] API: POST /customers without a token → 401 Unauthorized
 
 ### (FrontDesk) Only FrontDesk can add customers
 
-- [ ] API: POST /customers as Workshop → 403 Forbidden
+- [x] API: POST /customers as Workshop → 403 Forbidden
 
 ### (FrontDesk) Get a customer
 
-- [ ] Core: a customer can be found by id
-- [ ] API: GET /customers/{customerId} → 200 OK
-- [ ] Web: the order page shows the customer's name and phone
-- [ ] Web client: GetCustomerAsync gets /customers/{customerId}
+- [x] Core: a customer can be found by id
+- [x] API: GET /customers/{customerId} → 200 OK
+- [x] Web: the order page shows the customer's name and phone
+- [x] Web client: GetCustomerAsync gets /customers/{customerId}
 
 ### (FrontDesk) Create an order
 
-- [ ] Core: a new order for a garment or a repair is Submitted, with its agreed price and a history entry
-- [ ] API: POST /orders → 201 Created
+- [x] Core: a new order for a garment or a repair is Submitted, with its agreed price and a history entry
+- [x] API: POST /orders → 201 Created
 - [ ] Web: the new order form on the search page creates an order for the chosen customer
 - [ ] Web client: CreateOrderAsync posts the order to /orders
-- [ ] EF: a created order is read back with its history
+- [x] EF: a created order is read back with its history
 
 ### Orders require login
 
-- [ ] API: GET /orders without a token → 401 Unauthorized
+- [x] API: POST /orders without a token → 401 Unauthorized
 
 ### (FrontDesk) Only FrontDesk can create orders
 
-- [ ] API: POST /orders as Workshop → 403 Forbidden
+- [x] API: POST /orders as Workshop → 403 Forbidden
 
 ### The history shows who did it
 
-- [ ] Core: CreateOrder stores the employee it gets in the history entry
-- [ ] API: POST /orders records the logged-in employee in the history, like "Kari N."
+- [x] Core: CreateOrder stores the employee it gets in the history entry
+- [x] API: POST /orders records the logged-in employee in the history, like "Kari N."
 
 ### (Workshop) Open an order
 
-- [ ] Core: an order can be found by id, with its history
-- [ ] API: GET /orders/{orderId} → 200 OK
-- [ ] Web: the order page shows the order with its history
-- [ ] Web client: GetOrderAsync gets /orders/{orderId}
+- [x] Core: an order can be found by id, with its history
+- [x] API: GET /orders/{orderId} → 200 OK
+- [x] Web: the order page shows the order and its status (the history list comes in "Order history")
+- [x] Web client: GetOrderAsync gets /orders/{orderId}
 
 ### (Workshop) Start work
 
-- [ ] Core: starting a submitted order sets InProgress and adds a history entry
-- [ ] API: PATCH /orders/{orderId}/start → 200 OK
-- [ ] Web: clicking Start shows the order as InProgress
-- [ ] Web client: StartWorkAsync patches /orders/{orderId}/start
-- [ ] EF: the new status and the history entry are saved
+- [x] Core: starting a submitted order sets InProgress and adds a history entry
+- [x] API: PATCH /orders/{orderId}/start → 200 OK
+- [x] Web: clicking Start shows the order as InProgress
+- [x] Web client: StartWorkAsync patches /orders/{orderId}/start
+- [x] EF: the new status and the history entry are saved
 
 ### (Workshop) Only Workshop can start work
 
-- [ ] API: PATCH /orders/{orderId}/start as FrontDesk → 403 Forbidden
-- [ ] Web: the Start button is hidden for FrontDesk
+- [x] API: PATCH /orders/{orderId}/start as FrontDesk → 403 Forbidden
+- [x] Web: the Start button is hidden for FrontDesk
 
 ### (Workshop) Start an order that is not submitted
 
-- [ ] Core: starting fails when the order is not Submitted
-- [ ] API: PATCH /orders/{orderId}/start → 409 Conflict
-- [ ] Web: the page shows "The order is not Submitted"
+- [x] Core: starting fails when the order is not Submitted
+- [x] API: PATCH /orders/{orderId}/start → 409 Conflict
+- [x] Web: the page shows "The order is not Submitted"
 
 ### (Workshop) Record work
 
-- [ ] Core: a work note on an order in progress is added to the history
-- [ ] API: POST /orders/{orderId}/notes → 200 OK
-- [ ] Web: the note form adds the note to the order history
-- [ ] Web client: AddWorkNoteAsync posts the note to /orders/{orderId}/notes
+- [x] Core: a work note on an order in progress is added to the history
+- [x] API: POST /orders/{orderId}/notes → 200 OK
+- [x] Web: the note form sends the note (the page shows it in the history list from "Order history")
+- [x] Web client: AddWorkNoteAsync posts the note to /orders/{orderId}/notes
 
 ### (Workshop) Only Workshop can record work
 
-- [ ] API: POST /orders/{orderId}/notes as FrontDesk → 403 Forbidden
-- [ ] Web: the note form is hidden for FrontDesk
+- [x] API: POST /orders/{orderId}/notes as FrontDesk → 403 Forbidden
+- [x] Web: the note form is hidden for FrontDesk
 
 ### (Workshop) Mark ready for pickup
 
-- [ ] Core: marking an order in progress ReadyForPickup adds a history entry and a notification request
-- [ ] API: PATCH /orders/{orderId}/ready-for-pickup → 200 OK
-- [ ] Web: clicking Ready for pickup shows the order as ReadyForPickup
-- [ ] Web client: MarkReadyForPickupAsync patches /orders/{orderId}/ready-for-pickup
+- [x] Core: marking an order in progress ReadyForPickup adds a history entry and a notification request
+- [x] API: PATCH /orders/{orderId}/ready-for-pickup → 200 OK
+- [x] Web: clicking Ready for pickup shows the order as ReadyForPickup
+- [x] Web client: MarkReadyForPickupAsync patches /orders/{orderId}/ready-for-pickup
 
 ### (Workshop) Only Workshop can mark orders ready for pickup
 
-- [ ] API: PATCH /orders/{orderId}/ready-for-pickup as FrontDesk → 403 Forbidden
-- [ ] Web: the Ready for pickup button is hidden for FrontDesk
+- [x] API: PATCH /orders/{orderId}/ready-for-pickup as FrontDesk → 403 Forbidden
+- [x] Web: the Ready for pickup button is hidden for FrontDesk
 
 ### (FrontDesk) Register payment and deliver
 
-- [ ] Core: a correct full payment is recorded, and the order is Delivered
-- [ ] API: POST /orders/{orderId}/payments → 200 OK
-- [ ] Web: the payment form registers the payment and shows the order as Delivered
-- [ ] Web client: RegisterPaymentAsync posts the payment to /orders/{orderId}/payments
-- [ ] EF: the payment is saved with the order
+- [x] Core: a correct full payment is recorded, and the order is Delivered
+- [x] API: POST /orders/{orderId}/payments → 200 OK
+- [x] Web: the payment form registers the payment and shows the order as Delivered
+- [x] Web client: RegisterPaymentAsync posts the payment to /orders/{orderId}/payments
+- [x] EF: the payment is saved with the order
 
 ### (FrontDesk) Only FrontDesk can register payments
 
-- [ ] API: POST /orders/{orderId}/payments as Workshop → 403 Forbidden
-- [ ] Web: the payment form is hidden for Workshop
+- [x] API: POST /orders/{orderId}/payments as Workshop → 403 Forbidden
+- [x] Web: the payment form is hidden for Workshop
 
 ### (FrontDesk) Create a free order
 
-- [ ] Core: an order with price zero has no outstanding balance
-- [ ] API: POST /orders with agreedPrice 0 → 201 Created, with outstandingBalance 0
-- [ ] Web: the order page shows nothing to pay
+- [x] Core: an order with price zero has no outstanding balance
+- [x] API: POST /orders with agreedPrice 0 → 201 Created, with outstandingBalance 0
+- [x] Web: the order page shows nothing to pay
 
 ### (FrontDesk) Deliver an order with nothing to pay
 
-- [ ] Core: an order with no outstanding balance can be marked Delivered
-- [ ] API: PATCH /orders/{orderId}/delivered → 200 OK
-- [ ] Web: clicking Deliver shows the order as Delivered
-- [ ] Web client: MarkDeliveredAsync patches /orders/{orderId}/delivered
+- [x] Core: an order with no outstanding balance can be marked Delivered
+- [x] API: PATCH /orders/{orderId}/delivered → 200 OK
+- [x] Web: clicking Deliver shows the order as Delivered
+- [x] Web client: MarkDeliveredAsync patches /orders/{orderId}/delivered
 
 ### (FrontDesk) Only FrontDesk can deliver orders
 
-- [ ] API: PATCH /orders/{orderId}/delivered as Workshop → 403 Forbidden
-- [ ] Web: the Deliver button is hidden for Workshop
+- [x] API: PATCH /orders/{orderId}/delivered as Workshop → 403 Forbidden
+- [x] Web: the Deliver button is hidden for Workshop
 
 ### (Workshop) List orders
 
