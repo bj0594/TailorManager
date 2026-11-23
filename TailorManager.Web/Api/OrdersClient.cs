@@ -71,5 +71,9 @@ public class OrdersClient : IOrdersClient
         response.EnsureSuccessStatusCode();
     }
 
-    public Task DeliverOrderAsync(Guid id) => throw new NotImplementedException();
+    public async Task DeliverOrderAsync(Guid id)
+    {
+        var response = await _http.PatchAsync($"orders/{id}/deliver", null);
+        response.EnsureSuccessStatusCode();
+    }
 }
