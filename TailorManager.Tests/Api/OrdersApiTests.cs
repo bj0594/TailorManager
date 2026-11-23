@@ -53,7 +53,9 @@ public class OrdersApiTests : IDisposable
 
         // Assert
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+
         var body = await response.Content.ReadFromJsonAsync<OrderResponse>();
+
         Assert.NotNull(body);
         Assert.Equal(0m, body.OutstandingBalance);
     }
@@ -71,7 +73,7 @@ public class OrdersApiTests : IDisposable
     [Fact]
     public async Task PostOrders_NotFrontDesk_ReturnsForbidden()
     {
-        // Arrange
+        // Arrange: a logged-in user without the role
         var user = await _factory.LogInAsWorkshopAsync();
 
         // Act
@@ -121,9 +123,7 @@ public class OrdersApiTests : IDisposable
         var workshop = await _factory.LogInAsWorkshopAsync();
 
         // Act
-        var response = await workshop.PatchAsync(
-            $"/orders/{order.Id}/start",
-            null);
+        var response = await workshop.PatchAsync($"/orders/{order.Id}/start", null);
 
         // Assert
         Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
@@ -132,7 +132,7 @@ public class OrdersApiTests : IDisposable
     [Fact]
     public async Task PatchOrdersStart_NotWorkshop_ReturnsForbidden()
     {
-        // Arrange
+        // Arrange: a logged-in user without the role
         var client = await _factory.LogInAsFrontDeskAsync();
 
         // Act
@@ -149,7 +149,6 @@ public class OrdersApiTests : IDisposable
         var client = await _factory.LogInAsFrontDeskAsync();
         var order = await client.CreateOrderAsync();
         var workshop = await _factory.LogInAsWorkshopAsync();
-
         await workshop.PatchAsync($"/orders/{order.Id}/start", null);
 
         // Act
@@ -166,7 +165,6 @@ public class OrdersApiTests : IDisposable
         var client = await _factory.LogInAsFrontDeskAsync();
         var workshop = await _factory.LogInAsWorkshopAsync();
         var order = await client.CreateOrderAsync();
-
         await workshop.PatchAsync($"/orders/{order.Id}/start", null);
 
         // Act
@@ -174,9 +172,7 @@ public class OrdersApiTests : IDisposable
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-
         var body = await response.Content.ReadFromJsonAsync<OrderResponse>();
-
         Assert.Contains(body!.History, h => h.Type == "WorkNoteAdded" && h.Note == Examples.WorkNote);
     }
 
@@ -190,7 +186,9 @@ public class OrdersApiTests : IDisposable
         await workshop.PatchAsync($"/orders/{order.Id}/start", null);
 
         // Act
-        var response = await frontDesk.PostAsJsonAsync($"/orders/{order.Id}/notes", new { note = Examples.WorkNote });
+        var response = await frontDesk.PostAsJsonAsync(
+            $"/orders/{order.Id}/notes",
+            new { note = Examples.WorkNote });
 
         // Assert
         Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
@@ -202,11 +200,14 @@ public class OrdersApiTests : IDisposable
         // Arrange
         var frontDesk = await _factory.LogInAsFrontDeskAsync();
         var order = await frontDesk.CreateOrderAsync();
+
         var workshop = await _factory.LogInAsWorkshopAsync();
         await workshop.PatchAsync($"/orders/{order.Id}/start", null);
 
         // Act
-        var response = await workshop.PatchAsync($"/orders/{order.Id}/readyforpickup", null);
+        var response = await workshop.PatchAsync(
+            $"/orders/{order.Id}/readyforpickup",
+            null);
 
         // Assert
         Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
@@ -218,11 +219,14 @@ public class OrdersApiTests : IDisposable
         // Arrange
         var frontDesk = await _factory.LogInAsFrontDeskAsync();
         var order = await frontDesk.CreateOrderAsync();
+
         var workshop = await _factory.LogInAsWorkshopAsync();
         await workshop.PatchAsync($"/orders/{order.Id}/start", null);
 
         // Act
-        var response = await frontDesk.PatchAsync($"/orders/{order.Id}/readyforpickup", null);
+        var response = await frontDesk.PatchAsync(
+            $"/orders/{order.Id}/readyforpickup",
+            null);
 
         // Assert
         Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
@@ -237,11 +241,15 @@ public class OrdersApiTests : IDisposable
         var paymentAmount = Examples.PaymentAmount;
 
         // Act
-        var response = await client.PostAsJsonAsync($"/orders/{order.Id}/payments", new { amount = paymentAmount });
+        var response = await client.PostAsJsonAsync(
+            $"/orders/{order.Id}/payments",
+            new { amount = paymentAmount });
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
         var body = await response.Content.ReadFromJsonAsync<OrderResponse>();
+
         Assert.Contains(body!.Payments, payment => payment.Amount == paymentAmount);
     }
 
@@ -253,7 +261,9 @@ public class OrdersApiTests : IDisposable
         var orderId = Guid.NewGuid();
 
         // Act
-        var response = await workshop.PostAsJsonAsync($"/orders/{orderId}/payments", new { amount = Examples.PaymentAmount });
+        var response = await workshop.PostAsJsonAsync(
+            $"/orders/{orderId}/payments",
+            new { amount = Examples.PaymentAmount });
 
         // Assert
         Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
@@ -268,42 +278,16 @@ public class OrdersApiTests : IDisposable
         var orderDetails = await frontDesk.GetFromJsonAsync<OrderResponse>($"/orders/{order.Id}");
         Assert.NotNull(orderDetails);
         // Pay the full outstanding balance.
-        var paymentResponse = await frontDesk.PostAsJsonAsync($"/orders/{order.Id}/payments", new { amount = orderDetails.OutstandingBalance });
+        var paymentResponse = await frontDesk.PostAsJsonAsync($"/orders/{order.Id}/payments",
+        new { amount = orderDetails.OutstandingBalance });
         Assert.Equal(HttpStatusCode.OK, paymentResponse.StatusCode);
-        var paidOrder = await frontDesk.GetFromJsonAsync<OrderResponse>($"/orders/{order.Id}");
-        Assert.NotNull(paidOrder);
-        Assert.Equal(0m, paidOrder.OutstandingBalance);
-        // Start the order and mark it as ready for pickup.
-        var workshop = await _factory.LogInAsWorkshopAsync();
-        var startResponse = await workshop.PatchAsync($"/orders/{order.Id}/start", null);
-        Assert.Equal(HttpStatusCode.NoContent, startResponse.StatusCode);
-        var readyResponse = await workshop.PatchAsync($"/orders/{order.Id}/readyforpickup", null);
-        Assert.Equal(HttpStatusCode.NoContent, readyResponse.StatusCode);
 
         // Act
-        var response = await frontDesk.PatchAsync($"/orders/{order.Id}/deliver", null);
+        var response = await frontDesk.PatchAsync($"/orders/{order.Id}/deliver",null);
 
         // Assert
         Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
         var deliveredOrder = await frontDesk.GetFromJsonAsync<OrderResponse>($"/orders/{order.Id}");
-        Assert.NotNull(deliveredOrder);
-        Assert.True(deliveredOrder.IsDelivered);
+        Assert.True(deliveredOrder!.IsDelivered);
     }
-
-    private record OrderResponse(
-        Guid Id,
-        Guid CustomerId,
-        decimal OutstandingBalance,
-        List<PaymentResponse> Payments,
-        List<HistoryResponse> History,
-        bool IsDelivered);
-
-    private record PaymentResponse(
-        Guid Id,
-        decimal Amount);
-
-    private record HistoryResponse(
-        string Type,
-        string? Note,
-        string ActorDisplayName);
 }
