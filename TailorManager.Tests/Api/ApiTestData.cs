@@ -82,6 +82,6 @@ public static class ApiTestData
 
 // The answers as the API tests read them. Add a field when a test checks it, with the name from the response in api.md.
 public record CustomerResponse(Guid Id, string Name, string Phone, string Email, string Address);
-public record OrderResponse(Guid Id, Guid CustomerId, string WorkDescription, decimal InitialAgreedPrice, decimal OutstandingBalance, string Status, List<OrderHistoryResponse> History, List<PaymentResponse> Payments, bool IsDelivered);
+public record OrderResponse(Guid Id, Guid CustomerId, string WorkDescription, decimal InitialAgreedPrice, decimal OutstandingBalance, string Status, List<OrderHistoryResponse> History, List<PaymentResponse> Payments);
 public record OrderHistoryResponse(string? ActorDisplayName, string Type, string? Note);
 public record PaymentResponse(Guid Id, decimal Amount, string TransactionReference);

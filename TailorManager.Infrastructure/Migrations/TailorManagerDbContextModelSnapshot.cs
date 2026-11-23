@@ -64,12 +64,6 @@ namespace TailorManager.Infrastructure.Migrations
                     b.Property<decimal>("InitialAgreedPrice")
                         .HasColumnType("numeric");
 
-                    b.Property<bool>("IsDelivered")
-                        .HasColumnType("boolean");
-
-                    b.Property<bool>("IsReadyForPickup")
-                        .HasColumnType("boolean");
-
                     b.Property<Guid?>("RelatedOrderId")
                         .HasColumnType("uuid");
 

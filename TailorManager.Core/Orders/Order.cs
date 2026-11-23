@@ -11,10 +11,8 @@ public class Order
     public DateTimeOffset CreatedAt { get; set; }
     public Guid? RelatedOrderId { get; set; }
     public List<OrderHistoryEntry> History { get; set; } = [];
-    public bool IsReadyForPickup { get; set; }
-
     public List<Payment> Payments { get; set; } = [];
-    public decimal OutstandingBalance =>
-    InitialAgreedPrice - Payments.Sum(payment => payment.Amount);
-    public bool IsDelivered { get; set; }
+
+    // Calculated (§4): the agreed price minus what is paid. Not stored.
+    public decimal OutstandingBalance => InitialAgreedPrice - Payments.Sum(payment => payment.Amount);
 }
