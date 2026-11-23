@@ -15,5 +15,6 @@ public class TailorManagerDbContext : DbContext
     {
         modelBuilder.Entity<User>().HasIndex(u => u.Username).IsUnique();
         modelBuilder.Entity<Payment>().Property(i => i.Id).ValueGeneratedNever();
+        modelBuilder.Entity<OrderHistoryEntry>().Property(e => e.Id).ValueGeneratedNever();
     }
 }
