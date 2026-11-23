@@ -25,7 +25,7 @@ public class OrdersClient : IOrdersClient
 
     public Task MarkReadyForPickupAsync(Guid id) => SendAsync(_http.PatchAsync($"orders/{id}/ready-for-pickup", null));
 
-    public Task RegisterPaymentAsync(Guid id, decimal amount, string transactionReference) => SendAsync(_http.PostAsJsonAsync($"orders/{id}/payments", new { amount }));
+    public Task RegisterPaymentAsync(Guid id, decimal amount, string transactionReference) => SendAsync(_http.PostAsJsonAsync($"orders/{id}/payments", new { amount, transactionReference }));
 
     public Task MarkDeliveredAsync(Guid id) => SendAsync(_http.PatchAsync($"orders/{id}/delivered", null));
 

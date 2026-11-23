@@ -39,8 +39,9 @@ else
     @if (Tokens.Role == Roles.FrontDesk)
     {
         <form class="payment" @onsubmit="AddPayment">
-            <input @bind="_newAmount" />
-            <button type="submit">Add</button>
+            <input class="amount" @bind="_newAmount" />
+            <input class="reference" @bind="_newReference" placeholder="Transaction reference" />
+            <button type="submit">Register payment</button>
         </form>
 
         <button class="deliver" @onclick="Deliver">Deliver</button>
