@@ -27,6 +27,8 @@ else
 
     <button class="readyforpickup" @onclick="MarkOrderReadyForPickup">Ready for pickup</button>
 
+    <button class="deliver" @onclick="Deliver">Deliver</button>
+
     @if (_error is not null)
     {
         <p class="error">@_error</p>
@@ -87,4 +89,10 @@ else
         _item = await Client.GetOrderAsync(Id);
         _newAmount = _item.OutstandingBalance;
     }
+
+    private async Task Deliver()
+{
+    await Client.DeliverOrderAsync(Id);
+    _item = await Client.GetOrderAsync(Id);
+}
 }
