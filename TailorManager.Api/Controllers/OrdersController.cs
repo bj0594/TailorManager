@@ -47,7 +47,7 @@ public class OrdersController : ControllerBase
     {
         try
         {
-            _service.StartOrder(id);
+            _service.StartOrder(id, CurrentEmployee());
             return NoContent();
         }
         catch (InvalidOrderStatusException ex)

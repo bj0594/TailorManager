@@ -38,7 +38,7 @@ public class OrderService
         ?? throw new KeyNotFoundException($"Order {id} was not found.");
     }
 
-    public void StartOrder(Guid id)
+    public Order StartOrder(Guid id, User employee)
     {
         var order = GetOrder(id);
         if (order.Status != OrderStatus.Submitted)
@@ -47,6 +47,7 @@ public class OrderService
         }
         order.Status = OrderStatus.InProgress;
         _repository.Update(order);
+        return order;
     }
 
     public Order AddWorkNote(Guid id, string note, User employee)

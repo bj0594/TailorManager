@@ -60,10 +60,24 @@ public class OrderServiceTests
         var order = _app.AddOrder();
 
         // Act
-        _service.StartOrder(order.Id);
+        _service.StartOrder(order.Id, _app.Employee);
 
         // Assert
         Assert.Equal(OrderStatus.InProgress, _service.GetOrder(order.Id).Status);
+    }
+
+    [Fact]
+    public void StartOrder_ExistingOrder_AddsStatusChangedEntry()
+    {
+        // Arrange
+        var order = _app.AddOrder();
+
+        // Act
+        var result = _service.StartOrder(order.Id, _app.Employee);
+
+        // Assert
+        var entry = Assert.Single(result.History, h => h.Type == ActivityType.StatusChanged);
+        Assert.Equal(Examples.EmployeeDisplayName, entry.ActorDisplayName);
     }
 
     [Fact]
@@ -71,10 +85,10 @@ public class OrderServiceTests
     {
         // Arrange
         var order = _app.AddOrder();
-        _service.StartOrder(order.Id);
+        _service.StartOrder(order.Id, _app.Employee);
 
         // Act + Assert
-        Assert.Throws<InvalidOrderStatusException>(() => _service.StartOrder(order.Id));
+        Assert.Throws<InvalidOrderStatusException>(() => _service.StartOrder(order.Id, _app.Employee));
     }
 
     [Fact]
@@ -82,7 +96,7 @@ public class OrderServiceTests
     {
         // Arrange
         var order = _app.AddOrder();
-        _service.StartOrder(order.Id);
+        _service.StartOrder(order.Id, _app.Employee);
 
         // Act
         _service.AddWorkNote(order.Id, Examples.WorkNote, _app.Employee);
