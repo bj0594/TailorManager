@@ -73,7 +73,7 @@ public class OrdersController : ControllerBase
     [HttpPost("{id}/payments")]
     public IActionResult AddPayment(Guid id, AddPaymentRequest request)
     {
-        return Ok(_service.AddPayment(id, request.Amount));
+        return Ok(_service.RegisterPayment(id, request.Amount, request.TransactionReference, CurrentEmployee()));
     }
 
     [Authorize(Roles = Roles.FrontDesk)]

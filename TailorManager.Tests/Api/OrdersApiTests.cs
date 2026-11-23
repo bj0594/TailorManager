@@ -234,9 +234,7 @@ public class OrdersApiTests : IDisposable
         var paymentAmount = Examples.PaymentAmount;
 
         // Act
-        var response = await client.PostAsJsonAsync(
-            $"/orders/{order.Id}/payments",
-            new { amount = paymentAmount });
+        var response = await client.RegisterPaymentAsync(order.Id, paymentAmount);
 
         // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -268,8 +266,7 @@ public class OrdersApiTests : IDisposable
         var orderDetails = await frontDesk.GetFromJsonAsync<OrderResponse>($"/orders/{order.Id}");
         Assert.NotNull(orderDetails);
         // Pay the full outstanding balance.
-        var paymentResponse = await frontDesk.PostAsJsonAsync($"/orders/{order.Id}/payments",
-        new { amount = orderDetails.OutstandingBalance });
+        var paymentResponse = await frontDesk.RegisterPaymentAsync(order.Id, orderDetails.OutstandingBalance);
         Assert.Equal(HttpStatusCode.OK, paymentResponse.StatusCode);
 
         // Act

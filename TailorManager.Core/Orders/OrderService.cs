@@ -69,7 +69,7 @@ public class OrderService
         return order;
     }
 
-    public Order AddPayment(Guid id, decimal amount)
+    public Order RegisterPayment(Guid id, decimal amount, string transactionReference, User employee)
     {
         var order = GetOrder(id);
         order.Payments.Add(new Payment { Id = Guid.NewGuid(), Amount = amount });

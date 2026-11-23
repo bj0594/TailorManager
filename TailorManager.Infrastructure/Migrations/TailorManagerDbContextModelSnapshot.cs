@@ -91,7 +91,6 @@ namespace TailorManager.Infrastructure.Migrations
             modelBuilder.Entity("TailorManager.Core.OrderHistoryEntry", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
                     b.Property<string>("ActorDisplayName")
@@ -126,6 +125,10 @@ namespace TailorManager.Infrastructure.Migrations
 
                     b.Property<Guid?>("OrderId")
                         .HasColumnType("uuid");
+
+                    b.Property<string>("TransactionReference")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.HasKey("Id");
 

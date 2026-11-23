@@ -120,18 +120,20 @@ public class OrderServiceTests
     }
 
     [Fact]
-    public void AddPayment_ExistingOrder_AddsPayment()
+    public void RegisterPayment_FullPayment_RecordsThePaymentAndDelivers()
     {
         // Arrange
-        var order = _app.AddOrder();
-        const decimal paymentAmount = 500m;
+        var order = _app.AddOrderReadyForPickup();
 
         // Act
-        _service.AddPayment(order.Id, paymentAmount);
+        var result = _service.RegisterPayment(order.Id, Examples.PaymentAmount, Examples.TransactionReference, _app.Employee);
 
         // Assert
-        var payment = Assert.Single(_service.GetOrder(order.Id).Payments);
-        Assert.Equal(paymentAmount, payment.Amount);
+        var payment = Assert.Single(result.Payments);
+        Assert.Equal(Examples.TransactionReference, payment.TransactionReference);
+        Assert.Equal(0m, result.OutstandingBalance);
+        Assert.Equal(OrderStatus.Delivered, result.Status);
+        Assert.Single(result.History, h => h.Type == ActivityType.PaymentReceived);
     }
 
     [Fact]
@@ -178,7 +180,7 @@ public class OrderServiceTests
         // Arrange
         var order = _app.AddOrder();
 
-        _service.AddPayment(order.Id, order.OutstandingBalance);
+        _service.RegisterPayment(order.Id, order.OutstandingBalance, Examples.TransactionReference, _app.Employee);
         _service.MarkReadyForPickup(order.Id, _app.Employee);
 
         // Act
