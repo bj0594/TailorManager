@@ -92,6 +92,7 @@ public class OrderDetailsPageTests : PageTestContext
     public void OrderDetailsPage_SubmitWorkNote_SendsItToTheApi()
     {
         // Arrange
+        _tokens.Role = Roles.Workshop;
         var order = TestDtos.NewOrder() with { Status = "InProgress" };
         var page = RenderOrder(order);
 
@@ -105,15 +106,25 @@ public class OrderDetailsPageTests : PageTestContext
     }
 
     [Fact]
-    public void OrderDetailsPage_NotWorkshop_HidesWorkNote()
+    public void OrderDetailsPage_NotWorkshop_HidesTheNoteForm()
     {
         // Arrange
         _tokens.Role = Roles.FrontDesk;
-        var order = TestDtos.NewOrder() with { Status = "InProgress" };
-        var page = RenderOrder(order);
+        var page = RenderOrder(TestDtos.NewOrder() with { Status = "InProgress" });
 
         // Assert
-        Assert.Empty(page.FindAll("button.worknote"));
+        Assert.Empty(page.FindAll("form.note"));
+    }
+
+    [Fact]
+    public void OrderDetailsPage_NotWorkshop_HidesTheReadyForPickupButton()
+    {
+        // Arrange
+        _tokens.Role = Roles.FrontDesk;
+        var page = RenderOrder(TestDtos.NewOrder() with { Status = "InProgress" });
+
+        // Assert
+        Assert.Empty(page.FindAll("button.readyforpickup"));
     }
 
     [Fact]
@@ -160,15 +171,25 @@ public class OrderDetailsPageTests : PageTestContext
     }
 
     [Fact]
-    public void OrderDetailsPage_Workshop_HidesRegister()
+    public void OrderDetailsPage_NotFrontDesk_HidesThePaymentForm()
     {
         // Arrange
         _tokens.Role = Roles.Workshop;
-        var order = TestDtos.NewOrder();
-        var page = RenderOrder(order);
+        var page = RenderOrder(TestDtos.NewOrder() with { Status = "ReadyForPickup" });
 
         // Assert
-        Assert.Empty(page.FindAll("button.register"));
+        Assert.Empty(page.FindAll("form.payment"));
+    }
+
+    [Fact]
+    public void OrderDetailsPage_NotFrontDesk_HidesTheDeliverButton()
+    {
+        // Arrange
+        _tokens.Role = Roles.Workshop;
+        var page = RenderOrder(TestDtos.NewOrder() with { Status = "ReadyForPickup", OutstandingBalance = 0m });
+
+        // Assert
+        Assert.Empty(page.FindAll("button.deliver"));
     }
 
     [Fact]
@@ -192,6 +213,7 @@ public class OrderDetailsPageTests : PageTestContext
     public void OrderDetailsPage_ClickDeliver_SendsItToTheApi()
     {
         // Arrange
+        _tokens.Role = Roles.FrontDesk;
         var order = TestDtos.NewOrder() with { Status = "ReadyForPickup", OutstandingBalance = 0m };
         var page = RenderOrder(order);
 
