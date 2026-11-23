@@ -83,7 +83,8 @@ public class OrderService
     public Order MarkDelivered(Guid id, User employee)
     {
         var order = GetOrder(id);
-        order.IsDelivered = true;
+        order.Status = OrderStatus.Delivered;
+        AddHistory(order, employee, ActivityType.StatusChanged);
         _repository.Update(order);
         return order;
     }

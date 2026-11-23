@@ -275,6 +275,6 @@ public class OrdersApiTests : IDisposable
         // Assert
         Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
         var deliveredOrder = await frontDesk.GetFromJsonAsync<OrderResponse>($"/orders/{order.Id}");
-        Assert.True(deliveredOrder!.IsDelivered);
+        Assert.Equal("Delivered", deliveredOrder!.Status);
     }
 }
