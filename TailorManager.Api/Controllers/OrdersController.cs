@@ -80,7 +80,7 @@ public class OrdersController : ControllerBase
     [HttpPatch("{id}/deliver")]
     public IActionResult Deliver(Guid id)
     {
-        _service.DeliverOrder(id);
+        _service.MarkDelivered(id, CurrentEmployee());
         return NoContent();
     }
 

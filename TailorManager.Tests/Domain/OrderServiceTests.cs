@@ -175,18 +175,16 @@ public class OrderServiceTests
     }
 
     [Fact]
-    public void DeliverOrder_NoOutstandingBalance_SetsDelivered()
+    public void MarkDelivered_FreeOrderReadyForPickup_SetsDelivered()
     {
         // Arrange
-        var order = _app.AddOrder();
-
-        _service.RegisterPayment(order.Id, order.OutstandingBalance, Examples.TransactionReference, _app.Employee);
-        _service.MarkReadyForPickup(order.Id, _app.Employee);
+        var order = _app.AddOrderReadyForPickup(agreedPrice: 0m);
 
         // Act
-        _service.DeliverOrder(order.Id);
+        var result = _service.MarkDelivered(order.Id, _app.Employee);
 
         // Assert
-        Assert.True(_service.GetOrder(order.Id).IsDelivered);
+        Assert.Equal(OrderStatus.Delivered, result.Status);
+        Assert.Equal(3, result.History.Count(h => h.Type == ActivityType.StatusChanged));
     }
 }

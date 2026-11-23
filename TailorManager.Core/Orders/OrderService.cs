@@ -80,11 +80,12 @@ public class OrderService
         return order;
     }
 
-    public void DeliverOrder(Guid id)
+    public Order MarkDelivered(Guid id, User employee)
     {
         var order = GetOrder(id);
         order.IsDelivered = true;
         _repository.Update(order);
+        return order;
     }
 
     // A new line in the history, by the employee who did it. The history is append-only.
