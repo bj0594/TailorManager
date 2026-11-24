@@ -13,8 +13,11 @@ public class CustomersClient : ICustomersClient
         _http.UseToken(tokens);
     }
 
-    public async Task<CustomerDto> GetCustomerAsync(Guid id) =>
-    (await _http.GetFromJsonAsync<CustomerDto>($"customers/{id}"))!;
+    public async Task<List<CustomerDto>> FindCustomersAsync(string? searchTerm = null)
+    {
+        var url = searchTerm is null ? "customers" : $"customers?searchTerm={Uri.EscapeDataString(searchTerm)}";
+        return await _http.GetFromJsonAsync<List<CustomerDto>>(url) ?? [];
+    }
 
     public async Task<CustomerDto> AddCustomerAsync(string name, string phone, string email, string address)
     {
@@ -22,6 +25,6 @@ public class CustomersClient : ICustomersClient
         return (await response.Content.ReadFromJsonAsync<CustomerDto>())!;
     }
 
-    public async Task<List<CustomerDto>> FindCustomersAsync(string? searchTerm = null) =>
-    await _http.GetFromJsonAsync<List<CustomerDto>>("customers") ?? [];
+    public async Task<CustomerDto> GetCustomerAsync(Guid id) =>
+        (await _http.GetFromJsonAsync<CustomerDto>($"customers/{id}"))!;
 }
