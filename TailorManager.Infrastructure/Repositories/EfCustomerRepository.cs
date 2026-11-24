@@ -28,6 +28,6 @@ public class EfCustomerRepository : ICustomerRepository
         _db.SaveChanges();
     }
 
-    public IReadOnlyList<Customer> Find(string searchTerm) => throw new NotImplementedException();
+    public IReadOnlyList<Customer> Find(string searchTerm) => _db.Customers.Where(i => i.Name == searchTerm).ToList();
 
 }
