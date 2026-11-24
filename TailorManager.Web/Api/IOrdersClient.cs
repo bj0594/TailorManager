@@ -4,7 +4,7 @@ namespace TailorManager.Web.Api;
 // The actions have the names in §5, and throw HttpRequestException with the API's message when the API says no.
 public interface IOrdersClient
 {
-    Task<List<OrderDto>> GetOrdersAsync();
+    Task<List<OrderDto>> ListOrdersAsync(string? status = null, Guid? customerId = null); 
     Task<OrderDto> GetOrderAsync(Guid id);
     Task StartWorkAsync(Guid id);
     Task AddWorkNoteAsync(Guid id, string note);

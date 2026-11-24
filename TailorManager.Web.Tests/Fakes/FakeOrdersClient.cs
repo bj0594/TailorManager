@@ -42,4 +42,10 @@ public class FakeOrdersClient : IOrdersClient
         }
         return Task.CompletedTask;
     }
+
+    public Task<List<OrderDto>> ListOrdersAsync(string? status = null, Guid? customerId = null) =>
+    Task.FromResult(Items
+        .Where(o => status is null || o.Status == status)
+        .Where(o => customerId is null || o.CustomerId == customerId)
+        .ToList());
 }

@@ -33,4 +33,7 @@ public class OrdersClient : IOrdersClient
 
     public Task MarkDeliveredAsync(Guid id) =>
         _http.PatchAsync($"orders/{id}/delivered", null).EnsureSuccessAsync();
+
+    public async Task<List<OrderDto>> ListOrdersAsync(string? status = null, Guid? customerId = null) =>
+    await _http.GetFromJsonAsync<List<OrderDto>>("orders") ?? [];
 }

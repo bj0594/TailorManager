@@ -15,13 +15,13 @@ public class OrdersClientTests
     }
 
     [Fact]
-    public async Task GetOrdersAsync_ApiReturnsTwo_ReturnsBoth()
+    public async Task ListOrdersAsync_ApiReturnsTwo_ReturnsBoth()
     {
         // Arrange
         _handler.Respond("/orders", TestDtos.ToJson(new[] { TestDtos.NewOrder(), TestDtos.NewOrder(workDescription: Examples.OtherWorkDescription) }));
 
         // Act
-        var result = await _client.GetOrdersAsync();
+        var result = await _client.ListOrdersAsync();
 
         // Assert
         Assert.Equal(2, result.Count);
@@ -29,14 +29,14 @@ public class OrdersClientTests
     }
 
     [Fact]
-    public async Task GetOrdersAsync_LoggedIn_SendsTheToken()
+    public async Task ListOrdersAsync_LoggedIn_SendsTheToken()
     {
         // Arrange
         var client = new OrdersClient(_handler.CreateHttpClient(), new TokenStore { Token = "abc" });
         _handler.Respond("/orders", "[]");
 
         // Act
-        await client.GetOrdersAsync();
+        await client.ListOrdersAsync();
 
         // Assert
         Assert.Equal("Bearer abc", _handler.Requests.Single().Headers.Authorization?.ToString());
