@@ -72,4 +72,17 @@ public class CustomersClientTests
         _handler.AssertSent(HttpMethod.Get, $"/customers/{customer.Id}");
         Assert.Equal(Examples.CustomerName, result.Name);
     }
+
+    [Fact]
+    public async Task FindCustomersAsync_WithSearchTerm_SendsItInTheQuery()
+{
+        // Arrange
+        _handler.Respond("/customers", "[]");
+
+        // Act
+        await _client.FindCustomersAsync(Examples.CustomerName);
+
+        // Assert
+        Assert.Contains("?searchTerm=Anna%20Hansen", _handler.Requests[0].RequestUri!.Query);
+    }
 }
