@@ -243,9 +243,9 @@ public class OrdersApiTests : ApiTestBase
         var customer = await client.CreateCustomerAsync();
         var match = await (await client.PostOrderAsync(customer.Id)).Content.ReadFromJsonAsync<OrderResponse>();
         await workshop.StartWorkAsync(match!.Id);
-        await client.PostOrderAsync(customer.Id);          // riktig kunde, ikke startet
-        var other = await client.CreateOrderAsync();       // annen kunde
-        await workshop.StartWorkAsync(other.Id);           // startet, men annen kunde
+        await client.PostOrderAsync(customer.Id);         
+        var other = await client.CreateOrderAsync();       
+        await workshop.StartWorkAsync(other.Id);           
 
         // Act
         var response = await client.GetAsync($"/orders?status=InProgress&customerId={customer.Id}");

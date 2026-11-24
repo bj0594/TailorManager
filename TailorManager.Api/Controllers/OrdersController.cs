@@ -54,6 +54,12 @@ public class OrdersController : ControllerBase
     [HttpPatch("{orderId}/delivered")]
     public IActionResult MarkDelivered(Guid orderId) => Ok(_service.MarkDelivered(orderId, CurrentEmployee()));
 
+    [HttpGet]
+    public IActionResult GetAll([FromQuery] OrderStatus? status, [FromQuery] Guid? customerId)
+    {
+        return Ok(_service.ListOrders(status, customerId));
+    }
+
     // The logged-in employee, from the username in the token. Every action that writes the history sends it to the service.
     private User CurrentEmployee() => _userRepository.GetByUsername(User.Identity!.Name!)!;
 }
