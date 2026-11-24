@@ -30,7 +30,13 @@ public class EfOrderRepository : IOrderRepository
         _db.SaveChanges();
     }
 
-    public List<Order> GetAll(OrderStatus? status = null, Guid? customerId = null) => WithLists().ToList();
+    public List<Order> GetAll(OrderStatus? status = null, Guid? customerId = null)
+    {
+        var query = WithLists();
+        if (status is not null) query = query.Where(o => o.Status == status);
+        if (customerId is not null) query = query.Where(o => o.CustomerId == customerId);
+        return query.ToList();
+    }
 
     // The orders with the lists on them (history and payments), so they are read from the database too.
     private IQueryable<Order> WithLists() => _db.Orders.Include(o => o.History).Include(o => o.Payments);
