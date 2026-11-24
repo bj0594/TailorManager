@@ -33,6 +33,7 @@ public class OrderService
     {
         var query = _repository.GetAll().AsEnumerable();
         if (status is not null) query = query.Where(o => o.Status == status);
+        if (customerId is not null) query = query.Where(o => o.CustomerId == customerId);
         return query.ToList();
     }
     public Order GetOrder(Guid id) =>
