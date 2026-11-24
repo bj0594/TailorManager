@@ -34,6 +34,18 @@ public class OrdersClient : IOrdersClient
     public Task MarkDeliveredAsync(Guid id) =>
         _http.PatchAsync($"orders/{id}/delivered", null).EnsureSuccessAsync();
 
-    public async Task<List<OrderDto>> ListOrdersAsync(string? status = null, Guid? customerId = null) =>
-    await _http.GetFromJsonAsync<List<OrderDto>>("orders") ?? [];
+    public async Task<List<OrderDto>> ListOrdersAsync(string? status = null, Guid? customerId = null)
+    {
+        var filters = new List<string>();
+        if (status is not null) filters.Add($"status={status}");
+        if (customerId is not null) filters.Add($"customerId={customerId}");
+        var url = filters.Count == 0 ? "orders" : $"orders?{string.Join("&", filters)}";
+        return await _http.GetFromJsonAsync<List<OrderDto>>(url) ?? [];
+    }
+
+    public async Task<List<OrderDto>> GetOrderAsync(string? status = null, Guid? customerId = null)
+    {
+        var url = status is null ? "orders" : $"order?status={ status }";
+        return await _http.GetFromJsonAsync<List<OrderDto>>(url) ?? [];
+    }
 }
