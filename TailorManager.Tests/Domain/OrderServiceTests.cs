@@ -195,4 +195,20 @@ public class OrderServiceTests
         var found = Assert.Single(result);
         Assert.Equal(OrderStatus.InProgress, found.Status);
     }
+
+    [Fact]
+    public void ListOrders_WithCustomerId_ReturnsOnlyMatching()
+    {
+        // Arrange
+        var customer = _app.AddCustomer();
+        _app.AddOrder(customer.Id);
+        _app.AddOrder();
+
+        // Act
+        var result = _service.ListOrders(null, customer.Id);
+
+        // Assert
+        var found = Assert.Single(result);
+        Assert.Equal(customer.Id, found.CustomerId);
+    }
 }
