@@ -36,4 +36,21 @@ public class CustomerServiceTests
         // Assert
         Assert.Equal(customer.Id, found.Id);
     }
+
+    [Theory]
+    [InlineData(Examples.CustomerName)]
+    [InlineData(Examples.CustomerPhone)]
+    [InlineData(Examples.CustomerEmail)]
+    public void FindCustomers_ByNamePhoneOrEmail_ReturnsOnlyMatching(string searchTerm)
+    {
+        // Arrange
+        var match = _app.AddCustomer();
+        _service.AddCustomer(Examples.OtherCustomerName, Examples.OtherCustomerPhone, Examples.OtherCustomerEmail, Examples.CustomerAddress);
+
+        // Act
+        var result = _service.FindCustomers(searchTerm);
+
+        // Assert
+        Assert.Equal(match.Id, Assert.Single(result).Id);
+    }
 }

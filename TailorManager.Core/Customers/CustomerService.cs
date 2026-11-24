@@ -17,6 +17,8 @@ public class CustomerService
 
     public List<Customer> GetCustomers() => _repository.GetAll();
 
+    public List<Customer> FindCustomers(string searchTerm) => throw new NotImplementedException();
+
     public Customer GetCustomer(Guid id) =>
         _repository.GetById(id) ?? throw new KeyNotFoundException($"Customer {id} was not found.");
 }

@@ -13,6 +13,8 @@ public static class Examples
 
     // A second customer, for tests that need two (like GetCustomer and the search).
     public const string OtherCustomerName = "Ola Nordmann";
+    public const string OtherCustomerPhone = "11223344";
+    public const string OtherCustomerEmail = "ola@example.com";
 
     // Order: AddOrder(customerId, OrderType.NewGarment, workDescription, agreedPrice, relatedOrderId, employee)
     public const string WorkDescription = "Shorten the trousers by 3 cm";

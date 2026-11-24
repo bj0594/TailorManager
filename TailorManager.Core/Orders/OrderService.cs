@@ -37,7 +37,7 @@ public class OrderService
         return query.ToList();
     }
     public Order GetOrder(Guid id) =>
-        _repository.GetById(id) ?? throw new KeyNotFoundException($"Order {id} was not found.");
+    _repository.GetById(id) ?? throw new KeyNotFoundException($"Order {id} was not found.");
 
     public Order StartOrder(Guid id, User employee)
     {
