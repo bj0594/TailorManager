@@ -1,1 +1,33 @@
 @page "/workshop/orders"
+@using TailorManager.Web.Api
+@inject IOrdersClient Client
+
+<h1>Orders</h1>
+
+<select id="status" @bind="_search">
+    <option value="">All</option>
+    <option value="Submitted">Submitted</option>
+    <option value="InProgress">InProgress</option>
+    <option value="WaitingForCustomer">WaitingForCustomer</option>
+    <option value="WaitingForFitting">WaitingForFitting</option>
+    <option value="ReadyForPickup">ReadyForPickup</option>
+    <option value="Delivered">Delivered</option>
+</select>
+<button id="search-button" @onclick="Search">Search</button>
+
+<ul>
+    @foreach (var item in _items)
+    {
+        <li><a href="orders/@item.Id">@item.WorkDescription (@item.Status)</a></li>
+    }
+</ul>
+
+@code {
+    private List<OrderDto> _items = [];
+    private string _search = "";
+
+    protected override async Task OnInitializedAsync() => await Search();
+
+    private async Task Search() =>
+        _items = await Client.ListOrdersAsync(string.IsNullOrWhiteSpace(_search) ? null : _search);
+}
