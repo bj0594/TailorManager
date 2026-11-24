@@ -180,4 +180,19 @@ public class OrderServiceTests
         // Assert
         Assert.Equal(2, result.Count);
     }
+
+    [Fact]
+    public void ListOrders_WithStatus_ReturnsOnlyMatching()
+    {
+        // Arrange
+        _app.AddOrderInProgress();
+        _app.AddOrder();
+
+        // Act
+        var result = _service.ListOrders(OrderStatus.InProgress, null);
+
+        // Assert
+        var found = Assert.Single(result);
+        Assert.Equal(OrderStatus.InProgress, found.Status);
+    }
 }
