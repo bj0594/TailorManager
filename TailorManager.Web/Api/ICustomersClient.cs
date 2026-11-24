@@ -3,7 +3,7 @@ namespace TailorManager.Web.Api;
 // What the pages can ask the API for. CustomersClient calls the API, and FakeCustomersClient is used in the tests.
 public interface ICustomersClient
 {
-    Task<List<CustomerDto>> GetCustomersAsync();
-    Task<CustomerDto> AddCustomerAsync(string name, string phone, string email, string address);
     Task<List<CustomerDto>> FindCustomersAsync(string? searchTerm = null);
+    Task<CustomerDto> AddCustomerAsync(string name, string phone, string email, string address);
+    Task<CustomerDto> GetCustomerAsync(Guid id);
 }

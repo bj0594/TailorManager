@@ -12,6 +12,9 @@
     <button type="submit">Add</button>
 </form>
 
+<input id="search" @bind="_search" placeholder="Search by name, phone or email" />
+<button id="search-button" @onclick="Search">Search</button>
+
 <ul class="results">
     @foreach (var customer in _results)
     {
@@ -32,5 +35,13 @@
     {
         _results.Add(await Client.AddCustomerAsync(_newName, _newPhone, _newEmail, _newAddress));
         _newName = _newPhone = _newEmail = _newAddress = "";
+    }
+
+    private string _search = "";
+
+    private async Task Search()
+    {
+        _results.Clear();
+        _results.AddRange(await Client.FindCustomersAsync(string.IsNullOrWhiteSpace(_search) ? null : _search));
     }
 }

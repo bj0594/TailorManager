@@ -22,7 +22,7 @@ public class CustomersClientTests
         _handler.Respond("/customers", TestDtos.ToJson(new[] { TestDtos.NewCustomer(), TestDtos.NewCustomer(Examples.OtherCustomerName) }));
 
         // Act
-        var result = await _client.GetCustomersAsync();
+        var result = await _client.FindCustomersAsync();
 
         // Assert
         Assert.Equal(2, result.Count);
@@ -37,7 +37,7 @@ public class CustomersClientTests
         _handler.Respond("/customers", "[]");
 
         // Act
-        await client.GetCustomersAsync();
+        await client.FindCustomersAsync();
 
         // Assert
         Assert.Equal("Bearer abc", _handler.Requests.Single().Headers.Authorization?.ToString());
