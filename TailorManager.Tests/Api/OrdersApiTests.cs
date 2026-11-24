@@ -233,4 +233,25 @@ public class OrdersApiTests : ApiTestBase
         var body = await response.Content.ReadFromJsonAsync<OrderResponse>();
         Assert.Equal("Delivered", body!.Status);
     }
+
+    [Fact]
+    public async Task GetOrders_WithStatusAndCustomer_ReturnsOnlyMatching()
+    {
+        // Arrange
+        var client = await _factory.LogInAsFrontDeskAsync();
+        var workshop = await _factory.LogInAsWorkshopAsync();
+        var customer = await client.CreateCustomerAsync();
+        var match = await (await client.PostOrderAsync(customer.Id)).Content.ReadFromJsonAsync<OrderResponse>();
+        await workshop.StartWorkAsync(match!.Id);
+        await client.PostOrderAsync(customer.Id);          // riktig kunde, ikke startet
+        var other = await client.CreateOrderAsync();       // annen kunde
+        await workshop.StartWorkAsync(other.Id);           // startet, men annen kunde
+
+        // Act
+        var response = await client.GetAsync($"/orders?status=InProgress&customerId={customer.Id}");
+
+        // Assert
+        var body = await response.Content.ReadFromJsonAsync<List<OrderResponse>>();
+        Assert.Equal(match.Id, Assert.Single(body!).Id);
+    }
 }
