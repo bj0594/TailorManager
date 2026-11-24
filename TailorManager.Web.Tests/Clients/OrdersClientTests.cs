@@ -144,4 +144,18 @@ public class OrdersClientTests
         // Assert
         _handler.AssertSent(HttpMethod.Patch, $"/orders/{id}/delivered");
     }
+
+    [Fact]
+    public async Task ListOrdersAsync_WithStatusAndCustomer_SendsThemInTheQuery()
+    {
+        // Arrange
+        var customerId = Guid.NewGuid();
+        _handler.Respond("/orders", "[]");
+
+        // Act
+        await _client.ListOrdersAsync("InProgress", customerId);
+
+        // Assert
+        Assert.Equal($"?status=InProgress&customerId={customerId}", _handler.Requests[0].RequestUri!.Query);
+    }
 }
