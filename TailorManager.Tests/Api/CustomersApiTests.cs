@@ -59,4 +59,21 @@ public class CustomersApiTests : ApiTestBase
         var body = await response.Content.ReadFromJsonAsync<CustomerResponse>();
         Assert.Equal(customer.Id, body!.Id);
     }
+
+    [Fact]
+    public async Task GetCustomers_WithSearchTerm_ReturnsOnlyMatching()
+    {
+        // Arrange
+        var client = await _factory.LogInAsFrontDeskAsync();
+        var match = await client.CreateCustomerAsync();
+        await client.CreateCustomerAsync(Examples.OtherCustomerName);
+
+        // Act
+        var response = await client.GetAsync($"/customers?searchTerm={Uri.EscapeDataString(Examples.CustomerName)}");
+
+        // Assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var body = await response.Content.ReadFromJsonAsync<List<CustomerResponse>>();
+        Assert.Equal(match.Id, Assert.Single(body!).Id);
+    }
 }
