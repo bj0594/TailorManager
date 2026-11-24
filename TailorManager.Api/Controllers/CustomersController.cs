@@ -26,4 +26,10 @@ public class CustomersController : ControllerBase
     {
         return Ok(_service.GetCustomer(customerId));
     }
+
+    [HttpGet]
+    public IActionResult GetAll([FromQuery] string? searchTerm)
+    {
+        return Ok(_service.FindCustomers(searchTerm!));
+    }
 }
