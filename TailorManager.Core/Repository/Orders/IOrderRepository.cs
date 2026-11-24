@@ -6,4 +6,5 @@ public interface IOrderRepository
     List<Order> GetAll();
     Order? GetById(Guid id);
     void Update(Order order);
+    List<Order> GetAll(OrderStatus? status = null, Guid? customerId = null);
 }

@@ -8,6 +8,7 @@ public class FakeOrderRepository : IOrderRepository
     public void Add(Order order) => _orders.Add(order);
     public List<Order> GetAll() => _orders.ToList();
     public Order? GetById(Guid id) => _orders.FirstOrDefault(o => o.Id == id);
+    public List<Order> GetAll(OrderStatus? status = null, Guid? customerId = null) => _orders.ToList();
 
     // The objects in the list are the ones the services change, so there is nothing to save.
     public void Update(Order order)

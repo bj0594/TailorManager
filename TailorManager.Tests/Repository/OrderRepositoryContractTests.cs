@@ -127,6 +127,28 @@ public abstract class OrderRepositoryContractTests
         var stored = Reopen(repository).GetById(order.Id)!;
         Assert.Equal(ActivityType.StatusChanged, Assert.Single(stored.History).Type);
     }
+
+    [Fact]
+    public void GetAll_WithStatusAndCustomer_ReturnsOnlyMatching()
+    {
+        // Arrange
+        var repository = CreateRepository();
+        var customerId = Guid.NewGuid();
+        var match = TestData.NewOrder(customerId);
+        match.Status = OrderStatus.InProgress;
+        var otherStatus = TestData.NewOrder(customerId, Examples.OtherWorkDescription);
+        var otherCustomer = TestData.NewOrder();
+        otherCustomer.Status = OrderStatus.InProgress;
+        repository.Add(match);
+        repository.Add(otherStatus);
+        repository.Add(otherCustomer);
+
+        // Act
+        var found = Reopen(repository).GetAll(OrderStatus.InProgress, customerId);
+
+        // Assert
+        Assert.Equal(match.Id, Assert.Single(found).Id);
+    }
 }
 
 public class FakeOrderRepositoryTests : OrderRepositoryContractTests
