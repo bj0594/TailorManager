@@ -16,7 +16,7 @@ public class CustomersClientTests
     }
 
     [Fact]
-    public async Task GetCustomersAsync_ApiReturnsTwo_ReturnsBoth()
+    public async Task FindCustomersAsync_ApiReturnsTwo_ReturnsBoth()
     {
         // Arrange
         _handler.Respond("/customers", TestDtos.ToJson(new[] { TestDtos.NewCustomer(), TestDtos.NewCustomer(Examples.OtherCustomerName) }));
@@ -30,7 +30,7 @@ public class CustomersClientTests
     }
 
     [Fact]
-    public async Task GetCustomersAsync_LoggedIn_SendsTheToken()
+    public async Task FindCustomersAsync_LoggedIn_SendsTheToken()
     {
         // Arrange
         var client = new CustomersClient(_handler.CreateHttpClient(), new TokenStore { Token = "abc" });
