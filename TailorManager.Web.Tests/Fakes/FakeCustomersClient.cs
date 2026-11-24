@@ -15,5 +15,8 @@ public class FakeCustomersClient : ICustomersClient
         return Task.FromResult(customer);
     }
 
-    public Task<CustomerDto> GetCustomerAsync(Guid id) => Task.FromResult(Items.Single(i => i.Id == id));
+    public Task<List<CustomerDto>> FindCustomersAsync(string? searchTerm = null) =>
+    Task.FromResult(Items
+        .Where(c => searchTerm is null || c.Name == searchTerm || c.Phone == searchTerm || c.Email == searchTerm)
+        .ToList());
 }

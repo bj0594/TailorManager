@@ -5,5 +5,5 @@ public interface ICustomersClient
 {
     Task<List<CustomerDto>> GetCustomersAsync();
     Task<CustomerDto> AddCustomerAsync(string name, string phone, string email, string address);
-    Task<CustomerDto> GetCustomerAsync(Guid id);
+    Task<List<CustomerDto>> FindCustomersAsync(string? searchTerm = null);
 }

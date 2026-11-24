@@ -22,6 +22,6 @@ public class CustomersClient : ICustomersClient
         return (await response.Content.ReadFromJsonAsync<CustomerDto>())!;
     }
 
-    public async Task<CustomerDto> GetCustomerAsync(Guid id) =>
-        (await _http.GetFromJsonAsync<CustomerDto>($"customers/{id}"))!;
+    public async Task<List<CustomerDto>> FindCustomersAsync(string? searchTerm = null) =>
+    await _http.GetFromJsonAsync<List<CustomerDto>>("customers") ?? [];
 }

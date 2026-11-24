@@ -37,4 +37,21 @@ public class FrontDeskSearchPageTests : PageTestContext
         // Assert
         page.WaitForAssertion(() => Assert.Contains(Examples.CustomerName, page.Find(".results").TextContent));
     }
+
+    [Fact]
+    public void FrontDeskSearchPage_Search_ShowsOnlyMatching()
+    {
+        // Arrange
+        _customers.Items.Add(TestDtos.NewCustomer());
+        _customers.Items.Add(TestDtos.NewCustomer(Examples.OtherCustomerName));
+        var page = Render<FrontDeskSearchPage>();
+
+        // Act
+        page.Find("#search").Change(Examples.CustomerName);
+        page.Find("#search-button").Click();
+
+        // Assert
+        page.WaitForAssertion(() =>
+            Assert.Contains(Examples.CustomerName, Assert.Single(page.FindAll(".results li")).TextContent));
+    }
 }
