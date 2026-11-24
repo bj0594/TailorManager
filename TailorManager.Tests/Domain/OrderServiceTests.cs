@@ -166,4 +166,18 @@ public class OrderServiceTests
         Assert.Equal(OrderStatus.Delivered, result.Status);
         Assert.Equal(3, result.History.Count(h => h.Type == ActivityType.StatusChanged));
     }
+
+    [Fact]
+    public void ListOrders_NoFilter_ReturnsAll()
+    {
+        // Arrange
+        _app.AddOrder();
+        _app.AddOrder();
+
+        // Act
+        var result = _service.ListOrders(null, null);
+
+        // Assert
+        Assert.Equal(2, result.Count);
+    }
 }

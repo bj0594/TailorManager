@@ -29,8 +29,8 @@ public class OrderService
         return order;
     }
 
-    public List<Order> GetOrders() => _repository.GetAll();
-
+    public List<Order> ListOrders(OrderStatus? status = null, Guid? customerId = null) => _repository.GetAll();
+    
     public Order GetOrder(Guid id) =>
         _repository.GetById(id) ?? throw new KeyNotFoundException($"Order {id} was not found.");
 
