@@ -27,4 +27,7 @@ public class EfCustomerRepository : ICustomerRepository
         _db.Customers.Update(customer);
         _db.SaveChanges();
     }
+
+    public IReadOnlyList<Customer> Find(string searchTerm) => throw new NotImplementedException();
+
 }

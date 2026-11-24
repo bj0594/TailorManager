@@ -8,6 +8,8 @@ public class FakeCustomerRepository : ICustomerRepository
     public void Add(Customer customer) => _customers.Add(customer);
     public List<Customer> GetAll() => _customers;
     public Customer? GetById(Guid id) => _customers.FirstOrDefault(c => c.Id == id);
+    public IReadOnlyList<Customer> Find(string searchTerm) => throw new NotImplementedException();
+
 
     // The objects in the list are the ones the services change, so there is nothing to save.
     public void Update(Customer customer)

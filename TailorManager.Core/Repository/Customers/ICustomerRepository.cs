@@ -6,4 +6,5 @@ public interface ICustomerRepository
     List<Customer> GetAll();
     Customer? GetById(Guid id);
     void Update(Customer customer);
+    IReadOnlyList<Customer> Find(string searchTerm);
 }

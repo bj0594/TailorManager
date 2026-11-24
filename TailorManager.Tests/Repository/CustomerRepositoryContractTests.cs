@@ -54,6 +54,23 @@ public abstract class CustomerRepositoryContractTests
         Assert.Contains(all, c => c.Id == first.Id);
         Assert.Contains(all, c => c.Id == second.Id);
     }
+
+    [Fact]
+    public void Find_ByName_ReturnsOnlyMatching()
+    {
+        // Arrange
+        var repository = CreateRepository();
+        var searchTerm = Guid.NewGuid().ToString();
+        var match = TestData.NewCustomer(searchTerm);
+        repository.Add(match);
+        repository.Add(TestData.NewCustomer(Examples.OtherCustomerName));
+
+        // Act
+        var found = repository.Find(searchTerm);
+
+        // Assert
+        Assert.Equal(match.Id, Assert.Single(found).Id);
+    }
 }
 
 public class FakeCustomerRepositoryTests : CustomerRepositoryContractTests
