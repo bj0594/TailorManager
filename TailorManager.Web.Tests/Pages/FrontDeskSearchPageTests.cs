@@ -54,4 +54,25 @@ public class FrontDeskSearchPageTests : PageTestContext
         page.WaitForAssertion(() =>
             Assert.Contains(Examples.CustomerName, Assert.Single(page.FindAll(".results li")).TextContent));
     }
+
+    [Fact]
+    public void FrontDeskSearchPage_CreateOrder_SendsItToTheApi()
+    {
+        // Arrange
+        var customer = TestDtos.NewCustomer();
+        _customers.Items.Add(customer);
+        var page = Render<FrontDeskSearchPage>();
+        page.Find("#search").Change(Examples.CustomerName);
+        page.Find("#search-button").Click();
+
+        // Act
+        page.WaitForElement(".results button.neworder").Click();
+        page.Find("#type").Change("NewGarment");
+        page.Find("#workDescription").Change(Examples.WorkDescription);
+        page.Find("#agreedPrice").Change(Examples.AgreedPrice.ToString());
+        page.Find("form.order").Submit();
+
+        // Assert
+        page.WaitForAssertion(() => Assert.Equal(customer.Id, Assert.Single(_orders.Items).CustomerId));
+    }
 }
