@@ -314,4 +314,24 @@ public class OrdersApiTests : ApiTestBase
         Assert.Equal("WaitingForCustomer", body.Status);
         Assert.Equal(2, body.CustomerDecisionRequests.Count);
     }
+
+    [Fact]
+    public async Task PostOrdersDecision_Approved_ReturnsOkWithTheNewPrice()
+    {
+        // Arrange
+        var frontDesk = await _factory.LogInAsFrontDeskAsync();
+        var workshop = await _factory.LogInAsWorkshopAsync();
+        var order = await frontDesk.CreateOrderWaitingForCustomerAsync(workshop);
+        var request = order.CustomerDecisionRequests.Single();
+
+        // Act
+        var response = await workshop.RecordCustomerDecisionAsync(order.Id, request.Id);
+
+        // Assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var body = await response.ReadOrderAsync();
+        Assert.Equal(Examples.AgreedPrice + Examples.ProposedPriceAdjustment, body.CurrentAgreedPrice);
+        Assert.Equal("Approved", body.CustomerDecisionRequests.Single().Status);
+        Assert.Equal("InProgress", body.Status);
+    }
 }

@@ -94,6 +94,16 @@ public static class ApiTestData
     public static Task<HttpResponseMessage> RequestCustomerDecisionAsync(this HttpClient client, Guid orderId, decimal? proposedPriceAdjustment = Examples.ProposedPriceAdjustment) =>
         client.PostAsJsonAsync($"/orders/{orderId}/decision-requests", new { proposedWorkChange = Examples.ProposedWorkChange, proposedPriceAdjustment });
 
+    public static Task<HttpResponseMessage> RecordCustomerDecisionAsync(this HttpClient client, Guid orderId, Guid requestId, bool approved = true) =>
+        client.PostAsJsonAsync($"/orders/{orderId}/decision-requests/{requestId}/decision", new { communicationId = Guid.NewGuid(), approved });
+
+    // An order that waits for the customer: Kari makes it, and Ola starts it and asks about the change. The pending request is the last in the list.
+    public static async Task<OrderResponse> CreateOrderWaitingForCustomerAsync(this HttpClient frontDesk, HttpClient workshop, decimal? proposedPriceAdjustment = Examples.ProposedPriceAdjustment)
+    {
+        var order = await frontDesk.CreateOrderInProgressAsync(workshop);
+        return await (await workshop.RequestCustomerDecisionAsync(order.Id, proposedPriceAdjustment)).ReadOrderAsync();
+    }
+
     // The answer as an OrderResponse, after checking it is 200 OK: var body = await response.ReadOrderAsync();
     public static async Task<OrderResponse> ReadOrderAsync(this HttpResponseMessage response)
     {
@@ -104,7 +114,7 @@ public static class ApiTestData
 
 // The answers as the API tests read them. Add a field when a test checks it, with the name from the response in api.md.
 public record CustomerResponse(Guid Id, string Name, string Phone, string Email, string Address);
-public record OrderResponse(Guid Id, Guid CustomerId, string WorkDescription, decimal InitialAgreedPrice, decimal OutstandingBalance, string Status, List<OrderHistoryResponse> History, List<PaymentResponse> Payments,
+public record OrderResponse(Guid Id, Guid CustomerId, string WorkDescription, decimal InitialAgreedPrice, decimal CurrentAgreedPrice, decimal OutstandingBalance, string Status, List<OrderHistoryResponse> History, List<PaymentResponse> Payments,
     List<CustomerDecisionRequestResponse> CustomerDecisionRequests);
 public record OrderHistoryResponse(string? ActorDisplayName, string Type, string? Note, DateTimeOffset OccurredAt);
 public record PaymentResponse(Guid Id, decimal Amount, string TransactionReference);
