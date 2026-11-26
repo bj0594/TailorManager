@@ -22,6 +22,20 @@ else
         Outstanding balance: @_item.OutstandingBalance
     </p>
 
+    <h2>Approvals</h2>
+    <ul class="approvals">
+        @foreach (var approval in _item.CustomerApprovals ?? [])
+        {
+            <li>@approval.Scope, @approval.Method @approval.DocumentReference (@approval.ApprovedAmount)</li>
+        }
+    </ul>
+
+    @* Moves into the FrontDesk block in "Only FrontDesk can record the initial approval". *@
+    <form class="initialapproval" @onsubmit="RecordInitialApproval">
+        <input class="documentreference" @bind="_newDocumentReference" placeholder="Signed form, like FORM-1001" />
+        <button type="submit">Record the signed form</button>
+    </form>
+
     <h2>Customer decisions</h2>
     <ul class="decisionrequests">
         @foreach (var request in _item.CustomerDecisionRequests ?? [])
@@ -209,6 +223,17 @@ else
         {
             _newContent = "";
             _newMessageOutcome = "";
+        }
+    }
+
+    private string _newDocumentReference = "";
+
+    // The intake form the customer signed at the counter.
+    private async Task RecordInitialApproval()
+    {
+        if (await Run(() => Client.RecordInitialApprovalAsync(Id, "SignedForm", _newDocumentReference)))
+        {
+            _newDocumentReference = "";
         }
     }
 
