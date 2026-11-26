@@ -16,6 +16,11 @@
 <input id="search" @bind="_search" placeholder="Search by name, phone or email" />
 <button id="search-button" @onclick="Search">Search</button>
 
+@if (_searched && _results.Count == 0)
+{
+    <p class="empty">No customers found</p>
+}
+
 <ul class="results">
     @foreach (var customer in _results)
     {
@@ -65,6 +70,9 @@
 
     private string _search = "";
 
+    // "No customers found" is only shown after a search, not before the first one.
+    private bool _searched;
+
     // The customer the new order is for, chosen with the button in the results.
     private CustomerDto? _orderCustomer;
     private string _newType = "NewGarment";
@@ -96,5 +104,6 @@
     {
         _results.Clear();
         _results.AddRange(await Client.FindCustomersAsync(string.IsNullOrWhiteSpace(_search) ? null : _search));
+        _searched = true;
     }
 }
