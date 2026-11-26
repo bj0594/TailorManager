@@ -178,4 +178,21 @@ public class OrdersClientTests
         Assert.Equal(Examples.AgreedPrice, body.GetProperty("agreedPrice").GetDecimal());
         Assert.Equal(customerId, result.CustomerId);
     }
+
+    [Fact]
+    public async Task RequestCustomerDecisionAsync_Always_PostsTheRequest()
+    {
+        // Arrange
+        var id = Guid.NewGuid();
+        _handler.Respond($"/orders/{id}/decision-requests", "{}");
+
+        // Act
+        await _client.RequestCustomerDecisionAsync(id, Examples.ProposedWorkChange, Examples.ProposedPriceAdjustment);
+
+        // Assert
+        _handler.AssertSent(HttpMethod.Post, $"/orders/{id}/decision-requests");
+        var body = JsonDocument.Parse(_handler.Bodies.Single()!).RootElement;
+        Assert.Equal(Examples.ProposedWorkChange, body.GetProperty("proposedWorkChange").GetString());
+        Assert.Equal(Examples.ProposedPriceAdjustment, body.GetProperty("proposedPriceAdjustment").GetDecimal());
+    }
 }
