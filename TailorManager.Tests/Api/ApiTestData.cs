@@ -133,6 +133,9 @@ public static class ApiTestData
     public static Task<HttpResponseMessage> RecordInitialApprovalAsync(this HttpClient client, Guid orderId, string? documentReference = Examples.ApprovalDocumentReference) =>
         client.PostAsJsonAsync($"/orders/{orderId}/approvals", new { method = "SignedForm", documentReference });
 
+    public static Task<HttpResponseMessage> RecordInspectionFeeAgreementAsync(this HttpClient client, Guid orderId, decimal amount = Examples.InspectionFeeAmount, string? documentReference = Examples.InspectionFeeDocumentReference) =>
+        client.PostAsJsonAsync($"/orders/{orderId}/inspection-fee-agreements", new { amount, documentReference });
+
     // The answer as an OrderResponse, after checking it is 200 OK: var body = await response.ReadOrderAsync();
     public static async Task<OrderResponse> ReadOrderAsync(this HttpResponseMessage response)
     {
