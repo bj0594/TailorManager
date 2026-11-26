@@ -43,5 +43,7 @@ public class EfOrderRepository : IOrderRepository
     private IQueryable<Order> WithLists() => _db.Orders
         .Include(o => o.History.OrderBy(h => h.OccurredAt))
         .Include(o => o.Payments)
-        .Include(o => o.CustomerDecisionRequests);
+        .Include(o => o.CustomerDecisionRequests)
+        .Include(o => o.CustomerApprovals)
+        .Include(o => o.ApprovedPriceAdjustments);
 }
