@@ -37,6 +37,13 @@ public class OrdersController : ControllerBase
         return Created($"/orders/{orderId}", approval);
     }
 
+    [HttpPost("{orderId}/inspection-fee-agreements")]
+    public IActionResult RecordInspectionFeeAgreement(Guid orderId, RecordInspectionFeeAgreementRequest request)
+    {
+        var approval = _service.RecordInspectionFeeAgreement(orderId, request.Amount, request.DocumentReference, CurrentEmployee());
+        return Created($"/orders/{orderId}", approval);
+    }
+
     [HttpGet("{orderId}")]
     public IActionResult GetById(Guid orderId) => Ok(_service.GetOrder(orderId));
 
