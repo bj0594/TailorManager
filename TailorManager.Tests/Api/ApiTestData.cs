@@ -118,6 +118,18 @@ public static class ApiTestData
         return await (await workshop.ScheduleFittingAsync(order.Id)).ReadOrderAsync();
     }
 
+    // The communication in §4: an email from the customer. outcome: "Received", "Sent" or "Failed".
+    public static Task<HttpResponseMessage> RecordCommunicationAsync(this HttpClient client, Guid orderId, string direction = "Incoming", string outcome = "Received") =>
+        client.PostAsJsonAsync($"/orders/{orderId}/communications", new
+        {
+            channel = "Email",
+            direction,
+            source = direction == "Incoming" ? "Customer" : "Manual",
+            content = Examples.CommunicationContent,
+            outcome,
+            occurredAt = DateTimeOffset.UtcNow
+        });
+
     // The answer as an OrderResponse, after checking it is 200 OK: var body = await response.ReadOrderAsync();
     public static async Task<OrderResponse> ReadOrderAsync(this HttpResponseMessage response)
     {
@@ -129,8 +141,9 @@ public static class ApiTestData
 // The answers as the API tests read them. Add a field when a test checks it, with the name from the response in api.md.
 public record CustomerResponse(Guid Id, string Name, string Phone, string Email, string Address);
 public record OrderResponse(Guid Id, Guid CustomerId, string WorkDescription, decimal InitialAgreedPrice, decimal CurrentAgreedPrice, decimal OutstandingBalance, string Status, List<OrderHistoryResponse> History, List<PaymentResponse> Payments,
-    List<CustomerDecisionRequestResponse> CustomerDecisionRequests, List<FittingResponse> Fittings);
+    List<CustomerDecisionRequestResponse> CustomerDecisionRequests, List<FittingResponse> Fittings, List<CommunicationResponse> Communications);
 public record OrderHistoryResponse(string? ActorDisplayName, string Type, string? Note, DateTimeOffset OccurredAt);
 public record PaymentResponse(Guid Id, decimal Amount, string TransactionReference);
 public record CustomerDecisionRequestResponse(Guid Id, string ProposedWorkChange, decimal? ProposedPriceAdjustment, string Status);
 public record FittingResponse(Guid Id, DateTimeOffset ScheduledAt, DateTimeOffset? CompletedAt, string? Outcome);
+public record CommunicationResponse(Guid Id, string Channel, string Direction, string Source, string Content, string Outcome, DateTimeOffset OccurredAt);
