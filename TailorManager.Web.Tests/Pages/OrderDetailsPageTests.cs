@@ -1,5 +1,4 @@
 using System.Globalization;
-
 using Bunit;
 using TailorManager.Web.Api;
 using TailorManager.Web.Components.Pages;

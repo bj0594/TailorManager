@@ -207,6 +207,25 @@ public abstract class OrderRepositoryContractTests
         Assert.Equal(approval.Id, Assert.Single(found.ApprovedPriceAdjustments).CustomerApprovalId);
         Assert.Equal(Examples.AgreedPrice + Examples.ProposedPriceAdjustment, found.CurrentAgreedPrice);
     }
+
+    [Fact]
+    public void Update_NewFitting_IsStored()
+    {
+        // Arrange
+        var repository = CreateRepository();
+        var order = TestData.NewOrder();
+        repository.Add(order);
+        var scheduledAt = new DateTimeOffset(2026, 11, 4, 10, 0, 0, TimeSpan.Zero);
+
+        // Act
+        order.Fittings.Add(new FittingAppointment { Id = Guid.NewGuid(), ScheduledAt = scheduledAt });
+        repository.Update(order);
+
+        // Assert
+        var fitting = Assert.Single(Reopen(repository).GetById(order.Id)!.Fittings);
+        Assert.Equal(scheduledAt, fitting.ScheduledAt);
+        Assert.Null(fitting.Outcome);
+    }
 }
 
 public class FakeOrderRepositoryTests : OrderRepositoryContractTests
