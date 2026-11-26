@@ -439,4 +439,23 @@ public class OrderServiceTests
         Assert.Equal(OrderStatus.InProgress, changed.Status);
         Assert.Equal(CommunicationOutcome.Failed, Assert.Single(changed.Communications).Outcome);
     }
+
+    [Fact]
+    public void RecordInitialApproval_SignedForm_RecordsTheApproval()
+    {
+        // Arrange
+        var order = _app.AddOrder();
+
+        // Act
+        var approval = _service.RecordInitialApproval(order.Id, ApprovalMethod.SignedForm, Examples.ApprovalDocumentReference, _app.Employee);
+
+        // Assert
+        Assert.Equal(ApprovalScope.InitialOrder, approval.Scope);
+        Assert.Equal(ApprovalMethod.SignedForm, approval.Method);
+        Assert.Equal(Examples.ApprovalDocumentReference, approval.DocumentReference);
+        Assert.Equal(Examples.AgreedPrice, approval.ApprovedAmount);
+        var found = _service.GetOrder(order.Id);
+        Assert.Contains(approval, found.CustomerApprovals);
+        Assert.Contains(found.History, h => h.Type == ActivityType.InitialApprovalRecorded && h.RelatedEntityId == approval.Id);
+    }
 }
