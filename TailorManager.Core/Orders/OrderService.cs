@@ -189,8 +189,25 @@ public class OrderService
         return Save(order);
     }
 
-    public CustomerApproval RecordInitialApproval(Guid id, ApprovalMethod method, string? documentReference, User employee) =>
-        throw new NotImplementedException();
+    // The customer's agreement to the order and the price, usually the signed intake form (§2).
+    public CustomerApproval RecordInitialApproval(Guid id, ApprovalMethod method, string? documentReference, User employee)
+    {
+        var order = GetOrder(id);
+        var approval = new CustomerApproval
+        {
+            Id = Guid.NewGuid(),
+            Scope = ApprovalScope.InitialOrder,
+            Method = method,
+            ApprovedAt = _clock.GetUtcNow(),
+            DocumentReference = documentReference,
+            ApprovedAmount = order.CurrentAgreedPrice,
+            ApprovedTerms = order.WorkDescription
+        };
+        order.CustomerApprovals.Add(approval);
+        AddHistory(order, employee, ActivityType.InitialApprovalRecorded, relatedEntityId: approval.Id);
+        Save(order);
+        return approval;
+    }
 
     // The customer is told the order is ready: a notification request in the history (§4). Nothing is sent from Core.
     public Order MarkReadyForPickup(Guid id, User employee)
