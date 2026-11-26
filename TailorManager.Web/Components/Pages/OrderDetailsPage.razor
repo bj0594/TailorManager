@@ -41,7 +41,15 @@ else
     <ul class="fittings">
         @foreach (var fitting in _item.Fittings ?? [])
         {
-            <li>@fitting.ScheduledAt.ToLocalTime().ToString("g") @fitting.Outcome</li>
+            <li>
+                @fitting.ScheduledAt.ToLocalTime().ToString("g") @fitting.Outcome
+                @if (fitting.CompletedAt is null)
+                {
+                    @* Gets a Workshop check in "Only Workshop can complete fittings". *@
+                    <input class="outcome" @bind="_newOutcome" placeholder="Outcome" />
+                    <button class="completefitting" @onclick="() => CompleteFitting(fitting.Id)">Complete</button>
+                }
+            </li>
         }
     </ul>
 
@@ -76,7 +84,7 @@ else
         </form>
 
         <form class="fitting" @onsubmit="ScheduleFitting">
-            <input class="scheduledat" type="datetime-local" value="@_newFittingAt" @onchange="@(e => _newFittingAt = e.Value?.ToString() ?? string.Empty)" />            
+            <input class="scheduledat" type="datetime-local" value="@_newFittingAt" @onchange="@(e => _newFittingAt = e.Value?.ToString() ?? string.Empty)" />
             <button type="submit">Schedule fitting</button>
         </form>
     }
@@ -148,6 +156,16 @@ else
         if (await Run(() => Client.ScheduleFittingAsync(Id, scheduledAt)))
         {
             _newFittingAt = "";
+        }
+    }
+
+    private string _newOutcome = "";
+
+    private async Task CompleteFitting(Guid fittingId)
+    {
+        if (await Run(() => Client.CompleteFittingAsync(Id, fittingId, _newOutcome)))
+        {
+            _newOutcome = "";
         }
     }
 
