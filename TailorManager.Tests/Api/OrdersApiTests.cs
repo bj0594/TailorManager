@@ -519,4 +519,20 @@ public class OrdersApiTests : ApiTestBase
         Assert.Equal("InspectionFee", body!.Scope);
         Assert.Equal(Examples.InspectionFeeAmount, body.ApprovedAmount);
     }
+
+    [Fact]
+    public async Task PostOrders_WithRelatedOrder_ReturnsCreatedWithTheLink()
+    {
+        // Arrange
+        var frontDesk = await _factory.LogInAsFrontDeskAsync();
+        var earlier = await frontDesk.CreateOrderAsync();
+
+        // Act
+        var response = await frontDesk.PostOrderAsync(earlier.CustomerId, Examples.OtherWorkDescription, relatedOrderId: earlier.Id);
+
+        // Assert
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+        var body = await response.Content.ReadFromJsonAsync<OrderResponse>();
+        Assert.Equal(earlier.Id, body!.RelatedOrderId);
+    }
 }

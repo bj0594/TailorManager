@@ -46,8 +46,8 @@ public static class ApiTestData
     }
 
     // POST /orders, and the whole answer, for the tests that check the status code.
-    public static Task<HttpResponseMessage> PostOrderAsync(this HttpClient client, Guid customerId, string workDescription = Examples.WorkDescription, decimal agreedPrice = Examples.AgreedPrice) =>
-        client.PostAsJsonAsync("/orders", NewOrderRequest(customerId, workDescription, agreedPrice));
+    public static Task<HttpResponseMessage> PostOrderAsync(this HttpClient client, Guid customerId, string workDescription = Examples.WorkDescription, decimal agreedPrice = Examples.AgreedPrice, Guid? relatedOrderId = null) =>
+        client.PostAsJsonAsync("/orders", NewOrderRequest(customerId, workDescription, agreedPrice, relatedOrderId));
 
     // A new customer and an order for them, and the order from the answer. The client must be logged in as FrontDesk.
     public static async Task<OrderResponse> CreateOrderAsync(this HttpClient client, string workDescription = Examples.WorkDescription, decimal agreedPrice = Examples.AgreedPrice)
@@ -146,7 +146,7 @@ public static class ApiTestData
 
 // The answers as the API tests read them. Add a field when a test checks it, with the name from the response in api.md.
 public record CustomerResponse(Guid Id, string Name, string Phone, string Email, string Address);
-public record OrderResponse(Guid Id, Guid CustomerId, string WorkDescription, decimal InitialAgreedPrice, decimal CurrentAgreedPrice, decimal OutstandingBalance, string Status, List<OrderHistoryResponse> History, List<PaymentResponse> Payments,
+public record OrderResponse(Guid Id, Guid CustomerId, Guid? RelatedOrderId, string WorkDescription, decimal InitialAgreedPrice, decimal CurrentAgreedPrice, decimal OutstandingBalance, string Status, List<OrderHistoryResponse> History, List<PaymentResponse> Payments,
     List<CustomerDecisionRequestResponse> CustomerDecisionRequests, List<FittingResponse> Fittings, List<CommunicationResponse> Communications);
 public record OrderHistoryResponse(string? ActorDisplayName, string Type, string? Note, DateTimeOffset OccurredAt);
 public record PaymentResponse(Guid Id, decimal Amount, string TransactionReference);
