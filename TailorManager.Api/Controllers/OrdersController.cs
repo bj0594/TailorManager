@@ -29,6 +29,13 @@ public class OrdersController : ControllerBase
         return Created($"/orders/{order.Id}", order);
     }
 
+    [HttpPost("{orderId}/approvals")]
+    public IActionResult RecordInitialApproval(Guid orderId, RecordInitialApprovalRequest request)
+    {
+        var approval = _service.RecordInitialApproval(orderId, request.Method, request.DocumentReference, CurrentEmployee());
+        return Created($"/orders/{orderId}", approval);
+    }
+
     [HttpGet("{orderId}")]
     public IActionResult GetById(Guid orderId) => Ok(_service.GetOrder(orderId));
 
