@@ -335,4 +335,22 @@ public class OrdersApiTests : ApiTestBase
         Assert.Equal("Approved", body.CustomerDecisionRequests.Single().Status);
         Assert.Equal("InProgress", body.Status);
     }
+
+    [Fact]
+    public async Task PostOrdersDecision_ApprovedWithoutPrice_ReturnsOkWithThePriceUnchanged()
+    {
+        // Arrange
+        var frontDesk = await _factory.LogInAsFrontDeskAsync();
+        var workshop = await _factory.LogInAsWorkshopAsync();
+        var order = await frontDesk.CreateOrderWaitingForCustomerAsync(workshop, proposedPriceAdjustment: null);
+
+        // Act
+        var response = await workshop.RecordCustomerDecisionAsync(order.Id, order.CustomerDecisionRequests.Single().Id);
+
+        // Assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var body = await response.ReadOrderAsync();
+        Assert.Equal("Approved", body.CustomerDecisionRequests.Single().Status);
+        Assert.Equal(Examples.AgreedPrice, body.CurrentAgreedPrice);
+    }
 }
