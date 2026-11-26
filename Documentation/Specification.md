@@ -864,8 +864,8 @@ No cycle, built on the module page: Register an employee and Log in (Innlogging)
 
 ### (FrontDesk) Only FrontDesk can record an inspection fee agreement
 
-- [ ] API: POST /orders/{orderId}/inspection-fee-agreements as Workshop → 403 Forbidden
-- [ ] Web: the inspection fee form is hidden for Workshop
+- [x] API: POST /orders/{orderId}/inspection-fee-agreements as Workshop → 403 Forbidden
+- [x] Web: the inspection fee form is hidden for Workshop
 
 ### (FrontDesk) Link to an earlier order
 
