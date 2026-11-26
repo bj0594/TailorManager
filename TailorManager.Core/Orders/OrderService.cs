@@ -72,8 +72,13 @@ public class OrderService
         };
         order.CustomerDecisionRequests.Add(request);
         AddHistory(order, employee, ActivityType.CustomerDecisionRequested, relatedEntityId: request.Id);
-        MoveTo(order, OrderStatus.WaitingForCustomer, employee);
-        AddHistory(order, employee, ActivityType.NotificationRequested);
+
+        // The customer is told once, when the order starts waiting (§4).
+        if (order.Status != OrderStatus.WaitingForCustomer)
+        {
+            MoveTo(order, OrderStatus.WaitingForCustomer, employee);
+            AddHistory(order, employee, ActivityType.NotificationRequested);
+        }
         return Save(order);
     }
 
