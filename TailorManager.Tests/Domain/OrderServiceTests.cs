@@ -558,4 +558,15 @@ public class OrderServiceTests
         Assert.Single(found.CustomerApprovals);
         Assert.Equal(Examples.AgreedPrice + Examples.ProposedPriceAdjustment, found.CurrentAgreedPrice);
     }
+
+    [Fact]
+    public void ScheduleFitting_NotInProgress_ThrowsInvalidOrderStatusException()
+    {
+        // Arrange: a Submitted order
+        var order = _app.AddOrder();
+
+        // Act + Assert
+        Assert.Throws<InvalidOrderStatusException>(() => _service.ScheduleFitting(order.Id, _app.Clock.Now.AddDays(2), _app.Employee));
+        Assert.Empty(_service.GetOrder(order.Id).Fittings);
+    }
 }
