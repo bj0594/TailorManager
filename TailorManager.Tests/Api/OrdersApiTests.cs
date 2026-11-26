@@ -427,4 +427,23 @@ public class OrdersApiTests : ApiTestBase
         var body = await response.ReadOrderAsync();
         Assert.Equal(Examples.FittingOutcome, body.Fittings.Single().Outcome);
     }
+
+    [Fact]
+    public async Task PatchOrdersFittingsComplete_LastOpenFitting_ReturnsOkInProgress()
+    {
+        // Arrange: two fittings, and the first is completed
+        var frontDesk = await _factory.LogInAsFrontDeskAsync();
+        var workshop = await _factory.LogInAsWorkshopAsync();
+        var order = await frontDesk.CreateOrderWaitingForFittingAsync(workshop);
+        var fittings = (await (await workshop.ScheduleFittingAsync(order.Id)).ReadOrderAsync()).Fittings;
+        var afterFirst = await (await workshop.CompleteFittingAsync(order.Id, fittings[0].Id)).ReadOrderAsync();
+
+        // Act
+        var response = await workshop.CompleteFittingAsync(order.Id, fittings[1].Id);
+
+        // Assert
+        Assert.Equal("WaitingForFitting", afterFirst.Status);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal("InProgress", (await response.ReadOrderAsync()).Status);
+    }
 }
