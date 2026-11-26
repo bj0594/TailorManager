@@ -465,4 +465,22 @@ public class OrdersApiTests : ApiTestBase
         Assert.Equal(Examples.CommunicationContent, body.Communications.Single().Content);
         Assert.Contains(body.History, h => h.Type == "CommunicationRecorded");
     }
+
+    [Fact]
+    public async Task PostOrdersCommunications_Failed_ReturnsOkWithTheStatusUnchanged()
+    {
+        // Arrange
+        var frontDesk = await _factory.LogInAsFrontDeskAsync();
+        var workshop = await _factory.LogInAsWorkshopAsync();
+        var order = await frontDesk.CreateOrderInProgressAsync(workshop);
+
+        // Act
+        var response = await workshop.RecordCommunicationAsync(order.Id, "Outgoing", "Failed");
+
+        // Assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var body = await response.ReadOrderAsync();
+        Assert.Equal("InProgress", body.Status);
+        Assert.Equal("Failed", body.Communications.Single().Outcome);
+    }
 }
