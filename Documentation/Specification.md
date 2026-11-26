@@ -696,10 +696,10 @@ No cycle, built on the module page: Register an employee and Log in (Innlogging)
 
 ### Order history
 
-- [ ] Core: the history is returned oldest first, references the detailed records, and earlier entries are never changed
-- [ ] API: GET /orders/{orderId} → 200 OK, with the history oldest first
-- [ ] Web: the history list shows who did what and when, oldest first
-- [ ] EF: the history is read back oldest first
+- [x] Core: the history is returned oldest first, references the detailed records, and earlier entries are never changed
+- [x] API: GET /orders/{orderId} → 200 OK, with the history oldest first
+- [x] Web: the history list shows who did what and when, oldest first
+- [x] EF: the history is read back oldest first
 
 ### (Workshop) Ask for a customer decision
 
