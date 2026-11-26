@@ -725,8 +725,8 @@ No cycle, built on the module page: Register an employee and Log in (Innlogging)
 
 ### (Workshop) Ask for a second decision while waiting
 
-- [ ] Core: a second request while WaitingForCustomer is added, the order keeps waiting, and no new notification request is raised
-- [ ] API: POST /orders/{orderId}/decision-requests → 200 OK, still WaitingForCustomer
+- [x] Core: a second request while WaitingForCustomer is added, the order keeps waiting, and no new notification request is raised
+- [x] API: POST /orders/{orderId}/decision-requests → 200 OK, still WaitingForCustomer
 
 ### (Workshop) Approve a change
 
