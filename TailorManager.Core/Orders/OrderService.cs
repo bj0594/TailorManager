@@ -9,6 +9,8 @@ public class OrderService
     private readonly TimeProvider _clock;
 
     // The clock is TimeProvider.System in the API, and a TestClock in the tests (§4, Dependencies).
+    // Times are stored in UTC, because PostgreSQL only takes DateTimeOffset with offset 0. A time from the website
+    // (like a fitting at 10:00 +01:00) is the same moment in UTC, so the tests that compare times still pass.
     public OrderService(IOrderRepository repository, ICustomerRepository customerRepository, TimeProvider? clock = null)
     {
         _repository = repository;
@@ -144,7 +146,7 @@ public class OrderService
     public Order ScheduleFitting(Guid id, DateTimeOffset scheduledAt, User employee)
     {
         var order = GetOrder(id);
-        var fitting = new FittingAppointment { Id = Guid.NewGuid(), ScheduledAt = scheduledAt };
+        var fitting = new FittingAppointment { Id = Guid.NewGuid(), ScheduledAt = scheduledAt.ToUniversalTime() };
         order.Fittings.Add(fitting);
         AddHistory(order, employee, ActivityType.FittingScheduled, relatedEntityId: fitting.Id);
 
@@ -181,6 +183,7 @@ public class OrderService
         {
             communication.Id = Guid.NewGuid();
         }
+        communication.OccurredAt = communication.OccurredAt.ToUniversalTime();
         order.Communications.Add(communication);
         AddHistory(order, employee, ActivityType.CommunicationRecorded, relatedEntityId: communication.Id);
         return Save(order);
