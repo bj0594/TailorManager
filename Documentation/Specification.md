@@ -895,8 +895,8 @@ No cycle, built on the module page: Register an employee and Log in (Innlogging)
 
 ### (Workshop) Ask for a decision when not in progress
 
-- [ ] Core: asking for a change fails when the order is not InProgress or WaitingForCustomer
-- [ ] API: POST /orders/{orderId}/decision-requests → 409 Conflict
+- [x] Core: asking for a change fails when the order is not InProgress or WaitingForCustomer
+- [x] API: POST /orders/{orderId}/decision-requests → 409 Conflict
 
 ### (Workshop) Decision without a written response
 
