@@ -45,5 +45,6 @@ public class EfOrderRepository : IOrderRepository
         .Include(o => o.Payments)
         .Include(o => o.CustomerDecisionRequests)
         .Include(o => o.CustomerApprovals)
-        .Include(o => o.ApprovedPriceAdjustments);
+        .Include(o => o.ApprovedPriceAdjustments)
+        .Include(o => o.Fittings);
 }
