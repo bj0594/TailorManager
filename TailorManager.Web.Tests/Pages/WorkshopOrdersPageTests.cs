@@ -32,4 +32,17 @@ public class WorkshopOrdersPageTests : PageTestContext
         // Assert
         page.WaitForAssertion(() => Assert.Contains("No orders yet", page.Find(".empty").TextContent));
     }
+
+    [Fact]
+    public void WorkshopOrdersPage_ApiDoesNotAnswer_ShowsCouldNotLoadOrders()
+    {
+        // Arrange
+        _orders.LoadFail = new HttpRequestException("No connection could be made.");
+
+        // Act
+        var page = Render<WorkshopOrdersPage>();
+
+        // Assert
+        page.WaitForAssertion(() => Assert.Contains("Could not load orders", page.Find(".error").TextContent));
+    }
 }

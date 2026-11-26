@@ -8,6 +8,9 @@ namespace TailorManager.Web.Tests;
 public class FakeOrdersClient : IOrdersClient
 {
     public Exception? Fail { get; set; }
+
+    // Set LoadFail to make the lists throw, like an API that does not answer.
+    public Exception? LoadFail { get; set; }
     public List<OrderDto> Items { get; } = [];
 
     public List<Guid> StartIds { get; } = [];
@@ -103,7 +106,7 @@ public class FakeOrdersClient : IOrdersClient
     }
 
     public Task<List<OrderDto>> ListOrdersAsync(string? status = null, Guid? customerId = null) =>
-    Task.FromResult(Items
+    LoadFail is not null ? Task.FromException<List<OrderDto>>(LoadFail) : Task.FromResult(Items
         .Where(o => status is null || o.Status == status)
         .Where(o => customerId is null || o.CustomerId == customerId)
         .ToList());
