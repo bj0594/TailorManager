@@ -1,6 +1,7 @@
 @page "/front-desk"
 @using TailorManager.Web.Api
 @inject ICustomersClient Client
+@inject IOrdersClient Orders
 
 <h1>Customers</h1>
 
@@ -18,9 +19,27 @@
 <ul class="results">
     @foreach (var customer in _results)
     {
-        <li>@customer.Name, @customer.Phone</li>
+        <li>
+            @customer.Name, @customer.Phone
+            <button class="neworder" @onclick="() => ChooseCustomer(customer)">New order</button>
+        </li>
     }
 </ul>
+
+@* The order form comes after the customer form, so "form" in the tests is still the customer form. *@
+@if (_orderCustomer is not null)
+{
+    <h2>New order for @_orderCustomer.Name</h2>
+    <form class="order" @onsubmit="CreateOrder">
+        <select id="type" @bind="_newType">
+            <option value="NewGarment">New garment</option>
+            <option value="Repair">Repair</option>
+        </select>
+        <input id="workDescription" @bind="_newWorkDescription" placeholder="Work description" />
+        <input id="agreedPrice" type="number" @bind="_newAgreedPrice" />
+        <button type="submit">Create order</button>
+    </form>
+}
 
 @code {
     // The customers to show. A new customer is added here; the search fills it in "Find customers".
@@ -38,6 +57,23 @@
     }
 
     private string _search = "";
+
+    // The customer the new order is for, chosen with the button in the results.
+    private CustomerDto? _orderCustomer;
+    private string _newType = "NewGarment";
+    private string _newWorkDescription = "";
+    private decimal _newAgreedPrice;
+
+    private void ChooseCustomer(CustomerDto customer) => _orderCustomer = customer;
+
+    private async Task CreateOrder()
+    {
+        await Orders.CreateOrderAsync(_orderCustomer!.Id, _newType, _newWorkDescription, _newAgreedPrice);
+        _orderCustomer = null;
+        _newType = "NewGarment";
+        _newWorkDescription = "";
+        _newAgreedPrice = 0;
+    }
 
     private async Task Search()
     {
