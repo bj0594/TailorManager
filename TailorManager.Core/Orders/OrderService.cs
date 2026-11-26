@@ -164,6 +164,12 @@ public class OrderService
         fitting.Outcome = outcome;
         fitting.CompletedAt = _clock.GetUtcNow();
         AddHistory(order, employee, ActivityType.FittingCompleted, outcome, fitting.Id);
+
+        // The work goes on when every fitting is completed (§3, Order status).
+        if (order.Fittings.All(f => f.CompletedAt is not null))
+        {
+            MoveTo(order, OrderStatus.InProgress, employee);
+        }
         return Save(order);
     }
 
