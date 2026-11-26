@@ -388,4 +388,21 @@ public class OrderServiceTests
         Assert.Equal(_app.Clock.Now, completed.CompletedAt);
         Assert.Contains(changed.History, h => h.Type == ActivityType.FittingCompleted && h.RelatedEntityId == fitting.Id);
     }
+
+    [Fact]
+    public void CompleteFitting_AnotherFittingOpen_KeepsWaitingForFitting()
+    {
+        // Arrange: two fittings
+        var order = _app.AddOrderInProgress();
+        _service.ScheduleFitting(order.Id, _app.Clock.Now.AddDays(2), _app.Employee);
+        var fittings = _service.ScheduleFitting(order.Id, _app.Clock.Now.AddDays(4), _app.Employee).Fittings;
+
+        // Act
+        var afterFirst = _service.CompleteFitting(order.Id, fittings[0].Id, Examples.FittingOutcome, _app.Employee).Status;
+        var afterSecond = _service.CompleteFitting(order.Id, fittings[1].Id, Examples.FittingOutcome, _app.Employee).Status;
+
+        // Assert
+        Assert.Equal(OrderStatus.WaitingForFitting, afterFirst);
+        Assert.Equal(OrderStatus.InProgress, afterSecond);
+    }
 }
