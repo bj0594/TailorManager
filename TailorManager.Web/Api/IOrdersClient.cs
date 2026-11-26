@@ -16,6 +16,7 @@ public interface IOrdersClient
     Task CompleteFittingAsync(Guid id, Guid fittingId, string outcome);
     Task RecordCommunicationAsync(Guid id, CommunicationInput communication);
     Task RecordInitialApprovalAsync(Guid id, string method, string? documentReference);
+    Task RecordInspectionFeeAgreementAsync(Guid id, decimal amount, string documentReference);
     Task RegisterPaymentAsync(Guid id, decimal amount, string transactionReference);
     Task MarkDeliveredAsync(Guid id);
 }

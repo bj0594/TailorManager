@@ -391,6 +391,27 @@ public class OrderDetailsPageTests : PageTestContext
         });
     }
 
+    [Fact]
+    public void OrderDetailsPage_RecordInspectionFee_ShowsTheAgreement()
+    {
+        // Arrange
+        _tokens.Role = Roles.FrontDesk;
+        var order = TestDtos.NewOrder();
+        var page = RenderOrder(order);
+
+        // Act
+        page.Find("form.inspectionfee input.feeamount").Change(Examples.InspectionFeeAmount.ToString());
+        page.Find("form.inspectionfee input.feedocument").Change(Examples.InspectionFeeDocumentReference);
+        page.Find("form.inspectionfee").Submit();
+
+        // Assert
+        page.WaitForAssertion(() =>
+        {
+            Assert.Contains((order.Id, Examples.InspectionFeeAmount, Examples.InspectionFeeDocumentReference), _orders.InspectionFeeAgreements);
+            Assert.Contains(Examples.InspectionFeeDocumentReference, page.Find("ul.approvals").TextContent);
+        });
+    }
+
     // The order, and its customer, as the fake clients give them to the page.
     private IRenderedComponent<OrderDetailsPage> RenderOrder(OrderDto order)
     {

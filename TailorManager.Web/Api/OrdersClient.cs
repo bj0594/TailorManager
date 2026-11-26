@@ -53,6 +53,10 @@ public class OrdersClient : IOrdersClient
     public Task RecordInitialApprovalAsync(Guid id, string method, string? documentReference) =>
         _http.PostAsJsonAsync($"orders/{id}/approvals", new { method, documentReference }).EnsureSuccessAsync();
 
+    // A stub until the client test: the page test uses FakeOrdersClient.
+    public Task RecordInspectionFeeAgreementAsync(Guid id, decimal amount, string documentReference) =>
+        throw new NotImplementedException();
+
     public Task RegisterPaymentAsync(Guid id, decimal amount, string transactionReference) =>
         _http.PostAsJsonAsync($"orders/{id}/payments", new { amount, transactionReference }).EnsureSuccessAsync();
 
