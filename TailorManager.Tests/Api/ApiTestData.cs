@@ -130,6 +130,9 @@ public static class ApiTestData
             occurredAt = DateTimeOffset.UtcNow
         });
 
+    public static Task<HttpResponseMessage> RecordInitialApprovalAsync(this HttpClient client, Guid orderId, string? documentReference = Examples.ApprovalDocumentReference) =>
+        client.PostAsJsonAsync($"/orders/{orderId}/approvals", new { method = "SignedForm", documentReference });
+
     // The answer as an OrderResponse, after checking it is 200 OK: var body = await response.ReadOrderAsync();
     public static async Task<OrderResponse> ReadOrderAsync(this HttpResponseMessage response)
     {
@@ -147,3 +150,4 @@ public record PaymentResponse(Guid Id, decimal Amount, string TransactionReferen
 public record CustomerDecisionRequestResponse(Guid Id, string ProposedWorkChange, decimal? ProposedPriceAdjustment, string Status);
 public record FittingResponse(Guid Id, DateTimeOffset ScheduledAt, DateTimeOffset? CompletedAt, string? Outcome);
 public record CommunicationResponse(Guid Id, string Channel, string Direction, string Source, string Content, string Outcome, DateTimeOffset OccurredAt);
+public record ApprovalResponse(Guid Id, string Scope, string Method, string? DocumentReference, decimal? ApprovedAmount);

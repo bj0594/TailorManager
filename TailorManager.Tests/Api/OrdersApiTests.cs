@@ -483,4 +483,21 @@ public class OrdersApiTests : ApiTestBase
         Assert.Equal("InProgress", body.Status);
         Assert.Equal("Failed", body.Communications.Single().Outcome);
     }
+
+    [Fact]
+    public async Task PostOrdersApprovals_SignedForm_ReturnsCreated()
+    {
+        // Arrange
+        var frontDesk = await _factory.LogInAsFrontDeskAsync();
+        var order = await frontDesk.CreateOrderAsync();
+
+        // Act
+        var response = await frontDesk.RecordInitialApprovalAsync(order.Id);
+
+        // Assert
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+        var body = await response.Content.ReadFromJsonAsync<ApprovalResponse>();
+        Assert.Equal("InitialOrder", body!.Scope);
+        Assert.Equal(Examples.ApprovalDocumentReference, body.DocumentReference);
+    }
 }
