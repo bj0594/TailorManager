@@ -67,6 +67,7 @@ public class OrderDetailsPageTests : PageTestContext
     [InlineData(Roles.Workshop, Roles.FrontDesk, "button.readyforpickup")]
     [InlineData(Roles.Workshop, Roles.FrontDesk, "form.decisionrequest")]
     [InlineData(Roles.Workshop, Roles.FrontDesk, "button.approve")]
+    [InlineData(Roles.Workshop, Roles.FrontDesk, "button.reject")]
     [InlineData(Roles.FrontDesk, Roles.Workshop, "form.payment")]
     [InlineData(Roles.FrontDesk, Roles.Workshop, "button.deliver")]
     public void OrderDetailsPage_OtherRole_HidesTheAction(string role, string otherRole, string action)
