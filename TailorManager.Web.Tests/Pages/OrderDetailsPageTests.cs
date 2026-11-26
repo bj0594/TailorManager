@@ -413,6 +413,24 @@ public class OrderDetailsPageTests : PageTestContext
         });
     }
 
+    [Fact]
+    public void OrderDetailsPage_NoteRejected_ShowsNotInProgress()
+    {
+        // Arrange
+        _tokens.Role = Roles.Workshop;
+        var order = TestDtos.NewOrder();
+        _orders.Fail = new HttpRequestException("The order is not in progress.");
+        var page = RenderOrder(order);
+
+        // Act
+        page.Find("form.note input").Change(Examples.WorkNote);
+        page.Find("form.note").Submit();
+
+        // Assert
+        page.WaitForAssertion(() =>
+            Assert.Contains("The order is not in progress.", page.Find(".error").TextContent));
+    }
+
     // The order, and its customer, as the fake clients give them to the page.
     private IRenderedComponent<OrderDetailsPage> RenderOrder(OrderDto order)
     {
