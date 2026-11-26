@@ -87,18 +87,19 @@ public class OrderService
     }
 
     // A new status, with a StatusChanged line in the history.
-    private static void MoveTo(Order order, OrderStatus status, User employee)
+    private void MoveTo(Order order, OrderStatus status, User employee)
     {
         order.Status = status;
         AddHistory(order, employee, ActivityType.StatusChanged);
     }
 
-    // A new line in the history, by the employee who did it. The history is append-only.
-    private static void AddHistory(Order order, User employee, ActivityType type, string? note = null)
+    // A new line in the history, by the employee who did it, at the time on the clock. The history is append-only.
+    private void AddHistory(Order order, User employee, ActivityType type, string? note = null)
     {
         var entry = OrderHistoryEntry.By(employee);
         entry.Type = type;
         entry.Note = note;
+        entry.OccurredAt = _clock.GetUtcNow();
         order.History.Add(entry);
     }
 
