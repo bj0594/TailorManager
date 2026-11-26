@@ -51,6 +51,7 @@ public class OrdersController : ControllerBase
     public IActionResult RecordCustomerDecision(Guid orderId, Guid requestId, RecordCustomerDecisionRequest request) =>
         Ok(_service.RecordCustomerDecision(orderId, requestId, request.CommunicationId, request.Approved, CurrentEmployee()));
 
+    [Authorize(Roles = Roles.Workshop)]
     [HttpPost("{orderId}/fittings")]
     public IActionResult ScheduleFitting(Guid orderId, ScheduleFittingRequest request) =>
         Ok(_service.ScheduleFitting(orderId, request.ScheduledAt, CurrentEmployee()));
