@@ -869,17 +869,17 @@ No cycle, built on the module page: Register an employee and Log in (Innlogging)
 
 ### (FrontDesk) Link to an earlier order
 
-- [ ] Core: an order can be linked to an earlier order from the same customer
-- [ ] API: POST /orders with relatedOrderId → 201 Created
-- [ ] Web: the order form lets the employee pick an earlier order from the same customer
-- [ ] EF: the link to the earlier order is saved
+- [x] Core: an order can be linked to an earlier order from the same customer
+- [x] API: POST /orders with relatedOrderId → 201 Created
+- [x] Web: the order form lets the employee pick an earlier order from the same customer
+- [x] EF: the link to the earlier order is saved
 
 ### (Web) Empty list and errors
 
-- [ ] Web: the order list shows "No orders yet"
-- [ ] Web: the pages show "Could not load orders" when the API does not answer
-- [ ] Web: the customer search shows "No customers found"
-- [ ] Web: the search page shows "Could not load customers" when the API does not answer
+- [x] Web: the order list shows "No orders yet"
+- [x] Web: the pages show "Could not load orders" when the API does not answer
+- [x] Web: the customer search shows "No customers found"
+- [x] Web: the search page shows "Could not load customers" when the API does not answer
 
 ### (Workshop) Work note on an order not in progress
 
