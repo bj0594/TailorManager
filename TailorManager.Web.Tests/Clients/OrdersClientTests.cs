@@ -266,4 +266,21 @@ public class OrdersClientTests
         Assert.Equal("Incoming", body.GetProperty("direction").GetString());
         Assert.Equal(Examples.CommunicationContent, body.GetProperty("content").GetString());
     }
+
+    [Fact]
+    public async Task RecordInitialApprovalAsync_Always_PostsTheSignedForm()
+    {
+        // Arrange
+        var id = Guid.NewGuid();
+        _handler.Respond($"/orders/{id}/approvals", "{}", HttpStatusCode.Created);
+
+        // Act
+        await _client.RecordInitialApprovalAsync(id, "SignedForm", Examples.ApprovalDocumentReference);
+
+        // Assert
+        _handler.AssertSent(HttpMethod.Post, $"/orders/{id}/approvals");
+        var body = JsonDocument.Parse(_handler.Bodies.Single()!).RootElement;
+        Assert.Equal("SignedForm", body.GetProperty("method").GetString());
+        Assert.Equal(Examples.ApprovalDocumentReference, body.GetProperty("documentReference").GetString());
+    }
 }
