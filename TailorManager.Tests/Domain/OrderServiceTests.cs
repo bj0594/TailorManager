@@ -257,4 +257,20 @@ public class OrderServiceTests
         Assert.Contains(changed.History, h => h.Type == ActivityType.NotificationRequested);
         Assert.Equal(Examples.AgreedPrice, changed.OutstandingBalance);
     }
+
+    [Fact]
+    public void RequestCustomerDecision_AlreadyWaiting_AddsTheRequestWithoutANewNotification()
+    {
+        // Arrange
+        var order = _app.AddOrderInProgress();
+        _service.RequestCustomerDecision(order.Id, Examples.ProposedWorkChange, Examples.ProposedPriceAdjustment, _app.Employee);
+
+        // Act
+        var changed = _service.RequestCustomerDecision(order.Id, Examples.ProposedWorkChange, null, _app.Employee);
+
+        // Assert
+        Assert.Equal(OrderStatus.WaitingForCustomer, changed.Status);
+        Assert.Equal(2, changed.CustomerDecisionRequests.Count);
+        Assert.Single(changed.History, h => h.Type == ActivityType.NotificationRequested);
+    }
 }
