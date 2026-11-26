@@ -220,7 +220,16 @@ erDiagram
         guid ActorId
         string ActorDisplayName
         string Type
+        datetime OccurredAt
+        guid RelatedEntityId
         string Note
+    }
+    Order ||--o{ CustomerDecisionRequest : "CustomerDecisionRequests (OrderId)"
+    CustomerDecisionRequest {
+        guid Id
+        string ProposedWorkChange
+        decimal ProposedPriceAdjustment
+        string Status
     }
     Order ||--o{ Payment : "Payments (OrderId)"
     Payment {
@@ -231,7 +240,7 @@ erDiagram
 ```
 
 Users is its own table. The history stores the employee's id and display name, so Order has no foreign key to User either.
-The history and the payments are tables of their own, with OrderId as the foreign key. They are read with the order (`Include` in `EfOrderRepository`).
+The history, the payments and the decision requests are tables of their own, with OrderId as the foreign key. They are read with the order (`Include` in `EfOrderRepository`).
 
 ### Order status
 
@@ -703,11 +712,11 @@ No cycle, built on the module page: Register an employee and Log in (Innlogging)
 
 ### (Workshop) Ask for a customer decision
 
-- [ ] Core: asking for a change sets WaitingForCustomer, adds a notification request, and keeps the agreed price
-- [ ] API: POST /orders/{orderId}/decision-requests → 200 OK
-- [ ] Web: the decision form shows the order as WaitingForCustomer
-- [ ] Web client: RequestCustomerDecisionAsync posts to /orders/{orderId}/decision-requests
-- [ ] EF: the decision request is saved with the order
+- [x] Core: asking for a change sets WaitingForCustomer, adds a notification request, and keeps the agreed price
+- [x] API: POST /orders/{orderId}/decision-requests → 200 OK
+- [x] Web: the decision form shows the order as WaitingForCustomer
+- [x] Web client: RequestCustomerDecisionAsync posts to /orders/{orderId}/decision-requests
+- [x] EF: the decision request is saved with the order
 
 ### (Workshop) Only Workshop can ask for customer decisions
 
