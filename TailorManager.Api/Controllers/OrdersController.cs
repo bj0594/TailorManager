@@ -51,6 +51,10 @@ public class OrdersController : ControllerBase
     public IActionResult RecordCustomerDecision(Guid orderId, Guid requestId, RecordCustomerDecisionRequest request) =>
         Ok(_service.RecordCustomerDecision(orderId, requestId, request.CommunicationId, request.Approved, CurrentEmployee()));
 
+    [HttpPost("{orderId}/fittings")]
+    public IActionResult ScheduleFitting(Guid orderId, ScheduleFittingRequest request) =>
+        Ok(_service.ScheduleFitting(orderId, request.ScheduledAt, CurrentEmployee()));
+
     [Authorize(Roles = Roles.Workshop)]
     [HttpPatch("{orderId}/ready-for-pickup")]
     public IActionResult MarkReadyForPickup(Guid orderId) => Ok(_service.MarkReadyForPickup(orderId, CurrentEmployee()));
