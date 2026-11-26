@@ -1,4 +1,5 @@
 @page "/orders/{Id:guid}"
+@using System.Globalization
 @using TailorManager.Web.Api
 @inject IOrdersClient Client
 @inject ICustomersClient Customers
@@ -35,6 +36,20 @@ else
             </li>
         }
     </ul>
+
+    <h2>Fittings</h2>
+    <ul class="fittings">
+        @foreach (var fitting in _item.Fittings ?? [])
+        {
+            <li>@fitting.ScheduledAt.ToLocalTime().ToString("g") @fitting.Outcome</li>
+        }
+    </ul>
+
+    @* Moves into the Workshop block in "Only Workshop can schedule fittings". *@
+    <form class="fitting" @onsubmit="ScheduleFitting">
+    <input class="scheduledat" type="datetime-local" value="@_newFittingAt" @onchange="@(e => _newFittingAt = e.Value?.ToString() ?? string.Empty)" />        
+    <button type="submit">Schedule fitting</button>
+    </form>
 
     <h2>History</h2>
     <ul class="history">
@@ -124,6 +139,18 @@ else
     // The written answer is not on the page yet, so Guid.Empty stands in for it until "Record communication".
     private Task RecordCustomerDecision(Guid requestId, bool approved) =>
         Run(() => Client.RecordCustomerDecisionAsync(Id, requestId, Guid.Empty, approved));
+
+    // The date and time from the datetime-local field, like "2026-11-26T10:00", in the browser's time zone.
+    private string _newFittingAt = "";
+
+    private async Task ScheduleFitting()
+    {
+        var scheduledAt = DateTimeOffset.Parse(_newFittingAt, CultureInfo.InvariantCulture);
+        if (await Run(() => Client.ScheduleFittingAsync(Id, scheduledAt)))
+        {
+            _newFittingAt = "";
+        }
+    }
 
     private async Task RegisterPayment()
     {
