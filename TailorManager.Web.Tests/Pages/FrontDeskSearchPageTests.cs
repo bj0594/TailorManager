@@ -99,4 +99,19 @@ public class FrontDeskSearchPageTests : PageTestContext
         // Assert
         page.WaitForAssertion(() => Assert.Equal(earlier.Id, _orders.Items.Last().RelatedOrderId));
     }
+
+    [Fact]
+    public void FrontDeskSearchPage_SearchWithoutMatches_ShowsNoCustomersFound()
+    {
+        // Arrange
+        _customers.Items.Add(TestDtos.NewCustomer());
+        var page = Render<FrontDeskSearchPage>();
+
+        // Act
+        page.Find("#search").Change(Examples.OtherCustomerName);
+        page.Find("#search-button").Click();
+
+        // Assert
+        page.WaitForAssertion(() => Assert.Contains("No customers found", page.Find(".empty").TextContent));
+    }
 }
