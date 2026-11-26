@@ -94,8 +94,13 @@ public static class ApiTestData
     public static Task<HttpResponseMessage> RequestCustomerDecisionAsync(this HttpClient client, Guid orderId, decimal? proposedPriceAdjustment = Examples.ProposedPriceAdjustment) =>
         client.PostAsJsonAsync($"/orders/{orderId}/decision-requests", new { proposedWorkChange = Examples.ProposedWorkChange, proposedPriceAdjustment });
 
-    public static Task<HttpResponseMessage> RecordCustomerDecisionAsync(this HttpClient client, Guid orderId, Guid requestId, bool approved = true) =>
-        client.PostAsJsonAsync($"/orders/{orderId}/decision-requests/{requestId}/decision", new { communicationId = Guid.NewGuid(), approved });
+    // Records the customer's written answer first (an incoming email), and sends its id with the decision.
+    public static async Task<HttpResponseMessage> RecordCustomerDecisionAsync(this HttpClient client, Guid orderId, Guid requestId, bool approved = true)
+    {
+        var withResponse = await (await client.RecordCommunicationAsync(orderId)).ReadOrderAsync();
+        var communicationId = withResponse.Communications.Last().Id;
+        return await client.PostAsJsonAsync($"/orders/{orderId}/decision-requests/{requestId}/decision", new { communicationId, approved });
+    }
 
     // An order that waits for the customer: Kari makes it, and Ola starts it and asks about the change. The pending request is the last in the list.
     public static async Task<OrderResponse> CreateOrderWaitingForCustomerAsync(this HttpClient frontDesk, HttpClient workshop, decimal? proposedPriceAdjustment = Examples.ProposedPriceAdjustment)

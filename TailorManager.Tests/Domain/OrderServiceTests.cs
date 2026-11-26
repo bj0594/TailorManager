@@ -281,7 +281,7 @@ public class OrderServiceTests
         var order = _app.AddOrderInProgress();
         var request = _service.RequestCustomerDecision(order.Id, Examples.ProposedWorkChange, Examples.ProposedPriceAdjustment, _app.Employee)
             .CustomerDecisionRequests.Single();
-        var communicationId = Guid.NewGuid();
+        var communicationId = _app.AddCustomerResponse(order.Id);
 
         // Act
         var changed = _service.RecordCustomerDecision(order.Id, request.Id, communicationId, true, _app.Employee);
@@ -308,7 +308,7 @@ public class OrderServiceTests
             .CustomerDecisionRequests.Single();
 
         // Act
-        var changed = _service.RecordCustomerDecision(order.Id, request.Id, Guid.NewGuid(), true, _app.Employee);
+        var changed = _service.RecordCustomerDecision(order.Id, request.Id, _app.AddCustomerResponse(order.Id), true, _app.Employee);
 
         // Assert
         Assert.Equal(DecisionStatus.Approved, request.Status);
@@ -326,7 +326,7 @@ public class OrderServiceTests
             .CustomerDecisionRequests.Single();
 
         // Act
-        var changed = _service.RecordCustomerDecision(order.Id, request.Id, Guid.NewGuid(), false, _app.Employee);
+        var changed = _service.RecordCustomerDecision(order.Id, request.Id, _app.AddCustomerResponse(order.Id), false, _app.Employee);
 
         // Assert
         Assert.Equal(DecisionStatus.Rejected, request.Status);
@@ -345,8 +345,8 @@ public class OrderServiceTests
         var requests = _service.RequestCustomerDecision(order.Id, Examples.ProposedWorkChange, null, _app.Employee).CustomerDecisionRequests;
 
         // Act
-        var afterFirst = _service.RecordCustomerDecision(order.Id, requests[0].Id, Guid.NewGuid(), true, _app.Employee).Status;
-        var afterSecond = _service.RecordCustomerDecision(order.Id, requests[1].Id, Guid.NewGuid(), false, _app.Employee).Status;
+        var afterFirst = _service.RecordCustomerDecision(order.Id, requests[0].Id, _app.AddCustomerResponse(order.Id), true, _app.Employee).Status;
+        var afterSecond = _service.RecordCustomerDecision(order.Id, requests[1].Id, _app.AddCustomerResponse(order.Id), false, _app.Employee).Status;
 
         // Assert
         Assert.Equal(OrderStatus.WaitingForCustomer, afterFirst);
@@ -523,5 +523,20 @@ public class OrderServiceTests
         Assert.Throws<InvalidOrderStatusException>(() =>
             _service.RequestCustomerDecision(order.Id, Examples.ProposedWorkChange, Examples.ProposedPriceAdjustment, _app.Employee));
         Assert.Empty(_service.GetOrder(order.Id).CustomerDecisionRequests);
+    }
+
+    [Fact]
+    public void RecordCustomerDecision_NoWrittenResponse_ThrowsInvalidOperationException()
+    {
+        // Arrange: a request, and an id that is not a message on the order
+        var order = _app.AddOrderInProgress();
+        var request = _service.RequestCustomerDecision(order.Id, Examples.ProposedWorkChange, Examples.ProposedPriceAdjustment, _app.Employee)
+            .CustomerDecisionRequests.Single();
+
+        // Act + Assert
+        var error = Assert.Throws<InvalidOperationException>(() =>
+            _service.RecordCustomerDecision(order.Id, request.Id, Guid.NewGuid(), true, _app.Employee));
+        Assert.Equal("Record the customer's written response first.", error.Message);
+        Assert.Equal(DecisionStatus.Pending, request.Status);
     }
 }

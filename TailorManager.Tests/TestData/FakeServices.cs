@@ -40,6 +40,14 @@ public class FakeServices
         return Orders.StartOrder(order.Id, Employee);
     }
 
+    // The customer's written answer: an incoming email on the order (TestData.NewCommunication), and its id.
+    public Guid AddCustomerResponse(Guid orderId)
+    {
+        var response = TestData.NewCommunication();
+        Orders.RecordCommunication(orderId, response, Employee);
+        return response.Id;
+    }
+
     // An order that is ReadyForPickup: made, started and marked by Employee.
     public Order AddOrderReadyForPickup(decimal agreedPrice = Examples.AgreedPrice) =>
         Orders.MarkReadyForPickup(AddOrderInProgress(agreedPrice).Id, Employee);
