@@ -13,6 +13,7 @@ public interface IOrdersClient
     Task RequestCustomerDecisionAsync(Guid id, string proposedWorkChange, decimal? proposedPriceAdjustment);
     Task RecordCustomerDecisionAsync(Guid id, Guid requestId, Guid communicationId, bool approved);
     Task ScheduleFittingAsync(Guid id, DateTimeOffset scheduledAt);
+    Task CompleteFittingAsync(Guid id, Guid fittingId, string outcome);
     Task RegisterPaymentAsync(Guid id, decimal amount, string transactionReference);
     Task MarkDeliveredAsync(Guid id);
 }

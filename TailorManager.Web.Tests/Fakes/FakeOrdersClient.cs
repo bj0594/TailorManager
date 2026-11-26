@@ -18,6 +18,7 @@ public class FakeOrdersClient : IOrdersClient
     public List<(Guid Id, string ProposedWorkChange, decimal? ProposedPriceAdjustment)> DecisionRequests { get; } = [];
     public List<(Guid Id, Guid RequestId, Guid CommunicationId, bool Approved)> Decisions { get; } = [];
     public List<(Guid Id, DateTimeOffset ScheduledAt)> ScheduledFittings { get; } = [];
+    public List<(Guid Id, Guid FittingId, string Outcome)> CompletedFittings { get; } = [];
 
     public Task<List<OrderDto>> GetOrdersAsync() => Task.FromResult(Items);
 
@@ -48,6 +49,14 @@ public class FakeOrdersClient : IOrdersClient
     public Task ScheduleFittingAsync(Guid id, DateTimeOffset scheduledAt) =>
         Record(() => ScheduledFittings.Add((id, scheduledAt)), id, "WaitingForFitting",
             order => order with { Fittings = (order.Fittings ?? []).Append(new FittingDto(Guid.NewGuid(), scheduledAt, null, null)).ToList() });
+
+    // Writes the outcome on the fitting. The status stays, like the API until every fitting is completed.
+    public Task CompleteFittingAsync(Guid id, Guid fittingId, string outcome) =>
+        Record(() => CompletedFittings.Add((id, fittingId, outcome)), id, null,
+            order => order with
+            {
+                Fittings = (order.Fittings ?? []).Select(f => f.Id == fittingId ? f with { Outcome = outcome, CompletedAt = DateTimeOffset.Now } : f).ToList()
+            });
 
     public Task RegisterPaymentAsync(Guid id, decimal amount, string transactionReference) =>
         Record(() => Payments.Add((id, amount, transactionReference)), id, "Delivered");

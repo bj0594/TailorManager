@@ -308,6 +308,27 @@ public class OrderDetailsPageTests : PageTestContext
         });
     }
 
+    [Fact]
+    public void OrderDetailsPage_CompleteFitting_ShowsTheOutcome()
+    {
+        // Arrange
+        _tokens.Role = Roles.Workshop;
+        var fitting = TestDtos.NewFitting();
+        var order = TestDtos.NewOrder() with { Status = "WaitingForFitting", Fittings = [fitting] };
+        var page = RenderOrder(order);
+
+        // Act
+        page.Find("ul.fittings input.outcome").Change(Examples.FittingOutcome);
+        page.Find("ul.fittings button.completefitting").Click();
+
+        // Assert
+        page.WaitForAssertion(() =>
+        {
+            Assert.Contains((order.Id, fitting.Id, Examples.FittingOutcome), _orders.CompletedFittings);
+            Assert.Contains(Examples.FittingOutcome, page.Find("ul.fittings").TextContent);
+        });
+    }
+
     // The order, and its customer, as the fake clients give them to the page.
     private IRenderedComponent<OrderDetailsPage> RenderOrder(OrderDto order)
     {
