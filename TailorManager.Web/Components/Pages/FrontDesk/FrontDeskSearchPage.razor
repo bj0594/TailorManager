@@ -16,7 +16,11 @@
 <input id="search" @bind="_search" placeholder="Search by name, phone or email" />
 <button id="search-button" @onclick="Search">Search</button>
 
-@if (_searched && _results.Count == 0)
+@if (_error is not null)
+{
+    <p class="error">@_error</p>
+}
+else if (_searched && _results.Count == 0)
 {
     <p class="empty">No customers found</p>
 }
@@ -72,6 +76,7 @@
 
     // "No customers found" is only shown after a search, not before the first one.
     private bool _searched;
+    private string? _error;
 
     // The customer the new order is for, chosen with the button in the results.
     private CustomerDto? _orderCustomer;
@@ -103,7 +108,15 @@
     private async Task Search()
     {
         _results.Clear();
-        _results.AddRange(await Client.FindCustomersAsync(string.IsNullOrWhiteSpace(_search) ? null : _search));
+        _error = null;
+        try
+        {
+            _results.AddRange(await Client.FindCustomersAsync(string.IsNullOrWhiteSpace(_search) ? null : _search));
+        }
+        catch (HttpRequestException)
+        {
+            _error = "Could not load customers";
+        }
         _searched = true;
     }
 }
