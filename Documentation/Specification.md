@@ -852,15 +852,15 @@ No cycle, built on the module page: Register an employee and Log in (Innlogging)
 
 ### (FrontDesk) Only FrontDesk can record the initial approval
 
-- [ ] API: POST /orders/{orderId}/approvals as Workshop → 403 Forbidden
-- [ ] Web: the intake form is hidden for Workshop
+- [x] API: POST /orders/{orderId}/approvals as Workshop → 403 Forbidden
+- [x] Web: the intake form is hidden for Workshop
 
 ### (FrontDesk) Record an inspection fee agreement
 
-- [ ] Core: a written inspection fee agreement is recorded with its amount and document reference
-- [ ] API: POST /orders/{orderId}/inspection-fee-agreements → 201 Created
-- [ ] Web: the intake form records the inspection fee agreement
-- [ ] Web client: RecordInspectionFeeAgreementAsync posts to /orders/{orderId}/inspection-fee-agreements
+- [x] Core: a written inspection fee agreement is recorded with its amount and document reference
+- [x] API: POST /orders/{orderId}/inspection-fee-agreements → 201 Created
+- [x] Web: the intake form records the inspection fee agreement
+- [x] Web client: RecordInspectionFeeAgreementAsync posts to /orders/{orderId}/inspection-fee-agreements
 
 ### (FrontDesk) Only FrontDesk can record an inspection fee agreement
 
