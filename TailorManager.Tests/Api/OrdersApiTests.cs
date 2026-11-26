@@ -254,4 +254,24 @@ public class OrdersApiTests : ApiTestBase
         var body = await response.Content.ReadFromJsonAsync<List<OrderResponse>>();
         Assert.Equal(match.Id, Assert.Single(body!).Id);
     }
+
+    [Fact]
+    public async Task GetOrder_AfterStart_ReturnsTheHistoryOldestFirst()
+    {
+        // Arrange
+        var frontDesk = await _factory.LogInAsFrontDeskAsync();
+        var workshop = await _factory.LogInAsWorkshopAsync();
+        var order = await frontDesk.CreateOrderAsync();
+        (await workshop.StartWorkAsync(order.Id)).EnsureSuccessStatusCode();
+
+        // Act
+        var response = await workshop.GetAsync($"/orders/{order.Id}");
+
+        // Assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var body = await response.Content.ReadFromJsonAsync<OrderResponse>();
+        Assert.Equal(new[] { "OrderCreated", "StatusChanged" }, body!.History.Select(h => h.Type));
+        Assert.NotEqual(default, body.History[0].OccurredAt);
+        Assert.True(body.History[0].OccurredAt <= body.History[1].OccurredAt);
+    }
 }

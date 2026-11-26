@@ -23,6 +23,9 @@ builder.Services.AddScoped<CustomerService>();
 builder.Services.AddScoped<IOrderRepository, EfOrderRepository>();
 builder.Services.AddScoped<OrderService>();
 
+// The clock OrderService writes the time in the history with (§4, Dependencies).
+builder.Services.AddSingleton(TimeProvider.System);
+
 // Users and login.
 builder.Services.AddScoped<IUserRepository, EfUserRepository>();
 builder.Services.AddSingleton<PasswordHasher>();
