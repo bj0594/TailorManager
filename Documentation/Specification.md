@@ -580,8 +580,8 @@ No cycle, built on the module page: Register an employee and Log in (Innlogging)
 
 - [x] Core: a new order for a garment or a repair is Submitted, with its agreed price and a history entry
 - [x] API: POST /orders → 201 Created
-- [ ] Web: the new order form on the search page creates an order for the chosen customer
-- [ ] Web client: CreateOrderAsync posts the order to /orders
+- [x] Web: the new order form on the search page creates an order for the chosen customer
+- [x] Web client: CreateOrderAsync posts the order to /orders
 - [x] EF: a created order is read back with its history
 
 ### Orders require login
