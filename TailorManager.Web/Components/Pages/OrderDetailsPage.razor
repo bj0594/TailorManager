@@ -52,6 +52,32 @@ else
         }
     </ul>
 
+    <h2>Communication</h2>
+    <ul class="communications">
+        @foreach (var message in _item.Communications ?? [])
+        {
+            <li>@message.OccurredAt.ToLocalTime().ToString("g"), @message.Channel @message.Direction: @message.Content (@message.Outcome)</li>
+        }
+    </ul>
+
+    @* Moves into the Workshop block in "Only Workshop can record communication". *@
+    <form class="communication" @onsubmit="RecordCommunication">
+        <select class="channel" @bind="_newChannel">
+            <option value="Email">Email</option>
+            <option value="SMS">SMS</option>
+        </select>
+        <select class="direction" @bind="_newDirection">
+            <option value="Incoming">From the customer</option>
+            <option value="Outgoing">To the customer</option>
+        </select>
+        <select class="messageoutcome" @bind="_newMessageOutcome">
+            <option value="">Received or sent</option>
+            <option value="Failed">Failed</option>
+        </select>
+        <input class="content" @bind="_newContent" placeholder="Message" />
+        <button type="submit">Record</button>
+    </form>
+
     <h2>History</h2>
     <ul class="history">
         @foreach (var entry in (_item.History ?? []).OrderBy(h => h.OccurredAt))
@@ -166,6 +192,24 @@ else
         if (await Run(() => Client.CompleteFittingAsync(Id, fittingId, _newOutcome)))
         {
             _newOutcome = "";
+        }
+    }
+
+    private string _newChannel = "Email";
+    private string _newDirection = "Incoming";
+    private string _newMessageOutcome = "";
+    private string _newContent = "";
+
+    // A message from the customer is Received, and one to the customer is Sent, unless the employee chooses Failed.
+    private async Task RecordCommunication()
+    {
+        var incoming = _newDirection == "Incoming";
+        var outcome = _newMessageOutcome == "" ? (incoming ? "Received" : "Sent") : _newMessageOutcome;
+        var communication = new CommunicationInput(_newChannel, _newDirection, incoming ? "Customer" : "Manual", _newContent, outcome, DateTimeOffset.Now);
+        if (await Run(() => Client.RecordCommunicationAsync(Id, communication)))
+        {
+            _newContent = "";
+            _newMessageOutcome = "";
         }
     }
 
