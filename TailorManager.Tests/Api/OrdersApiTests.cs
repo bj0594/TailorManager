@@ -132,6 +132,7 @@ public class OrdersApiTests : ApiTestBase
     [InlineData(Roles.FrontDesk, "POST", "decision-requests")]
     [InlineData(Roles.FrontDesk, "POST", "decision-requests/5f8d2c1e-3a4b-4c6d-8e9f-0a1b2c3d4e5f/decision")]
     [InlineData(Roles.FrontDesk, "POST", "fittings")]
+    [InlineData(Roles.FrontDesk, "PATCH", "fittings/5f8d2c1e-3a4b-4c6d-8e9f-0a1b2c3d4e5f/complete")]
     [InlineData(Roles.Workshop, "POST", "payments")]
     [InlineData(Roles.Workshop, "PATCH", "delivered")]
     public async Task OrderActions_OtherRole_ReturnsForbidden(string role, string method, string action)
