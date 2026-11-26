@@ -352,4 +352,22 @@ public class OrderServiceTests
         Assert.Equal(OrderStatus.WaitingForCustomer, afterFirst);
         Assert.Equal(OrderStatus.InProgress, afterSecond);
     }
+
+    [Fact]
+    public void ScheduleFitting_OrderInProgress_SetsWaitingForFitting()
+    {
+        // Arrange: the fitting is two days from now, like the example in §4
+        var order = _app.AddOrderInProgress();
+        var scheduledAt = _app.Clock.Now.AddDays(2);
+
+        // Act
+        var changed = _service.ScheduleFitting(order.Id, scheduledAt, _app.Employee);
+
+        // Assert
+        Assert.Equal(OrderStatus.WaitingForFitting, changed.Status);
+        var fitting = Assert.Single(changed.Fittings);
+        Assert.Equal(scheduledAt, fitting.ScheduledAt);
+        Assert.Null(fitting.CompletedAt);
+        Assert.Contains(changed.History, h => h.Type == ActivityType.FittingScheduled && h.RelatedEntityId == fitting.Id);
+    }
 }

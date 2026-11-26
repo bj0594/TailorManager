@@ -140,6 +140,9 @@ public class OrderService
         AddHistory(order, employee, ActivityType.PriceAdjusted, relatedEntityId: adjustment.Id);
     }
 
+    public Order ScheduleFitting(Guid id, DateTimeOffset scheduledAt, User employee) =>
+        throw new NotImplementedException();
+
     // The customer is told the order is ready: a notification request in the history (§4). Nothing is sent from Core.
     public Order MarkReadyForPickup(Guid id, User employee)
     {

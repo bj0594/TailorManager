@@ -19,5 +19,6 @@ public class TailorManagerDbContext : DbContext
         modelBuilder.Entity<CustomerDecisionRequest>().Property(r => r.Id).ValueGeneratedNever();
         modelBuilder.Entity<CustomerApproval>().Property(a => a.Id).ValueGeneratedNever();
         modelBuilder.Entity<PriceAdjustment>().Property(a => a.Id).ValueGeneratedNever();
+        modelBuilder.Entity<FittingAppointment>().Property(f => f.Id).ValueGeneratedNever();
     }
 }

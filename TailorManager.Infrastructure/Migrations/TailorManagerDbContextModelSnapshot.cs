@@ -119,6 +119,30 @@ namespace TailorManager.Infrastructure.Migrations
                     b.ToTable("CustomerDecisionRequest");
                 });
 
+            modelBuilder.Entity("TailorManager.Core.FittingAppointment", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset?>("CompletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("OrderId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Outcome")
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset>("ScheduledAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OrderId");
+
+                    b.ToTable("FittingAppointment");
+                });
+
             modelBuilder.Entity("TailorManager.Core.Order", b =>
                 {
                     b.Property<Guid>("Id")
@@ -283,6 +307,13 @@ namespace TailorManager.Infrastructure.Migrations
                         .HasForeignKey("OrderId");
                 });
 
+            modelBuilder.Entity("TailorManager.Core.FittingAppointment", b =>
+                {
+                    b.HasOne("TailorManager.Core.Order", null)
+                        .WithMany("Fittings")
+                        .HasForeignKey("OrderId");
+                });
+
             modelBuilder.Entity("TailorManager.Core.OrderHistoryEntry", b =>
                 {
                     b.HasOne("TailorManager.Core.Order", null)
@@ -311,6 +342,8 @@ namespace TailorManager.Infrastructure.Migrations
                     b.Navigation("CustomerApprovals");
 
                     b.Navigation("CustomerDecisionRequests");
+
+                    b.Navigation("Fittings");
 
                     b.Navigation("History");
 

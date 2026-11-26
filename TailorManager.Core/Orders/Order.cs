@@ -14,6 +14,7 @@ public class Order
     public List<Payment> Payments { get; set; } = [];
     public List<CustomerDecisionRequest> CustomerDecisionRequests { get; set; } = [];
     public List<CustomerApproval> CustomerApprovals { get; set; } = [];
+    public List<FittingAppointment> Fittings { get; set; } = [];
     public List<PriceAdjustment> ApprovedPriceAdjustments { get; set; } = [];
 
     // Calculated (§4): the agreed price with the approved adjustments. Not stored.
