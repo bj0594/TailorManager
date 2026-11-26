@@ -69,12 +69,13 @@ public class OrderDetailsPageTests : PageTestContext
     [InlineData(Roles.Workshop, Roles.FrontDesk, "button.approve")]
     [InlineData(Roles.Workshop, Roles.FrontDesk, "button.reject")]
     [InlineData(Roles.Workshop, Roles.FrontDesk, "form.fitting")]
+    [InlineData(Roles.Workshop, Roles.FrontDesk, "button.completefitting")]
     [InlineData(Roles.FrontDesk, Roles.Workshop, "form.payment")]
     [InlineData(Roles.FrontDesk, Roles.Workshop, "button.deliver")]
     public void OrderDetailsPage_OtherRole_HidesTheAction(string role, string otherRole, string action)
     {
-        // Arrange: with a pending request, so the buttons for the decision are there too
-        var order = TestDtos.NewOrder() with { CustomerDecisionRequests = [TestDtos.NewDecisionRequest()] };
+        // Arrange: with a pending request and an open fitting, so their buttons are there too
+        var order = TestDtos.NewOrder() with { CustomerDecisionRequests = [TestDtos.NewDecisionRequest()], Fittings = [TestDtos.NewFitting()] };
 
         // Act and assert: the role sees it
         _tokens.Role = role;
