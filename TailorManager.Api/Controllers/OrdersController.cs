@@ -61,6 +61,21 @@ public class OrdersController : ControllerBase
     public IActionResult CompleteFitting(Guid orderId, Guid fittingId, CompleteFittingRequest request) =>
         Ok(_service.CompleteFitting(orderId, fittingId, request.Outcome, CurrentEmployee()));
 
+    [HttpPost("{orderId}/communications")]
+    public IActionResult RecordCommunication(Guid orderId, RecordCommunicationRequest request)
+    {
+        var communication = new CommunicationEntry
+        {
+            Channel = request.Channel,
+            Direction = request.Direction,
+            Source = request.Source,
+            Content = request.Content,
+            Outcome = request.Outcome,
+            OccurredAt = request.OccurredAt
+        };
+        return Ok(_service.RecordCommunication(orderId, communication, CurrentEmployee()));
+    }
+
     [Authorize(Roles = Roles.Workshop)]
     [HttpPatch("{orderId}/ready-for-pickup")]
     public IActionResult MarkReadyForPickup(Guid orderId) => Ok(_service.MarkReadyForPickup(orderId, CurrentEmployee()));
