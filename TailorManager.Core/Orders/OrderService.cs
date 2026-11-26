@@ -113,11 +113,16 @@ public class OrderService
         };
         order.CustomerApprovals.Add(approval);
 
+        // A change without a price keeps the agreed price (§5, Approve a change without a price).
+        if (request.ProposedPriceAdjustment is not { } amount)
+        {
+            return;
+        }
         var adjustment = new PriceAdjustment
         {
             Id = Guid.NewGuid(),
             Description = request.ProposedWorkChange,
-            Amount = request.ProposedPriceAdjustment ?? 0m,
+            Amount = amount,
             ApprovedAt = approval.ApprovedAt,
             CustomerApprovalId = approval.Id
         };
