@@ -156,8 +156,16 @@ public class OrderService
         return Save(order);
     }
 
-    public Order CompleteFitting(Guid id, Guid fittingId, string outcome, User employee) =>
-        throw new NotImplementedException();
+    // The outcome of a fitting, written by the employee after it.
+    public Order CompleteFitting(Guid id, Guid fittingId, string outcome, User employee)
+    {
+        var order = GetOrder(id);
+        var fitting = order.Fittings.Single(f => f.Id == fittingId);
+        fitting.Outcome = outcome;
+        fitting.CompletedAt = _clock.GetUtcNow();
+        AddHistory(order, employee, ActivityType.FittingCompleted, outcome, fitting.Id);
+        return Save(order);
+    }
 
     // The customer is told the order is ready: a notification request in the history (§4). Nothing is sent from Core.
     public Order MarkReadyForPickup(Guid id, User employee)
