@@ -75,4 +75,28 @@ public class FrontDeskSearchPageTests : PageTestContext
         // Assert
         page.WaitForAssertion(() => Assert.Equal(customer.Id, Assert.Single(_orders.Items).CustomerId));
     }
+
+    [Fact]
+    public void FrontDeskSearchPage_CreateOrderWithEarlierOrder_SendsTheLink()
+    {
+        // Arrange: the customer has an earlier order
+        var customer = TestDtos.NewCustomer();
+        _customers.Items.Add(customer);
+        var earlier = TestDtos.NewOrder(customer.Id);
+        _orders.Items.Add(earlier);
+        var page = Render<FrontDeskSearchPage>();
+        page.Find("#search").Change(Examples.CustomerName);
+        page.Find("#search-button").Click();
+
+        // Act
+        page.WaitForElement(".results button.neworder").Click();
+        page.Find("#type").Change("Repair");
+        page.Find("#workDescription").Change(Examples.OtherWorkDescription);
+        page.Find("#agreedPrice").Change(Examples.AgreedPrice.ToString());
+        page.Find("#relatedOrder").Change(earlier.Id.ToString());
+        page.Find("form.order").Submit();
+
+        // Assert
+        page.WaitForAssertion(() => Assert.Equal(earlier.Id, _orders.Items.Last().RelatedOrderId));
+    }
 }

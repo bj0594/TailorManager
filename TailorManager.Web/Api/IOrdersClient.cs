@@ -6,7 +6,7 @@ public interface IOrdersClient
 {
     Task<List<OrderDto>> ListOrdersAsync(string? status = null, Guid? customerId = null); 
     Task<OrderDto> GetOrderAsync(Guid id);
-    Task<OrderDto> CreateOrderAsync(Guid customerId, string type, string workDescription, decimal agreedPrice);
+    Task<OrderDto> CreateOrderAsync(Guid customerId, string type, string workDescription, decimal agreedPrice, Guid? relatedOrderId = null);
     Task StartWorkAsync(Guid id);
     Task AddWorkNoteAsync(Guid id, string note);
     Task MarkReadyForPickupAsync(Guid id);

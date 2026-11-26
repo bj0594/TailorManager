@@ -19,7 +19,8 @@ public class OrdersClient : IOrdersClient
     public async Task<OrderDto> GetOrderAsync(Guid id) =>
         (await _http.GetFromJsonAsync<OrderDto>($"orders/{id}"))!;
 
-    public async Task<OrderDto> CreateOrderAsync(Guid customerId, string type, string workDescription, decimal agreedPrice)
+    // relatedOrderId is not sent until the client test for it.
+    public async Task<OrderDto> CreateOrderAsync(Guid customerId, string type, string workDescription, decimal agreedPrice, Guid? relatedOrderId = null)
     {
         var response = await _http.PostAsJsonAsync("orders", new { customerId, type, workDescription, agreedPrice }).EnsureSuccessAsync();
         return (await response.Content.ReadFromJsonAsync<OrderDto>())!;

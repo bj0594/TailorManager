@@ -28,10 +28,10 @@ public class FakeOrdersClient : IOrdersClient
     public Task<OrderDto> GetOrderAsync(Guid id) => Task.FromResult(Items.Single(i => i.Id == id));
 
     // A new order is Submitted, with the agreed price as the current price and the balance, like the API answers.
-    public Task<OrderDto> CreateOrderAsync(Guid customerId, string type, string workDescription, decimal agreedPrice)
+    public Task<OrderDto> CreateOrderAsync(Guid customerId, string type, string workDescription, decimal agreedPrice, Guid? relatedOrderId = null)
     {
         if (Fail is not null) throw Fail;
-        var order = new OrderDto(Guid.NewGuid(), customerId, type, workDescription, agreedPrice, agreedPrice, agreedPrice, "Submitted", DateTimeOffset.Now, null);
+        var order = new OrderDto(Guid.NewGuid(), customerId, type, workDescription, agreedPrice, agreedPrice, agreedPrice, "Submitted", DateTimeOffset.Now, relatedOrderId);
         Items.Add(order);
         return Task.FromResult(order);
     }
