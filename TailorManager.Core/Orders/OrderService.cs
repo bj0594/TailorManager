@@ -97,7 +97,12 @@ public class OrderService
         {
             ApproveChange(order, request, employee);
         }
-        MoveTo(order, OrderStatus.InProgress, employee);
+
+        // The work goes on when the customer has answered every request (§3, Order status).
+        if (order.CustomerDecisionRequests.All(r => r.Status != DecisionStatus.Pending))
+        {
+            MoveTo(order, OrderStatus.InProgress, employee);
+        }
         return Save(order);
     }
 
