@@ -15,9 +15,26 @@ else
     <p class="status">Status: @_item.Status</p>
     <p class="customer">@_customer?.Name, @_customer?.Phone</p>
 
+    <p class="current-price">Agreed price: @_item.CurrentAgreedPrice</p>
+
     <p class="outstanding-balance">
         Outstanding balance: @_item.OutstandingBalance
     </p>
+
+    <h2>Customer decisions</h2>
+    <ul class="decisionrequests">
+        @foreach (var request in _item.CustomerDecisionRequests ?? [])
+        {
+            <li>
+                @request.ProposedWorkChange (@request.ProposedPriceAdjustment), @request.Status
+                @if (request.Status == "Pending")
+                {
+                    @* Moves into a Workshop check in "Only Workshop can record customer decisions". *@
+                    <button class="approve" @onclick="() => RecordCustomerDecision(request.Id, true)">Approve</button>
+                }
+            </li>
+        }
+    </ul>
 
     <h2>History</h2>
     <ul class="history">
@@ -103,6 +120,10 @@ else
             _newPriceAdjustment = null;
         }
     }
+
+    // The written answer is not on the page yet, so Guid.Empty stands in for it until "Record communication".
+    private Task RecordCustomerDecision(Guid requestId, bool approved) =>
+        Run(() => Client.RecordCustomerDecisionAsync(Id, requestId, Guid.Empty, approved));
 
     private async Task RegisterPayment()
     {
