@@ -37,6 +37,7 @@ public class OrdersController : ControllerBase
         return Created($"/orders/{orderId}", approval);
     }
 
+    [Authorize(Roles = Roles.FrontDesk)]
     [HttpPost("{orderId}/inspection-fee-agreements")]
     public IActionResult RecordInspectionFeeAgreement(Guid orderId, RecordInspectionFeeAgreementRequest request)
     {
