@@ -231,6 +231,25 @@ erDiagram
         decimal ProposedPriceAdjustment
         string Status
     }
+    Order ||--o{ CustomerApproval : "CustomerApprovals (OrderId)"
+    CustomerApproval {
+        guid Id
+        string Scope
+        string Method
+        datetime ApprovedAt
+        guid RelatedDecisionRequestId
+        guid CommunicationId
+        decimal ApprovedAmount
+        string ApprovedTerms
+    }
+    Order ||--o{ PriceAdjustment : "ApprovedPriceAdjustments (OrderId)"
+    PriceAdjustment {
+        guid Id
+        string Description
+        decimal Amount
+        datetime ApprovedAt
+        guid CustomerApprovalId
+    }
     Order ||--o{ Payment : "Payments (OrderId)"
     Payment {
         guid Id
@@ -240,7 +259,7 @@ erDiagram
 ```
 
 Users is its own table. The history stores the employee's id and display name, so Order has no foreign key to User either.
-The history, the payments and the decision requests are tables of their own, with OrderId as the foreign key. They are read with the order (`Include` in `EfOrderRepository`).
+The history, the payments, the decision requests, the approvals and the price adjustments are tables of their own, with OrderId as the foreign key. They are read with the order (`Include` in `EfOrderRepository`).
 
 ### Order status
 
@@ -730,11 +749,11 @@ No cycle, built on the module page: Register an employee and Log in (Innlogging)
 
 ### (Workshop) Approve a change
 
-- [ ] Core: an approved change records the approval, and updates the agreed work and price
-- [ ] API: POST /orders/{orderId}/decision-requests/{requestId}/decision → 200 OK
-- [ ] Web: approving a change shows the new agreed price
-- [ ] Web client: RecordCustomerDecisionAsync posts to /orders/{orderId}/decision-requests/{requestId}/decision
-- [ ] EF: the approval and the price adjustment are saved with the order
+- [x] Core: an approved change records the approval, and updates the agreed work and price
+- [x] API: POST /orders/{orderId}/decision-requests/{requestId}/decision → 200 OK
+- [x] Web: approving a change shows the new agreed price
+- [x] Web client: RecordCustomerDecisionAsync posts to /orders/{orderId}/decision-requests/{requestId}/decision
+- [x] EF: the approval and the price adjustment are saved with the order
 
 ### (Workshop) Only Workshop can record customer decisions
 
