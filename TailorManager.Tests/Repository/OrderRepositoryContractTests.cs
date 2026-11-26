@@ -149,6 +149,24 @@ public abstract class OrderRepositoryContractTests
         // Assert
         Assert.Equal(match.Id, Assert.Single(found).Id);
     }
+
+    [Fact]
+    public void GetById_HistoryAddedOutOfOrder_ReturnsItOldestFirst()
+    {
+        // Arrange: the later entry is added first
+        var repository = CreateRepository();
+        var order = TestData.NewOrder();
+        var createdAt = new DateTimeOffset(2026, 11, 2, 9, 0, 0, TimeSpan.Zero);
+        order.History.Add(new OrderHistoryEntry { Id = Guid.NewGuid(), Type = ActivityType.StatusChanged, OccurredAt = createdAt.AddHours(1) });
+        order.History.Add(new OrderHistoryEntry { Id = Guid.NewGuid(), Type = ActivityType.OrderCreated, OccurredAt = createdAt });
+        repository.Add(order);
+
+        // Act
+        var found = Reopen(repository).GetById(order.Id);
+
+        // Assert
+        Assert.Equal(new[] { ActivityType.OrderCreated, ActivityType.StatusChanged }, found!.History.Select(h => h.Type));
+    }
 }
 
 public class FakeOrderRepositoryTests : OrderRepositoryContractTests
