@@ -108,6 +108,16 @@ public static class ApiTestData
     public static Task<HttpResponseMessage> ScheduleFittingAsync(this HttpClient client, Guid orderId, DateTimeOffset? scheduledAt = null) =>
         client.PostAsJsonAsync($"/orders/{orderId}/fittings", new { scheduledAt = scheduledAt ?? DateTimeOffset.UtcNow.AddDays(2) });
 
+    public static Task<HttpResponseMessage> CompleteFittingAsync(this HttpClient client, Guid orderId, Guid fittingId) =>
+        client.PatchAsJsonAsync($"/orders/{orderId}/fittings/{fittingId}/complete", new { outcome = Examples.FittingOutcome });
+
+    // An order that waits for a fitting: Kari makes it, and Ola starts it and schedules the fitting. The fitting is the last in the list.
+    public static async Task<OrderResponse> CreateOrderWaitingForFittingAsync(this HttpClient frontDesk, HttpClient workshop)
+    {
+        var order = await frontDesk.CreateOrderInProgressAsync(workshop);
+        return await (await workshop.ScheduleFittingAsync(order.Id)).ReadOrderAsync();
+    }
+
     // The answer as an OrderResponse, after checking it is 200 OK: var body = await response.ReadOrderAsync();
     public static async Task<OrderResponse> ReadOrderAsync(this HttpResponseMessage response)
     {

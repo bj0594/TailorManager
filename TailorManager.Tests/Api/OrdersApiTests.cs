@@ -409,4 +409,21 @@ public class OrdersApiTests : ApiTestBase
         Assert.Equal("WaitingForFitting", body.Status);
         Assert.Single(body.Fittings);
     }
+
+    [Fact]
+    public async Task PatchOrdersFittingsComplete_ScheduledFitting_ReturnsOk()
+    {
+        // Arrange
+        var frontDesk = await _factory.LogInAsFrontDeskAsync();
+        var workshop = await _factory.LogInAsWorkshopAsync();
+        var order = await frontDesk.CreateOrderWaitingForFittingAsync(workshop);
+
+        // Act
+        var response = await workshop.CompleteFittingAsync(order.Id, order.Fittings.Single().Id);
+
+        // Assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var body = await response.ReadOrderAsync();
+        Assert.Equal(Examples.FittingOutcome, body.Fittings.Single().Outcome);
+    }
 }
