@@ -1,4 +1,5 @@
 using System.Net;
+using System.Text.Json;
 using TailorManager.Web.Api;
 
 namespace TailorManager.Web.Tests;
@@ -157,5 +158,24 @@ public class OrdersClientTests
 
         // Assert
         Assert.Equal($"?status=InProgress&customerId={customerId}", _handler.Requests[0].RequestUri!.Query);
+    }
+
+    [Fact]
+    public async Task CreateOrderAsync_Valid_PostsTheOrder()
+    {
+        // Arrange
+        var customerId = Guid.NewGuid();
+        _handler.Respond("/orders", TestDtos.ToJson(TestDtos.NewOrder(customerId)), HttpStatusCode.Created);
+
+        // Act
+        var result = await _client.CreateOrderAsync(customerId, "NewGarment", Examples.WorkDescription, Examples.AgreedPrice);
+
+        // Assert
+        _handler.AssertSent(HttpMethod.Post, "/orders");
+        var body = JsonDocument.Parse(_handler.Bodies.Single()!).RootElement;
+        Assert.Equal(customerId, body.GetProperty("customerId").GetGuid());
+        Assert.Equal(Examples.WorkDescription, body.GetProperty("workDescription").GetString());
+        Assert.Equal(Examples.AgreedPrice, body.GetProperty("agreedPrice").GetDecimal());
+        Assert.Equal(customerId, result.CustomerId);
     }
 }
