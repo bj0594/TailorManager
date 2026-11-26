@@ -720,8 +720,8 @@ No cycle, built on the module page: Register an employee and Log in (Innlogging)
 
 ### (Workshop) Only Workshop can ask for customer decisions
 
-- [ ] API: POST /orders/{orderId}/decision-requests as FrontDesk → 403 Forbidden
-- [ ] Web: the decision form is hidden for FrontDesk
+- [x] API: POST /orders/{orderId}/decision-requests as FrontDesk → 403 Forbidden
+- [x] Web: the decision form is hidden for FrontDesk
 
 ### (Workshop) Ask for a second decision while waiting
 
