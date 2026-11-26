@@ -58,6 +58,10 @@ public class OrderService
     public Order AddWorkNote(Guid id, string note, User employee)
     {
         var order = GetOrder(id);
+        if (order.Status != OrderStatus.InProgress)
+        {
+            throw new InvalidOrderStatusException("The order is not in progress.");
+        }
         AddHistory(order, employee, ActivityType.WorkNoteAdded, note);
         return Save(order);
     }
