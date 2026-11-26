@@ -104,6 +104,10 @@ public static class ApiTestData
         return await (await workshop.RequestCustomerDecisionAsync(order.Id, proposedPriceAdjustment)).ReadOrderAsync();
     }
 
+    // A fitting two days from now, so it is never in the past.
+    public static Task<HttpResponseMessage> ScheduleFittingAsync(this HttpClient client, Guid orderId, DateTimeOffset? scheduledAt = null) =>
+        client.PostAsJsonAsync($"/orders/{orderId}/fittings", new { scheduledAt = scheduledAt ?? DateTimeOffset.UtcNow.AddDays(2) });
+
     // The answer as an OrderResponse, after checking it is 200 OK: var body = await response.ReadOrderAsync();
     public static async Task<OrderResponse> ReadOrderAsync(this HttpResponseMessage response)
     {
@@ -115,7 +119,8 @@ public static class ApiTestData
 // The answers as the API tests read them. Add a field when a test checks it, with the name from the response in api.md.
 public record CustomerResponse(Guid Id, string Name, string Phone, string Email, string Address);
 public record OrderResponse(Guid Id, Guid CustomerId, string WorkDescription, decimal InitialAgreedPrice, decimal CurrentAgreedPrice, decimal OutstandingBalance, string Status, List<OrderHistoryResponse> History, List<PaymentResponse> Payments,
-    List<CustomerDecisionRequestResponse> CustomerDecisionRequests);
+    List<CustomerDecisionRequestResponse> CustomerDecisionRequests, List<FittingResponse> Fittings);
 public record OrderHistoryResponse(string? ActorDisplayName, string Type, string? Note, DateTimeOffset OccurredAt);
 public record PaymentResponse(Guid Id, decimal Amount, string TransactionReference);
 public record CustomerDecisionRequestResponse(Guid Id, string ProposedWorkChange, decimal? ProposedPriceAdjustment, string Status);
+public record FittingResponse(Guid Id, DateTimeOffset ScheduledAt, DateTimeOffset? CompletedAt, string? Outcome);

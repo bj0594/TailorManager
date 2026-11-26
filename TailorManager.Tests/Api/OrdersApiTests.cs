@@ -390,4 +390,22 @@ public class OrdersApiTests : ApiTestBase
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.Equal("InProgress", (await response.ReadOrderAsync()).Status);
     }
+
+    [Fact]
+    public async Task PostOrdersFittings_OrderInProgress_ReturnsOk()
+    {
+        // Arrange
+        var frontDesk = await _factory.LogInAsFrontDeskAsync();
+        var workshop = await _factory.LogInAsWorkshopAsync();
+        var order = await frontDesk.CreateOrderInProgressAsync(workshop);
+
+        // Act
+        var response = await workshop.ScheduleFittingAsync(order.Id);
+
+        // Assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var body = await response.ReadOrderAsync();
+        Assert.Equal("WaitingForFitting", body.Status);
+        Assert.Single(body.Fittings);
+    }
 }
