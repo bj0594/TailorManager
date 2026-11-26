@@ -30,6 +30,7 @@ else
                 @if (request.Status == "Pending" && Tokens.Role == Roles.Workshop)
                 {
                     <button class="approve" @onclick="() => RecordCustomerDecision(request.Id, true)">Approve</button>
+                    <button class="reject" @onclick="() => RecordCustomerDecision(request.Id, false)">Reject</button>
                 }
             </li>
         }
