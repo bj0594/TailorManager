@@ -89,6 +89,13 @@ public class OrderService
         var order = GetOrder(id);
         var request = order.CustomerDecisionRequests.Single(r => r.Id == requestId);
 
+        // An answered request cannot be answered again: the approved price would be added twice (§6).
+        if (request.Status != DecisionStatus.Pending)
+        {
+            throw new InvalidOperationException("The request is already answered.");
+        }
+
+
         // The decision must point to the customer's written answer: a message from the customer on this order (§2).
         if (!order.Communications.Any(c => c.Id == communicationId && c.Direction == CommunicationDirection.Incoming))
         {
