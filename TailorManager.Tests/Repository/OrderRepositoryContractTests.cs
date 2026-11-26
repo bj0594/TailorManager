@@ -244,6 +244,24 @@ public abstract class OrderRepositoryContractTests
         Assert.Equal(Examples.CommunicationContent, communication.Content);
         Assert.Equal(CommunicationDirection.Incoming, communication.Direction);
     }
+
+    [Fact]
+    public void Update_NewInitialApproval_IsStored()
+    {
+        // Arrange
+        var repository = CreateRepository();
+        var order = TestData.NewOrder();
+        repository.Add(order);
+
+        // Act
+        order.CustomerApprovals.Add(new CustomerApproval { Id = Guid.NewGuid(), Scope = ApprovalScope.InitialOrder, Method = ApprovalMethod.SignedForm, DocumentReference = Examples.ApprovalDocumentReference, ApprovedAmount = Examples.AgreedPrice });
+        repository.Update(order);
+
+        // Assert
+        var approval = Assert.Single(Reopen(repository).GetById(order.Id)!.CustomerApprovals);
+        Assert.Equal(ApprovalScope.InitialOrder, approval.Scope);
+        Assert.Equal(Examples.ApprovalDocumentReference, approval.DocumentReference);
+    }
 }
 
 public class FakeOrderRepositoryTests : OrderRepositoryContractTests
