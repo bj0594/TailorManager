@@ -543,7 +543,7 @@ OrderDetailsPage         /orders/{id}               shows: one order, its custom
                                                     errors: shows the message from 400 and 409
 ~~~
 
-Stored in: PostgreSQL with EF Core (tables: Customers, Orders and Users).
+Stored in: PostgreSQL with EF Core (tables: Customers, Orders and Users, and the lists on an order in tables of their own).
 
 Notes:
 
@@ -758,7 +758,7 @@ No cycle, built on the module page: Register an employee and Log in (Innlogging)
 ### (Workshop) Only Workshop can record customer decisions
 
 - [x] API: POST /orders/{orderId}/decision-requests/{requestId}/decision as FrontDesk → 403 Forbidden
-- [ ] Web: the Approve and Reject buttons are hidden for FrontDesk
+- [x] Web: the Approve and Reject buttons are hidden for FrontDesk
 
 ### (Workshop) Approve a change without a price
 
@@ -767,14 +767,14 @@ No cycle, built on the module page: Register an employee and Log in (Innlogging)
 
 ### (Workshop) Reject a change
 
-- [ ] Core: a rejected change keeps the agreed work and price
-- [ ] API: POST /orders/{orderId}/decision-requests/{requestId}/decision with approved false → 200 OK, the price unchanged
-- [ ] Web: rejecting a change keeps the agreed price on the page
+- [x] Core: a rejected change keeps the agreed work and price
+- [x] API: POST /orders/{orderId}/decision-requests/{requestId}/decision with approved false → 200 OK, the price unchanged
+- [x] Web: rejecting a change keeps the agreed price on the page
 
 ### (Workshop) Resume after the customer decisions
 
-- [ ] Core: the order returns to InProgress only when no request is pending
-- [ ] API: the last decision → 200 OK, with status InProgress
+- [x] Core: the order returns to InProgress only when no request is pending
+- [x] API: the last decision → 200 OK, with status InProgress
 
 ### (Workshop) Schedule a fitting
 
