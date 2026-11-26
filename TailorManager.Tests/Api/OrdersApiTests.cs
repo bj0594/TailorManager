@@ -582,4 +582,21 @@ public class OrdersApiTests : ApiTestBase
         // Assert
         Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
     }
+
+    [Fact]
+    public async Task PostOrdersDecision_NoWrittenResponse_ReturnsConflict()
+    {
+        // Arrange
+        var frontDesk = await _factory.LogInAsFrontDeskAsync();
+        var workshop = await _factory.LogInAsWorkshopAsync();
+        var order = await frontDesk.CreateOrderWaitingForCustomerAsync(workshop);
+        var requestId = order.CustomerDecisionRequests.Single().Id;
+
+        // Act: an id that is not a message on the order
+        var response = await workshop.PostAsJsonAsync($"/orders/{order.Id}/decision-requests/{requestId}/decision", new { communicationId = Guid.NewGuid(), approved = true });
+
+        // Assert
+        Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
+        Assert.Equal("Record the customer's written response first.", (await response.Content.ReadAsStringAsync()).Trim('"'));
+    }
 }
