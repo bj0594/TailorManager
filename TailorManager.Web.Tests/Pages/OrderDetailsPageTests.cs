@@ -74,6 +74,7 @@ public class OrderDetailsPageTests : PageTestContext
     [InlineData(Roles.FrontDesk, Roles.Workshop, "form.payment")]
     [InlineData(Roles.FrontDesk, Roles.Workshop, "button.deliver")]
     [InlineData(Roles.FrontDesk, Roles.Workshop, "form.initialapproval")]
+    [InlineData(Roles.FrontDesk, Roles.Workshop, "form.inspectionfee")]
     public void OrderDetailsPage_OtherRole_HidesTheAction(string role, string otherRole, string action)
     {
         // Arrange: with a pending request and an open fitting, so their buttons are there too
