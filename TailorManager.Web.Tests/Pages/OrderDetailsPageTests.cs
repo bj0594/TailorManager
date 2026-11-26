@@ -70,6 +70,7 @@ public class OrderDetailsPageTests : PageTestContext
     [InlineData(Roles.Workshop, Roles.FrontDesk, "button.reject")]
     [InlineData(Roles.Workshop, Roles.FrontDesk, "form.fitting")]
     [InlineData(Roles.Workshop, Roles.FrontDesk, "button.completefitting")]
+    [InlineData(Roles.Workshop, Roles.FrontDesk, "form.communication")]
     [InlineData(Roles.FrontDesk, Roles.Workshop, "form.payment")]
     [InlineData(Roles.FrontDesk, Roles.Workshop, "button.deliver")]
     public void OrderDetailsPage_OtherRole_HidesTheAction(string role, string otherRole, string action)
