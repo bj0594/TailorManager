@@ -158,6 +158,7 @@ public class OrderService
     public Order ScheduleFitting(Guid id, DateTimeOffset scheduledAt, User employee)
     {
         var order = GetOrder(id);
+        RequireStatus(order, "The order is not in progress or waiting for a fitting.", OrderStatus.InProgress, OrderStatus.WaitingForFitting);
         var fitting = new FittingAppointment { Id = Guid.NewGuid(), ScheduledAt = scheduledAt.ToUniversalTime() };
         order.Fittings.Add(fitting);
         AddHistory(order, employee, ActivityType.FittingScheduled, relatedEntityId: fitting.Id);
