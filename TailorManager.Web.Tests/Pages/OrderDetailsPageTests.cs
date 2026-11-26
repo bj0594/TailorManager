@@ -448,6 +448,23 @@ public class OrderDetailsPageTests : PageTestContext
             Assert.Contains("The order is not in progress.", page.Find(".error").TextContent));
     }
 
+    [Fact]
+    public void OrderDetailsPage_Approve_SendsTheCustomersLatestMessage()
+    {
+        // Arrange: the customer has answered by email
+        _tokens.Role = Roles.Workshop;
+        var request = TestDtos.NewDecisionRequest();
+        var answer = new CommunicationDto(Guid.NewGuid(), "Email", "Incoming", "Customer", Examples.CommunicationContent, "Received", DateTimeOffset.Now);
+        var order = TestDtos.NewOrder() with { Status = "WaitingForCustomer", CustomerDecisionRequests = [request], Communications = [answer] };
+        var page = RenderOrder(order);
+
+        // Act
+        page.Find("button.approve").Click();
+
+        // Assert
+        page.WaitForAssertion(() => Assert.Equal(answer.Id, Assert.Single(_orders.Decisions).CommunicationId));
+    }
+
     // The order, and its customer, as the fake clients give them to the page.
     private IRenderedComponent<OrderDetailsPage> RenderOrder(OrderDto order)
     {
