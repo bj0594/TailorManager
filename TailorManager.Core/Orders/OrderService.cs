@@ -64,6 +64,7 @@ public class OrderService
     public Order RequestCustomerDecision(Guid id, string proposedWorkChange, decimal? proposedPriceAdjustment, User employee)
     {
         var order = GetOrder(id);
+        RequireStatus(order, "The order is not in progress or waiting for the customer.", OrderStatus.InProgress, OrderStatus.WaitingForCustomer);
         var request = new CustomerDecisionRequest
         {
             Id = Guid.NewGuid(),
