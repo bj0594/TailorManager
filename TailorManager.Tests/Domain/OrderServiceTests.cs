@@ -298,4 +298,22 @@ public class OrderServiceTests
         Assert.Equal(Examples.AgreedPrice + Examples.ProposedPriceAdjustment, changed.OutstandingBalance);
         Assert.Equal(OrderStatus.InProgress, changed.Status);
     }
+
+    [Fact]
+    public void RecordCustomerDecision_ApprovedWithoutPrice_KeepsTheAgreedPrice()
+    {
+        // Arrange
+        var order = _app.AddOrderInProgress();
+        var request = _service.RequestCustomerDecision(order.Id, Examples.ProposedWorkChange, null, _app.Employee)
+            .CustomerDecisionRequests.Single();
+
+        // Act
+        var changed = _service.RecordCustomerDecision(order.Id, request.Id, Guid.NewGuid(), true, _app.Employee);
+
+        // Assert
+        Assert.Equal(DecisionStatus.Approved, request.Status);
+        Assert.Single(changed.CustomerApprovals);
+        Assert.Empty(changed.ApprovedPriceAdjustments);
+        Assert.Equal(Examples.AgreedPrice, changed.CurrentAgreedPrice);
+    }
 }
