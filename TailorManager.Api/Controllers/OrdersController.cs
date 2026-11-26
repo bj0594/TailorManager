@@ -61,6 +61,7 @@ public class OrdersController : ControllerBase
     public IActionResult CompleteFitting(Guid orderId, Guid fittingId, CompleteFittingRequest request) =>
         Ok(_service.CompleteFitting(orderId, fittingId, request.Outcome, CurrentEmployee()));
 
+    [Authorize(Roles = Roles.Workshop)]
     [HttpPost("{orderId}/communications")]
     public IActionResult RecordCommunication(Guid orderId, RecordCommunicationRequest request)
     {
