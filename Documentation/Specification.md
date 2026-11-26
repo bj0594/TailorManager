@@ -883,9 +883,9 @@ No cycle, built on the module page: Register an employee and Log in (Innlogging)
 
 ### (Workshop) Work note on an order not in progress
 
-- [ ] Core: adding a work note fails when the order is not InProgress
-- [ ] API: POST /orders/{orderId}/notes → 409 Conflict
-- [ ] Web: the page shows "The order is not in progress"
+- [x] Core: adding a work note fails when the order is not InProgress
+- [x] API: POST /orders/{orderId}/notes → 409 Conflict
+- [x] Web: the page shows "The order is not in progress"
 
 ### (Workshop) Mark ready for pickup when not in progress
 
