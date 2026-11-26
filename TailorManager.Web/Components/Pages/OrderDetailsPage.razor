@@ -30,12 +30,6 @@ else
         }
     </ul>
 
-    @* Moves into the FrontDesk block in "Only FrontDesk can record the initial approval". *@
-    <form class="initialapproval" @onsubmit="RecordInitialApproval">
-        <input class="documentreference" @bind="_newDocumentReference" placeholder="Signed form, like FORM-1001" />
-        <button type="submit">Record the signed form</button>
-    </form>
-
     <h2>Customer decisions</h2>
     <ul class="decisionrequests">
         @foreach (var request in _item.CustomerDecisionRequests ?? [])
@@ -136,6 +130,11 @@ else
         </form>
 
         <button class="deliver" @onclick="MarkDelivered">Deliver</button>
+
+        <form class="initialapproval" @onsubmit="RecordInitialApproval">
+            <input class="documentreference" @bind="_newDocumentReference" placeholder="Signed form, like FORM-1001" />
+            <button type="submit">Record the signed form</button>
+        </form>
     }
 }
 
