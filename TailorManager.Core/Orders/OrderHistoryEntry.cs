@@ -10,6 +10,9 @@ public class OrderHistoryEntry
     public DateTimeOffset OccurredAt { get; set; }
     public string? Note { get; set; }
 
+    // The detailed record the line is about, like the decision request (§4, History).
+    public Guid? RelatedEntityId { get; set; }
+
     // A new line by the employee who did it, shown as "Kari N.".
     public static OrderHistoryEntry By(User employee) => new()
     {

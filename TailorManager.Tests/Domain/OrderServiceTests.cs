@@ -237,4 +237,24 @@ public class OrderServiceTests
                 Assert.Equal(createdAt.AddHours(1), entry.OccurredAt);
             });
     }
+
+    [Fact]
+    public void RequestCustomerDecision_OrderInProgress_SetsWaitingForCustomer()
+    {
+        // Arrange
+        var order = _app.AddOrderInProgress();
+
+        // Act
+        var changed = _service.RequestCustomerDecision(order.Id, Examples.ProposedWorkChange, Examples.ProposedPriceAdjustment, _app.Employee);
+
+        // Assert
+        Assert.Equal(OrderStatus.WaitingForCustomer, changed.Status);
+        var request = Assert.Single(changed.CustomerDecisionRequests);
+        Assert.Equal(Examples.ProposedWorkChange, request.ProposedWorkChange);
+        Assert.Equal(Examples.ProposedPriceAdjustment, request.ProposedPriceAdjustment);
+        Assert.Equal(DecisionStatus.Pending, request.Status);
+        Assert.Contains(changed.History, h => h.Type == ActivityType.CustomerDecisionRequested && h.RelatedEntityId == request.Id);
+        Assert.Contains(changed.History, h => h.Type == ActivityType.NotificationRequested);
+        Assert.Equal(Examples.AgreedPrice, changed.OutstandingBalance);
+    }
 }

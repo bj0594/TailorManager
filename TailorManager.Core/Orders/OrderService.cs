@@ -60,6 +60,9 @@ public class OrderService
         return Save(order);
     }
 
+    public Order RequestCustomerDecision(Guid id, string proposedWorkChange, decimal? proposedPriceAdjustment, User employee) =>
+        throw new NotImplementedException();
+
     // The customer is told the order is ready: a notification request in the history (§4). Nothing is sent from Core.
     public Order MarkReadyForPickup(Guid id, User employee)
     {

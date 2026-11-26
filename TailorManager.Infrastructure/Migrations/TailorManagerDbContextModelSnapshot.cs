@@ -49,6 +49,37 @@ namespace TailorManager.Infrastructure.Migrations
                     b.ToTable("Customers");
                 });
 
+            modelBuilder.Entity("TailorManager.Core.CustomerDecisionRequest", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("OrderId")
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal?>("ProposedPriceAdjustment")
+                        .HasColumnType("numeric");
+
+                    b.Property<string>("ProposedWorkChange")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset?>("RespondedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("ResponseCommunicationId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OrderId");
+
+                    b.ToTable("CustomerDecisionRequest");
+                });
+
             modelBuilder.Entity("TailorManager.Core.Order", b =>
                 {
                     b.Property<Guid>("Id")
@@ -100,6 +131,9 @@ namespace TailorManager.Infrastructure.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<Guid?>("OrderId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("RelatedEntityId")
                         .HasColumnType("uuid");
 
                     b.Property<int>("Type")
@@ -168,6 +202,13 @@ namespace TailorManager.Infrastructure.Migrations
                     b.ToTable("Users");
                 });
 
+            modelBuilder.Entity("TailorManager.Core.CustomerDecisionRequest", b =>
+                {
+                    b.HasOne("TailorManager.Core.Order", null)
+                        .WithMany("CustomerDecisionRequests")
+                        .HasForeignKey("OrderId");
+                });
+
             modelBuilder.Entity("TailorManager.Core.OrderHistoryEntry", b =>
                 {
                     b.HasOne("TailorManager.Core.Order", null)
@@ -184,6 +225,8 @@ namespace TailorManager.Infrastructure.Migrations
 
             modelBuilder.Entity("TailorManager.Core.Order", b =>
                 {
+                    b.Navigation("CustomerDecisionRequests");
+
                     b.Navigation("History");
 
                     b.Navigation("Payments");

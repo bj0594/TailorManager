@@ -12,6 +12,7 @@ public class Order
     public Guid? RelatedOrderId { get; set; }
     public List<OrderHistoryEntry> History { get; set; } = [];
     public List<Payment> Payments { get; set; } = [];
+    public List<CustomerDecisionRequest> CustomerDecisionRequests { get; set; } = [];
 
     // Calculated (§4): the agreed price minus what is paid. Not stored.
     public decimal OutstandingBalance => InitialAgreedPrice - Payments.Sum(payment => payment.Amount);
