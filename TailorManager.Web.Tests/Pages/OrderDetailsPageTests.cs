@@ -465,6 +465,23 @@ public class OrderDetailsPageTests : PageTestContext
         page.WaitForAssertion(() => Assert.Equal(answer.Id, Assert.Single(_orders.Decisions).CommunicationId));
     }
 
+    [Fact]
+    public void OrderDetailsPage_ApproveWithoutResponse_ShowsTheMessage()
+    {
+        // Arrange
+        _tokens.Role = Roles.Workshop;
+        var order = TestDtos.NewOrder() with { Status = "WaitingForCustomer", CustomerDecisionRequests = [TestDtos.NewDecisionRequest()] };
+        _orders.Fail = new HttpRequestException("Record the customer's written response first.");
+        var page = RenderOrder(order);
+
+        // Act
+        page.Find("button.approve").Click();
+
+        // Assert
+        page.WaitForAssertion(() =>
+            Assert.Contains("Record the customer's written response first", page.Find(".error").TextContent));
+    }
+
     // The order, and its customer, as the fake clients give them to the page.
     private IRenderedComponent<OrderDetailsPage> RenderOrder(OrderDto order)
     {
