@@ -88,6 +88,12 @@ public class OrderService
     {
         var order = GetOrder(id);
         var request = order.CustomerDecisionRequests.Single(r => r.Id == requestId);
+
+        // The decision must point to the customer's written answer: a message from the customer on this order (§2).
+        if (!order.Communications.Any(c => c.Id == communicationId && c.Direction == CommunicationDirection.Incoming))
+        {
+            throw new InvalidOperationException("Record the customer's written response first.");
+        }
         request.Status = approved ? DecisionStatus.Approved : DecisionStatus.Rejected;
         request.ResponseCommunicationId = communicationId;
         request.RespondedAt = _clock.GetUtcNow();
