@@ -29,6 +29,7 @@ public class OrdersController : ControllerBase
         return Created($"/orders/{order.Id}", order);
     }
 
+    [Authorize(Roles = Roles.FrontDesk)]
     [HttpPost("{orderId}/approvals")]
     public IActionResult RecordInitialApproval(Guid orderId, RecordInitialApprovalRequest request)
     {
