@@ -567,4 +567,19 @@ public class OrdersApiTests : ApiTestBase
         Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
         Assert.Equal("The order is not in progress.", (await response.Content.ReadAsStringAsync()).Trim('"'));
     }
+
+    [Fact]
+    public async Task PostOrdersDecisionRequests_NotInProgress_ReturnsConflict()
+    {
+        // Arrange: a Submitted order
+        var frontDesk = await _factory.LogInAsFrontDeskAsync();
+        var workshop = await _factory.LogInAsWorkshopAsync();
+        var order = await frontDesk.CreateOrderAsync();
+
+        // Act
+        var response = await workshop.RequestCustomerDecisionAsync(order.Id);
+
+        // Assert
+        Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
+    }
 }
