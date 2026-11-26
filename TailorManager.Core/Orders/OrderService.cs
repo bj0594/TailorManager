@@ -87,11 +87,16 @@ public class OrderService
     {
         var order = GetOrder(id);
         var request = order.CustomerDecisionRequests.Single(r => r.Id == requestId);
-        request.Status = DecisionStatus.Approved;
+        request.Status = approved ? DecisionStatus.Approved : DecisionStatus.Rejected;
         request.ResponseCommunicationId = communicationId;
         request.RespondedAt = _clock.GetUtcNow();
         AddHistory(order, employee, ActivityType.CustomerDecisionRecorded, relatedEntityId: request.Id);
-        ApproveChange(order, request, employee);
+
+        // A rejected change keeps the agreed work and price (§5, Reject a change).
+        if (approved)
+        {
+            ApproveChange(order, request, employee);
+        }
         MoveTo(order, OrderStatus.InProgress, employee);
         return Save(order);
     }
