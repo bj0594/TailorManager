@@ -15,7 +15,11 @@
 </select>
 <button id="search-button" @onclick="Search">Search</button>
 
-@if (_items.Count == 0)
+@if (_error is not null)
+{
+    <p class="error">@_error</p>
+}
+else if (_items.Count == 0)
 {
     <p class="empty">No orders yet</p>
 }
@@ -33,6 +37,20 @@
 
     protected override async Task OnInitializedAsync() => await Search();
 
-    private async Task Search() =>
-        _items = await Client.ListOrdersAsync(string.IsNullOrWhiteSpace(_search) ? null : _search);
+    private string? _error;
+
+    // An API that does not answer gives HttpRequestException: the page says so instead of crashing.
+    private async Task Search()
+    {
+        _error = null;
+        try
+        {
+            _items = await Client.ListOrdersAsync(string.IsNullOrWhiteSpace(_search) ? null : _search);
+        }
+        catch (HttpRequestException)
+        {
+            _items = [];
+            _error = "Could not load orders";
+        }
+    }
 }
