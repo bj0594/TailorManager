@@ -370,4 +370,22 @@ public class OrderServiceTests
         Assert.Null(fitting.CompletedAt);
         Assert.Contains(changed.History, h => h.Type == ActivityType.FittingScheduled && h.RelatedEntityId == fitting.Id);
     }
+
+    [Fact]
+    public void CompleteFitting_ScheduledFitting_RecordsTheOutcome()
+    {
+        // Arrange
+        var order = _app.AddOrderInProgress();
+        var fitting = _service.ScheduleFitting(order.Id, _app.Clock.Now.AddDays(2), _app.Employee).Fittings.Single();
+        _app.Clock.Advance(TimeSpan.FromDays(2));
+
+        // Act
+        var changed = _service.CompleteFitting(order.Id, fitting.Id, Examples.FittingOutcome, _app.Employee);
+
+        // Assert
+        var completed = Assert.Single(changed.Fittings);
+        Assert.Equal(Examples.FittingOutcome, completed.Outcome);
+        Assert.Equal(_app.Clock.Now, completed.CompletedAt);
+        Assert.Contains(changed.History, h => h.Type == ActivityType.FittingCompleted && h.RelatedEntityId == fitting.Id);
+    }
 }

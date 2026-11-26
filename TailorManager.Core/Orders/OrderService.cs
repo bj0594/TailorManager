@@ -156,6 +156,9 @@ public class OrderService
         return Save(order);
     }
 
+    public Order CompleteFitting(Guid id, Guid fittingId, string outcome, User employee) =>
+        throw new NotImplementedException();
+
     // The customer is told the order is ready: a notification request in the history (§4). Nothing is sent from Core.
     public Order MarkReadyForPickup(Guid id, User employee)
     {
