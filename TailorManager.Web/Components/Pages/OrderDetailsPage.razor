@@ -19,6 +19,14 @@ else
         Outstanding balance: @_item.OutstandingBalance
     </p>
 
+    <h2>History</h2>
+    <ul class="history">
+        @foreach (var entry in (_item.History ?? []).OrderBy(h => h.OccurredAt))
+        {
+            <li>@entry.OccurredAt.ToLocalTime().ToString("g"), @entry.ActorDisplayName: @entry.Type @entry.Note</li>
+        }
+    </ul>
+
     @if (_error is not null)
     {
         <p class="error">@_error</p>
