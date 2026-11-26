@@ -805,13 +805,13 @@ No cycle, built on the module page: Register an employee and Log in (Innlogging)
 
 ### (Workshop) Only Workshop can complete fittings
 
-- [ ] API: PATCH /orders/{orderId}/fittings/{fittingId}/complete as FrontDesk → 403 Forbidden
-- [ ] Web: the Complete button is hidden for FrontDesk
+- [x] API: PATCH /orders/{orderId}/fittings/{fittingId}/complete as FrontDesk → 403 Forbidden
+- [x] Web: the Complete button is hidden for FrontDesk
 
 ### (Workshop) Resume after the fittings
 
-- [ ] Core: the order returns to InProgress only when every fitting is completed
-- [ ] API: the last completed fitting → 200 OK, with status InProgress
+- [x] Core: the order returns to InProgress only when every fitting is completed
+- [x] API: the last completed fitting → 200 OK, with status InProgress
 
 ### (Workshop) Record communication
 
