@@ -798,10 +798,10 @@ No cycle, built on the module page: Register an employee and Log in (Innlogging)
 
 ### (Workshop) Complete a fitting
 
-- [ ] Core: completing a fitting records its outcome
-- [ ] API: PATCH /orders/{orderId}/fittings/{fittingId}/complete → 200 OK
-- [ ] Web: completing a fitting shows its outcome
-- [ ] Web client: CompleteFittingAsync patches /orders/{orderId}/fittings/{fittingId}/complete
+- [x] Core: completing a fitting records its outcome
+- [x] API: PATCH /orders/{orderId}/fittings/{fittingId}/complete → 200 OK
+- [x] Web: completing a fitting shows its outcome
+- [x] Web client: CompleteFittingAsync patches /orders/{orderId}/fittings/{fittingId}/complete
 
 ### (Workshop) Only Workshop can complete fittings
 
