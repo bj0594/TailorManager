@@ -371,4 +371,23 @@ public class OrdersApiTests : ApiTestBase
         Assert.Equal("Rejected", body.CustomerDecisionRequests.Single().Status);
         Assert.Equal(Examples.AgreedPrice, body.CurrentAgreedPrice);
     }
+
+    [Fact]
+    public async Task PostOrdersDecision_LastPendingRequest_ReturnsOkInProgress()
+    {
+        // Arrange: two requests, and the first is answered
+        var frontDesk = await _factory.LogInAsFrontDeskAsync();
+        var workshop = await _factory.LogInAsWorkshopAsync();
+        var order = await frontDesk.CreateOrderWaitingForCustomerAsync(workshop);
+        var requests = (await (await workshop.RequestCustomerDecisionAsync(order.Id, null)).ReadOrderAsync()).CustomerDecisionRequests;
+        var afterFirst = await (await workshop.RecordCustomerDecisionAsync(order.Id, requests[0].Id)).ReadOrderAsync();
+
+        // Act
+        var response = await workshop.RecordCustomerDecisionAsync(order.Id, requests[1].Id);
+
+        // Assert
+        Assert.Equal("WaitingForCustomer", afterFirst.Status);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal("InProgress", (await response.ReadOrderAsync()).Status);
+    }
 }
