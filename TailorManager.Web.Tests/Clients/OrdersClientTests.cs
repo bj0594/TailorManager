@@ -248,4 +248,22 @@ public class OrdersClientTests
         var body = JsonDocument.Parse(_handler.Bodies.Single()!).RootElement;
         Assert.Equal(Examples.FittingOutcome, body.GetProperty("outcome").GetString());
     }
+
+    [Fact]
+    public async Task RecordCommunicationAsync_Always_PostsTheMessage()
+    {
+        // Arrange
+        var id = Guid.NewGuid();
+        var communication = new CommunicationInput("Email", "Incoming", "Customer", Examples.CommunicationContent, "Received", DateTimeOffset.Now);
+        _handler.Respond($"/orders/{id}/communications", "{}");
+
+        // Act
+        await _client.RecordCommunicationAsync(id, communication);
+
+        // Assert
+        _handler.AssertSent(HttpMethod.Post, $"/orders/{id}/communications");
+        var body = JsonDocument.Parse(_handler.Bodies.Single()!).RootElement;
+        Assert.Equal("Incoming", body.GetProperty("direction").GetString());
+        Assert.Equal(Examples.CommunicationContent, body.GetProperty("content").GetString());
+    }
 }
