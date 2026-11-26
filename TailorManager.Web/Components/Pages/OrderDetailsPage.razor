@@ -45,12 +45,6 @@ else
         }
     </ul>
 
-    @* Moves into the Workshop block in "Only Workshop can schedule fittings". *@
-    <form class="fitting" @onsubmit="ScheduleFitting">
-    <input class="scheduledat" type="datetime-local" value="@_newFittingAt" @onchange="@(e => _newFittingAt = e.Value?.ToString() ?? string.Empty)" />        
-    <button type="submit">Schedule fitting</button>
-    </form>
-
     <h2>History</h2>
     <ul class="history">
         @foreach (var entry in (_item.History ?? []).OrderBy(h => h.OccurredAt))
@@ -79,6 +73,11 @@ else
             <input class="workchange" @bind="_newWorkChange" placeholder="Proposed change" />
             <input class="priceadjustment" type="number" @bind="_newPriceAdjustment" placeholder="Price adjustment" />
             <button type="submit">Ask the customer</button>
+        </form>
+
+        <form class="fitting" @onsubmit="ScheduleFitting">
+            <input class="scheduledat" type="datetime-local" value="@_newFittingAt" @onchange="@(e => _newFittingAt = e.Value?.ToString() ?? string.Empty)" />            
+            <button type="submit">Schedule fitting</button>
         </form>
     }
 
