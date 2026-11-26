@@ -17,6 +17,7 @@ public class FakeOrdersClient : IOrdersClient
     public List<Guid> DeliveredIds { get; } = [];
     public List<(Guid Id, string ProposedWorkChange, decimal? ProposedPriceAdjustment)> DecisionRequests { get; } = [];
     public List<(Guid Id, Guid RequestId, Guid CommunicationId, bool Approved)> Decisions { get; } = [];
+    public List<(Guid Id, DateTimeOffset ScheduledAt)> ScheduledFittings { get; } = [];
 
     public Task<List<OrderDto>> GetOrdersAsync() => Task.FromResult(Items);
 
@@ -43,6 +44,10 @@ public class FakeOrdersClient : IOrdersClient
     // Answers the request, and adds an approved price adjustment to the price and the balance, like the API.
     public Task RecordCustomerDecisionAsync(Guid id, Guid requestId, Guid communicationId, bool approved) =>
         Record(() => Decisions.Add((id, requestId, communicationId, approved)), id, "InProgress", order => Decide(order, requestId, approved));
+
+    public Task ScheduleFittingAsync(Guid id, DateTimeOffset scheduledAt) =>
+        Record(() => ScheduledFittings.Add((id, scheduledAt)), id, "WaitingForFitting",
+            order => order with { Fittings = (order.Fittings ?? []).Append(new FittingDto(Guid.NewGuid(), scheduledAt, null, null)).ToList() });
 
     public Task RegisterPaymentAsync(Guid id, decimal amount, string transactionReference) =>
         Record(() => Payments.Add((id, amount, transactionReference)), id, "Delivered");

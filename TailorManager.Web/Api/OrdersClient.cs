@@ -40,6 +40,10 @@ public class OrdersClient : IOrdersClient
     public Task RecordCustomerDecisionAsync(Guid id, Guid requestId, Guid communicationId, bool approved) =>
         _http.PostAsJsonAsync($"orders/{id}/decision-requests/{requestId}/decision", new { communicationId, approved }).EnsureSuccessAsync();
 
+    // A stub until the client test: the page test uses FakeOrdersClient.
+    public Task ScheduleFittingAsync(Guid id, DateTimeOffset scheduledAt) =>
+        throw new NotImplementedException();
+
     public Task RegisterPaymentAsync(Guid id, decimal amount, string transactionReference) =>
         _http.PostAsJsonAsync($"orders/{id}/payments", new { amount, transactionReference }).EnsureSuccessAsync();
 

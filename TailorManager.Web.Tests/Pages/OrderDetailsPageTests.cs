@@ -1,3 +1,4 @@
+using System.Globalization;
 
 using Bunit;
 using TailorManager.Web.Api;
@@ -282,6 +283,28 @@ public class OrderDetailsPageTests : PageTestContext
             Assert.Contains(_orders.Decisions, d => d.Id == order.Id && d.RequestId == request.Id && !d.Approved);
             Assert.Contains(Examples.AgreedPrice.ToString(), page.Find(".current-price").TextContent);
             Assert.Contains("Rejected", page.Find(".decisionrequests").TextContent);
+        });
+    }
+
+    [Fact]
+    public void OrderDetailsPage_ScheduleFitting_ShowsTheAppointment()
+    {
+        // Arrange
+        _tokens.Role = Roles.Workshop;
+        var order = TestDtos.NewOrder() with { Status = "InProgress" };
+        var page = RenderOrder(order);
+        var scheduledAt = DateTimeOffset.Parse("2026-11-26T10:00", CultureInfo.InvariantCulture);
+
+        // Act
+        page.Find("form.fitting input.scheduledat").Change("2026-11-26T10:00");
+        page.Find("form.fitting").Submit();
+
+        // Assert
+        page.WaitForAssertion(() =>
+        {
+            Assert.Contains((order.Id, scheduledAt), _orders.ScheduledFittings);
+            Assert.Contains("WaitingForFitting", page.Find(".status").TextContent);
+            Assert.Single(page.FindAll("ul.fittings li"));
         });
     }
 
