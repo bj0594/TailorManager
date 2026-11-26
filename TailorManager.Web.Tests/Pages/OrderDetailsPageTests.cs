@@ -370,6 +370,26 @@ public class OrderDetailsPageTests : PageTestContext
         Assert.Contains("Failed", Assert.Single(page.FindAll("ul.communications li")).TextContent);
     }
 
+    [Fact]
+    public void OrderDetailsPage_RecordInitialApproval_ShowsTheSignedForm()
+    {
+        // Arrange
+        _tokens.Role = Roles.FrontDesk;
+        var order = TestDtos.NewOrder();
+        var page = RenderOrder(order);
+
+        // Act
+        page.Find("form.initialapproval input.documentreference").Change(Examples.ApprovalDocumentReference);
+        page.Find("form.initialapproval").Submit();
+
+        // Assert
+        page.WaitForAssertion(() =>
+        {
+            Assert.Contains((order.Id, "SignedForm", (string?)Examples.ApprovalDocumentReference), _orders.InitialApprovals);
+            Assert.Contains(Examples.ApprovalDocumentReference, page.Find("ul.approvals").TextContent);
+        });
+    }
+
     // The order, and its customer, as the fake clients give them to the page.
     private IRenderedComponent<OrderDetailsPage> RenderOrder(OrderDto order)
     {

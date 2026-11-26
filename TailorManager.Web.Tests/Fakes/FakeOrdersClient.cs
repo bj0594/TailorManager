@@ -20,6 +20,7 @@ public class FakeOrdersClient : IOrdersClient
     public List<(Guid Id, DateTimeOffset ScheduledAt)> ScheduledFittings { get; } = [];
     public List<(Guid Id, Guid FittingId, string Outcome)> CompletedFittings { get; } = [];
     public List<(Guid Id, CommunicationInput Communication)> RecordedCommunications { get; } = [];
+    public List<(Guid Id, string Method, string? DocumentReference)> InitialApprovals { get; } = [];
 
     public Task<List<OrderDto>> GetOrdersAsync() => Task.FromResult(Items);
 
@@ -65,6 +66,13 @@ public class FakeOrdersClient : IOrdersClient
             {
                 Communications = (order.Communications ?? []).Append(new CommunicationDto(Guid.NewGuid(), communication.Channel, communication.Direction,
                     communication.Source, communication.Content, communication.Outcome, communication.OccurredAt)).ToList()
+            });
+
+    public Task RecordInitialApprovalAsync(Guid id, string method, string? documentReference) =>
+        Record(() => InitialApprovals.Add((id, method, documentReference)), id, null,
+            order => order with
+            {
+                CustomerApprovals = (order.CustomerApprovals ?? []).Append(new CustomerApprovalDto(Guid.NewGuid(), "InitialOrder", method, documentReference, order.CurrentAgreedPrice)).ToList()
             });
 
     public Task RegisterPaymentAsync(Guid id, decimal amount, string transactionReference) =>
