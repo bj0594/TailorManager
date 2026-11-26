@@ -43,9 +43,8 @@ else
         {
             <li>
                 @fitting.ScheduledAt.ToLocalTime().ToString("g") @fitting.Outcome
-                @if (fitting.CompletedAt is null)
+                @if (fitting.CompletedAt is null && Tokens.Role == Roles.Workshop)
                 {
-                    @* Gets a Workshop check in "Only Workshop can complete fittings". *@
                     <input class="outcome" @bind="_newOutcome" placeholder="Outcome" />
                     <button class="completefitting" @onclick="() => CompleteFitting(fitting.Id)">Complete</button>
                 }
@@ -148,6 +147,7 @@ else
         Run(() => Client.RecordCustomerDecisionAsync(Id, requestId, Guid.Empty, approved));
 
     // The date and time from the datetime-local field, like "2026-11-26T10:00", in the browser's time zone.
+    // The field uses value and @onchange, not @bind: @bind on a datetime-local field needs a DateTime, not a string.
     private string _newFittingAt = "";
 
     private async Task ScheduleFitting()
