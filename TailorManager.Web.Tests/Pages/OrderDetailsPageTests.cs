@@ -356,6 +356,20 @@ public class OrderDetailsPageTests : PageTestContext
         });
     }
 
+    [Fact]
+    public void OrderDetailsPage_FailedMessage_ShowsFailed()
+    {
+        // Arrange
+        var failed = new CommunicationDto(Guid.NewGuid(), "SMS", "Outgoing", "Manual", Examples.CommunicationContent, "Failed", DateTimeOffset.Now);
+        var order = TestDtos.NewOrder() with { Status = "InProgress", Communications = [failed] };
+
+        // Act
+        var page = RenderOrder(order);
+
+        // Assert
+        Assert.Contains("Failed", Assert.Single(page.FindAll("ul.communications li")).TextContent);
+    }
+
     // The order, and its customer, as the fake clients give them to the page.
     private IRenderedComponent<OrderDetailsPage> RenderOrder(OrderDto order)
     {
