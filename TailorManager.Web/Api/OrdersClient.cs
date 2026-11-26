@@ -19,9 +19,11 @@ public class OrdersClient : IOrdersClient
     public async Task<OrderDto> GetOrderAsync(Guid id) =>
         (await _http.GetFromJsonAsync<OrderDto>($"orders/{id}"))!;
 
-    // A stub until the client test: the page test uses FakeOrdersClient.
-    public Task<OrderDto> CreateOrderAsync(Guid customerId, string type, string workDescription, decimal agreedPrice) =>
-        throw new NotImplementedException();
+    public async Task<OrderDto> CreateOrderAsync(Guid customerId, string type, string workDescription, decimal agreedPrice)
+    {
+        var response = await _http.PostAsJsonAsync("orders", new { customerId, type, workDescription, agreedPrice }).EnsureSuccessAsync();
+        return (await response.Content.ReadFromJsonAsync<OrderDto>())!;
+    }
 
     public Task StartWorkAsync(Guid id) =>
         _http.PatchAsync($"orders/{id}/start", null).EnsureSuccessAsync();
@@ -49,7 +51,7 @@ public class OrdersClient : IOrdersClient
 
     public async Task<List<OrderDto>> GetOrderAsync(string? status = null, Guid? customerId = null)
     {
-        var url = status is null ? "orders" : $"order?status={status}";
+        var url = status is null ? "orders" : $"order?status={ status }";
         return await _http.GetFromJsonAsync<List<OrderDto>>(url) ?? [];
     }
 }
