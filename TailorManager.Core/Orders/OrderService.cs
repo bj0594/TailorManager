@@ -173,8 +173,18 @@ public class OrderService
         return Save(order);
     }
 
-    public Order RecordCommunication(Guid id, CommunicationEntry communication, User employee) =>
-        throw new NotImplementedException();
+    // An email or SMS to or from the customer, with a history line that points to it. The status stays (§4).
+    public Order RecordCommunication(Guid id, CommunicationEntry communication, User employee)
+    {
+        var order = GetOrder(id);
+        if (communication.Id == Guid.Empty)
+        {
+            communication.Id = Guid.NewGuid();
+        }
+        order.Communications.Add(communication);
+        AddHistory(order, employee, ActivityType.CommunicationRecorded, relatedEntityId: communication.Id);
+        return Save(order);
+    }
 
     // The customer is told the order is ready: a notification request in the history (§4). Nothing is sent from Core.
     public Order MarkReadyForPickup(Guid id, User employee)
