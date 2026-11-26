@@ -15,6 +15,11 @@
 </select>
 <button id="search-button" @onclick="Search">Search</button>
 
+@if (_items.Count == 0)
+{
+    <p class="empty">No orders yet</p>
+}
+
 <ul>
     @foreach (var item in _items)
     {
