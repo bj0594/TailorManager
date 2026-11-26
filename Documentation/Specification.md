@@ -257,6 +257,16 @@ erDiagram
         datetime CompletedAt
         string Outcome
     }
+    Order ||--o{ CommunicationEntry : "Communications (OrderId)"
+    CommunicationEntry {
+        guid Id
+        string Channel
+        string Direction
+        string Source
+        string Content
+        string Outcome
+        datetime OccurredAt
+    }
     Order ||--o{ Payment : "Payments (OrderId)"
     Payment {
         guid Id
@@ -266,7 +276,7 @@ erDiagram
 ```
 
 Users is its own table. The history stores the employee's id and display name, so Order has no foreign key to User either.
-The history, the payments, the decision requests, the approvals, the price adjustments and the fittings are tables of their own, with OrderId as the foreign key. They are read with the order (`Include` in `EfOrderRepository`).
+The history, the payments, the decision requests, the approvals, the price adjustments, the fittings and the communications are tables of their own, with OrderId as the foreign key. They are read with the order (`Include` in `EfOrderRepository`).
 
 ### Order status
 
@@ -815,11 +825,11 @@ No cycle, built on the module page: Register an employee and Log in (Innlogging)
 
 ### (Workshop) Record communication
 
-- [ ] Core: incoming and outgoing email and SMS are added to the history
-- [ ] API: POST /orders/{orderId}/communications → 200 OK
-- [ ] Web: the communication form adds the message to the order
-- [ ] Web client: RecordCommunicationAsync posts to /orders/{orderId}/communications
-- [ ] EF: the communication is saved with the order
+- [x] Core: incoming and outgoing email and SMS are added to the history
+- [x] API: POST /orders/{orderId}/communications → 200 OK
+- [x] Web: the communication form adds the message to the order
+- [x] Web client: RecordCommunicationAsync posts to /orders/{orderId}/communications
+- [x] EF: the communication is saved with the order
 
 ### (Workshop) Only Workshop can record communication
 
