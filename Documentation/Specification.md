@@ -757,7 +757,7 @@ No cycle, built on the module page: Register an employee and Log in (Innlogging)
 
 ### (Workshop) Only Workshop can record customer decisions
 
-- [ ] API: POST /orders/{orderId}/decision-requests/{requestId}/decision as FrontDesk → 403 Forbidden
+- [x] API: POST /orders/{orderId}/decision-requests/{requestId}/decision as FrontDesk → 403 Forbidden
 - [ ] Web: the Approve and Reject buttons are hidden for FrontDesk
 
 ### (Workshop) Approve a change without a price
