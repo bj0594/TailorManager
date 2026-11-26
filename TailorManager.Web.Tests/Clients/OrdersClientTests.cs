@@ -283,4 +283,21 @@ public class OrdersClientTests
         Assert.Equal("SignedForm", body.GetProperty("method").GetString());
         Assert.Equal(Examples.ApprovalDocumentReference, body.GetProperty("documentReference").GetString());
     }
+
+    [Fact]
+    public async Task RecordInspectionFeeAgreementAsync_Always_PostsTheAgreement()
+    {
+        // Arrange
+        var id = Guid.NewGuid();
+        _handler.Respond($"/orders/{id}/inspection-fee-agreements", "{}", HttpStatusCode.Created);
+
+        // Act
+        await _client.RecordInspectionFeeAgreementAsync(id, Examples.InspectionFeeAmount, Examples.InspectionFeeDocumentReference);
+
+        // Assert
+        _handler.AssertSent(HttpMethod.Post, $"/orders/{id}/inspection-fee-agreements");
+        var body = JsonDocument.Parse(_handler.Bodies.Single()!).RootElement;
+        Assert.Equal(Examples.InspectionFeeAmount, body.GetProperty("amount").GetDecimal());
+        Assert.Equal(Examples.InspectionFeeDocumentReference, body.GetProperty("documentReference").GetString());
+    }
 }
