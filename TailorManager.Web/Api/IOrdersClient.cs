@@ -11,6 +11,7 @@ public interface IOrdersClient
     Task AddWorkNoteAsync(Guid id, string note);
     Task MarkReadyForPickupAsync(Guid id);
     Task RequestCustomerDecisionAsync(Guid id, string proposedWorkChange, decimal? proposedPriceAdjustment);
+    Task RecordCustomerDecisionAsync(Guid id, Guid requestId, Guid communicationId, bool approved);
     Task RegisterPaymentAsync(Guid id, decimal amount, string transactionReference);
     Task MarkDeliveredAsync(Guid id);
 }

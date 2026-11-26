@@ -15,6 +15,10 @@ public static class TestDtos
         new(Guid.NewGuid(), customerId ?? Guid.NewGuid(), "NewGarment", workDescription,
             Examples.AgreedPrice, Examples.AgreedPrice, Examples.AgreedPrice, "Submitted", DateTimeOffset.Now, null);
 
+    // A pending request for the change and the price adjustment in §4, for an order that is WaitingForCustomer.
+    public static CustomerDecisionRequestDto NewDecisionRequest(decimal? proposedPriceAdjustment = Examples.ProposedPriceAdjustment) =>
+        new(Guid.NewGuid(), Examples.ProposedWorkChange, proposedPriceAdjustment, "Pending");
+
     // The JSON the API sends for an object, with camelCase names, for _handler.Respond in the client tests.
     public static string ToJson(object value) => JsonSerializer.Serialize(value, JsonSerializerOptions.Web);
 }

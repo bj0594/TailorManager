@@ -242,6 +242,26 @@ public class OrderDetailsPageTests : PageTestContext
         });
     }
 
+    [Fact]
+    public void OrderDetailsPage_ApproveChange_ShowsTheNewPrice()
+    {
+        // Arrange
+        _tokens.Role = Roles.Workshop;
+        var request = TestDtos.NewDecisionRequest();
+        var order = TestDtos.NewOrder() with { Status = "WaitingForCustomer", CustomerDecisionRequests = [request] };
+        var page = RenderOrder(order);
+
+        // Act
+        page.Find("button.approve").Click();
+
+        // Assert
+        page.WaitForAssertion(() =>
+        {
+            Assert.Contains(_orders.Decisions, d => d.Id == order.Id && d.RequestId == request.Id && d.Approved);
+            Assert.Contains((Examples.AgreedPrice + Examples.ProposedPriceAdjustment).ToString(), page.Find(".current-price").TextContent);
+        });
+    }
+
     // The order, and its customer, as the fake clients give them to the page.
     private IRenderedComponent<OrderDetailsPage> RenderOrder(OrderDto order)
     {

@@ -16,6 +16,7 @@ public class FakeOrdersClient : IOrdersClient
     public List<(Guid Id, decimal Amount, string TransactionReference)> Payments { get; } = [];
     public List<Guid> DeliveredIds { get; } = [];
     public List<(Guid Id, string ProposedWorkChange, decimal? ProposedPriceAdjustment)> DecisionRequests { get; } = [];
+    public List<(Guid Id, Guid RequestId, Guid CommunicationId, bool Approved)> Decisions { get; } = [];
 
     public Task<List<OrderDto>> GetOrdersAsync() => Task.FromResult(Items);
 
@@ -39,19 +40,25 @@ public class FakeOrdersClient : IOrdersClient
     public Task RequestCustomerDecisionAsync(Guid id, string proposedWorkChange, decimal? proposedPriceAdjustment) =>
         Record(() => DecisionRequests.Add((id, proposedWorkChange, proposedPriceAdjustment)), id, "WaitingForCustomer");
 
+    // Answers the request, and adds an approved price adjustment to the price and the balance, like the API.
+    public Task RecordCustomerDecisionAsync(Guid id, Guid requestId, Guid communicationId, bool approved) =>
+        Record(() => Decisions.Add((id, requestId, communicationId, approved)), id, "InProgress", order => Decide(order, requestId, approved));
+
     public Task RegisterPaymentAsync(Guid id, decimal amount, string transactionReference) =>
         Record(() => Payments.Add((id, amount, transactionReference)), id, "Delivered");
 
     public Task MarkDeliveredAsync(Guid id) => Record(() => DeliveredIds.Add(id), id, "Delivered");
 
-    private Task Record(Action remember, Guid id, string? newStatus = null)
+    // change: what else the action does to the order, like a new price.
+    private Task Record(Action remember, Guid id, string? newStatus = null, Func<OrderDto, OrderDto>? change = null)
     {
         if (Fail is not null) throw Fail;
         remember();
         var index = Items.FindIndex(i => i.Id == id);
-        if (newStatus is not null && index >= 0)
+        if (index >= 0)
         {
-            Items[index] = Items[index] with { Status = newStatus };
+            var order = change is null ? Items[index] : change(Items[index]);
+            Items[index] = newStatus is null ? order : order with { Status = newStatus };
         }
         return Task.CompletedTask;
     }
@@ -61,4 +68,17 @@ public class FakeOrdersClient : IOrdersClient
         .Where(o => status is null || o.Status == status)
         .Where(o => customerId is null || o.CustomerId == customerId)
         .ToList());
+
+    private static OrderDto Decide(OrderDto order, Guid requestId, bool approved)
+    {
+        var requests = order.CustomerDecisionRequests ?? [];
+        var request = requests.Single(r => r.Id == requestId);
+        var adjustment = approved ? request.ProposedPriceAdjustment ?? 0m : 0m;
+        return order with
+        {
+            CustomerDecisionRequests = requests.Select(r => r.Id == requestId ? r with { Status = approved ? "Approved" : "Rejected" } : r).ToList(),
+            CurrentAgreedPrice = order.CurrentAgreedPrice + adjustment,
+            OutstandingBalance = order.OutstandingBalance + adjustment
+        };
+    }
 }

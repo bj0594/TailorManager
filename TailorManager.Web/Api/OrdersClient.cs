@@ -37,6 +37,10 @@ public class OrdersClient : IOrdersClient
     public Task RequestCustomerDecisionAsync(Guid id, string proposedWorkChange, decimal? proposedPriceAdjustment) =>
         _http.PostAsJsonAsync($"orders/{id}/decision-requests", new { proposedWorkChange, proposedPriceAdjustment }).EnsureSuccessAsync();
 
+    // A stub until the client test: the page test uses FakeOrdersClient.
+    public Task RecordCustomerDecisionAsync(Guid id, Guid requestId, Guid communicationId, bool approved) =>
+        throw new NotImplementedException();
+
     public Task RegisterPaymentAsync(Guid id, decimal amount, string transactionReference) =>
         _http.PostAsJsonAsync($"orders/{id}/payments", new { amount, transactionReference }).EnsureSuccessAsync();
 
