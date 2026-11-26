@@ -458,4 +458,23 @@ public class OrderServiceTests
         Assert.Contains(approval, found.CustomerApprovals);
         Assert.Contains(found.History, h => h.Type == ActivityType.InitialApprovalRecorded && h.RelatedEntityId == approval.Id);
     }
+
+    [Fact]
+    public void RecordInspectionFeeAgreement_SignedForm_RecordsTheAmountAndReference()
+    {
+        // Arrange
+        var order = _app.AddOrder();
+
+        // Act
+        var approval = _service.RecordInspectionFeeAgreement(order.Id, Examples.InspectionFeeAmount, Examples.InspectionFeeDocumentReference, _app.Employee);
+
+        // Assert
+        Assert.Equal(ApprovalScope.InspectionFee, approval.Scope);
+        Assert.Equal(Examples.InspectionFeeAmount, approval.ApprovedAmount);
+        Assert.Equal(Examples.InspectionFeeDocumentReference, approval.DocumentReference);
+        var found = _service.GetOrder(order.Id);
+        Assert.Contains(approval, found.CustomerApprovals);
+        Assert.Contains(found.History, h => h.Type == ActivityType.InspectionFeeAgreementRecorded && h.RelatedEntityId == approval.Id);
+        Assert.Equal(Examples.AgreedPrice, found.CurrentAgreedPrice);
+    }
 }

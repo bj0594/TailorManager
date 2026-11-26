@@ -209,6 +209,9 @@ public class OrderService
         return approval;
     }
 
+    public CustomerApproval RecordInspectionFeeAgreement(Guid id, decimal amount, string documentReference, User employee) =>
+        throw new NotImplementedException();
+
     // The customer is told the order is ready: a notification request in the history (§4). Nothing is sent from Core.
     public Order MarkReadyForPickup(Guid id, User employee)
     {
