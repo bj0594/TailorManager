@@ -47,10 +47,7 @@ public class OrderService
     public Order StartOrder(Guid id, User employee)
     {
         var order = GetOrder(id);
-        if (order.Status != OrderStatus.Submitted)
-        {
-            throw new InvalidOrderStatusException("The order is not Submitted.");
-        }
+        RequireStatus(order, "The order is not Submitted.", OrderStatus.Submitted);
         MoveTo(order, OrderStatus.InProgress, employee);
         return Save(order);
     }
@@ -58,10 +55,7 @@ public class OrderService
     public Order AddWorkNote(Guid id, string note, User employee)
     {
         var order = GetOrder(id);
-        if (order.Status != OrderStatus.InProgress)
-        {
-            throw new InvalidOrderStatusException("The order is not in progress.");
-        }
+        RequireStatus(order, "The order is not in progress.", OrderStatus.InProgress);
         AddHistory(order, employee, ActivityType.WorkNoteAdded, note);
         return Save(order);
     }
@@ -237,10 +231,7 @@ public class OrderService
     public Order MarkReadyForPickup(Guid id, User employee)
     {
         var order = GetOrder(id);
-        if (order.Status != OrderStatus.InProgress)
-        {
-            throw new InvalidOrderStatusException("The order is not in progress.");
-        }
+        RequireStatus(order, "The order is not in progress.", OrderStatus.InProgress);
         MoveTo(order, OrderStatus.ReadyForPickup, employee);
         AddHistory(order, employee, ActivityType.NotificationRequested);
         return Save(order);
@@ -261,6 +252,15 @@ public class OrderService
         var order = GetOrder(id);
         MoveTo(order, OrderStatus.Delivered, employee);
         return Save(order);
+    }
+
+    // The status rules in §4: the action is only allowed in the given statuses.
+    private static void RequireStatus(Order order, string message, params OrderStatus[] allowed)
+    {
+        if (!allowed.Contains(order.Status))
+        {
+            throw new InvalidOrderStatusException(message);
+        }
     }
 
     // A new status, with a StatusChanged line in the history.
