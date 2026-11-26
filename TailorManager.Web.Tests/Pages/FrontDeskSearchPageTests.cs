@@ -114,4 +114,19 @@ public class FrontDeskSearchPageTests : PageTestContext
         // Assert
         page.WaitForAssertion(() => Assert.Contains("No customers found", page.Find(".empty").TextContent));
     }
+
+    [Fact]
+    public void FrontDeskSearchPage_ApiDoesNotAnswer_ShowsCouldNotLoadCustomers()
+    {
+        // Arrange
+        _customers.LoadFail = new HttpRequestException("No connection could be made.");
+        var page = Render<FrontDeskSearchPage>();
+
+        // Act
+        page.Find("#search").Change(Examples.CustomerName);
+        page.Find("#search-button").Click();
+
+        // Assert
+        page.WaitForAssertion(() => Assert.Contains("Could not load customers", page.Find(".error").TextContent));
+    }
 }

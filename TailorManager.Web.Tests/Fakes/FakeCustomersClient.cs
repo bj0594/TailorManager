@@ -7,6 +7,9 @@ public class FakeCustomersClient : ICustomersClient
 {
     public List<CustomerDto> Items { get; } = [];
 
+    // Set LoadFail to make the search throw, like an API that does not answer.
+    public Exception? LoadFail { get; set; }
+
     public Task<CustomerDto> GetCustomerAsync(Guid id) => Task.FromResult(Items.Single(i => i.Id == id));
     public Task<CustomerDto> AddCustomerAsync(string name, string phone, string email, string address)
     {
@@ -16,7 +19,7 @@ public class FakeCustomersClient : ICustomersClient
     }
 
     public Task<List<CustomerDto>> FindCustomersAsync(string? searchTerm = null) =>
-    Task.FromResult(Items
+    LoadFail is not null ? Task.FromException<List<CustomerDto>>(LoadFail) : Task.FromResult(Items
         .Where(c => searchTerm is null || c.Name == searchTerm || c.Phone == searchTerm || c.Email == searchTerm)
         .ToList());
 }
