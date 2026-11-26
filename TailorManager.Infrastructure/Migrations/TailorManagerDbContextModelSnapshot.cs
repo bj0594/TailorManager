@@ -49,6 +49,45 @@ namespace TailorManager.Infrastructure.Migrations
                     b.ToTable("Customers");
                 });
 
+            modelBuilder.Entity("TailorManager.Core.CustomerApproval", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal?>("ApprovedAmount")
+                        .HasColumnType("numeric");
+
+                    b.Property<DateTimeOffset>("ApprovedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("ApprovedTerms")
+                        .HasColumnType("text");
+
+                    b.Property<Guid?>("CommunicationId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("DocumentReference")
+                        .HasColumnType("text");
+
+                    b.Property<int>("Method")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid?>("OrderId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("RelatedDecisionRequestId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Scope")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OrderId");
+
+                    b.ToTable("CustomerApproval");
+                });
+
             modelBuilder.Entity("TailorManager.Core.CustomerDecisionRequest", b =>
                 {
                     b.Property<Guid>("Id")
@@ -168,6 +207,34 @@ namespace TailorManager.Infrastructure.Migrations
                     b.ToTable("Payment");
                 });
 
+            modelBuilder.Entity("TailorManager.Core.PriceAdjustment", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal>("Amount")
+                        .HasColumnType("numeric");
+
+                    b.Property<DateTimeOffset>("ApprovedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("CustomerApprovalId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<Guid?>("OrderId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OrderId");
+
+                    b.ToTable("PriceAdjustment");
+                });
+
             modelBuilder.Entity("TailorManager.Core.User", b =>
                 {
                     b.Property<Guid>("Id")
@@ -202,6 +269,13 @@ namespace TailorManager.Infrastructure.Migrations
                     b.ToTable("Users");
                 });
 
+            modelBuilder.Entity("TailorManager.Core.CustomerApproval", b =>
+                {
+                    b.HasOne("TailorManager.Core.Order", null)
+                        .WithMany("CustomerApprovals")
+                        .HasForeignKey("OrderId");
+                });
+
             modelBuilder.Entity("TailorManager.Core.CustomerDecisionRequest", b =>
                 {
                     b.HasOne("TailorManager.Core.Order", null)
@@ -223,8 +297,19 @@ namespace TailorManager.Infrastructure.Migrations
                         .HasForeignKey("OrderId");
                 });
 
+            modelBuilder.Entity("TailorManager.Core.PriceAdjustment", b =>
+                {
+                    b.HasOne("TailorManager.Core.Order", null)
+                        .WithMany("ApprovedPriceAdjustments")
+                        .HasForeignKey("OrderId");
+                });
+
             modelBuilder.Entity("TailorManager.Core.Order", b =>
                 {
+                    b.Navigation("ApprovedPriceAdjustments");
+
+                    b.Navigation("CustomerApprovals");
+
                     b.Navigation("CustomerDecisionRequests");
 
                     b.Navigation("History");

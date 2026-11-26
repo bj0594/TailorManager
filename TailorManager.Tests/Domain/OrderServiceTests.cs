@@ -273,4 +273,29 @@ public class OrderServiceTests
         Assert.Equal(2, changed.CustomerDecisionRequests.Count);
         Assert.Single(changed.History, h => h.Type == ActivityType.NotificationRequested);
     }
+
+    [Fact]
+    public void RecordCustomerDecision_Approved_UpdatesTheAgreedPrice()
+    {
+        // Arrange
+        var order = _app.AddOrderInProgress();
+        var request = _service.RequestCustomerDecision(order.Id, Examples.ProposedWorkChange, Examples.ProposedPriceAdjustment, _app.Employee)
+            .CustomerDecisionRequests.Single();
+        var communicationId = Guid.NewGuid();
+
+        // Act
+        var changed = _service.RecordCustomerDecision(order.Id, request.Id, communicationId, true, _app.Employee);
+
+        // Assert
+        Assert.Equal(DecisionStatus.Approved, request.Status);
+        Assert.Equal(communicationId, request.ResponseCommunicationId);
+        var approval = Assert.Single(changed.CustomerApprovals);
+        Assert.Equal(ApprovalScope.WorkChange, approval.Scope);
+        Assert.Equal(request.Id, approval.RelatedDecisionRequestId);
+        Assert.Equal(Examples.ProposedWorkChange, approval.ApprovedTerms);
+        Assert.Equal(approval.Id, Assert.Single(changed.ApprovedPriceAdjustments).CustomerApprovalId);
+        Assert.Equal(Examples.AgreedPrice + Examples.ProposedPriceAdjustment, changed.CurrentAgreedPrice);
+        Assert.Equal(Examples.AgreedPrice + Examples.ProposedPriceAdjustment, changed.OutstandingBalance);
+        Assert.Equal(OrderStatus.InProgress, changed.Status);
+    }
 }

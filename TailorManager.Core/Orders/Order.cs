@@ -13,6 +13,11 @@ public class Order
     public List<OrderHistoryEntry> History { get; set; } = [];
     public List<Payment> Payments { get; set; } = [];
     public List<CustomerDecisionRequest> CustomerDecisionRequests { get; set; } = [];
+    public List<CustomerApproval> CustomerApprovals { get; set; } = [];
+    public List<PriceAdjustment> ApprovedPriceAdjustments { get; set; } = [];
+
+    // Calculated (§4): the agreed price with the approved adjustments. Not stored.
+    public decimal CurrentAgreedPrice => InitialAgreedPrice + ApprovedPriceAdjustments.Sum(adjustment => adjustment.Amount);
 
     // Calculated (§4): the agreed price minus what is paid. Not stored.
     public decimal OutstandingBalance => InitialAgreedPrice - Payments.Sum(payment => payment.Amount);
