@@ -140,8 +140,21 @@ public class OrderService
         AddHistory(order, employee, ActivityType.PriceAdjusted, relatedEntityId: adjustment.Id);
     }
 
-    public Order ScheduleFitting(Guid id, DateTimeOffset scheduledAt, User employee) =>
-        throw new NotImplementedException();
+    // A fitting with the customer. The order waits until every fitting is completed (§3, Order status).
+    public Order ScheduleFitting(Guid id, DateTimeOffset scheduledAt, User employee)
+    {
+        var order = GetOrder(id);
+        var fitting = new FittingAppointment { Id = Guid.NewGuid(), ScheduledAt = scheduledAt };
+        order.Fittings.Add(fitting);
+        AddHistory(order, employee, ActivityType.FittingScheduled, relatedEntityId: fitting.Id);
+
+        // A second fitting while waiting adds the appointment, and the status stays (§4).
+        if (order.Status != OrderStatus.WaitingForFitting)
+        {
+            MoveTo(order, OrderStatus.WaitingForFitting, employee);
+        }
+        return Save(order);
+    }
 
     // The customer is told the order is ready: a notification request in the history (§4). Nothing is sent from Core.
     public Order MarkReadyForPickup(Guid id, User employee)
