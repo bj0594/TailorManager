@@ -22,4 +22,14 @@ public class WorkshopOrdersPageTests : PageTestContext
         page.WaitForAssertion(() =>
             Assert.Contains(Examples.WorkDescription, Assert.Single(page.FindAll("li")).TextContent));
     }
+
+    [Fact]
+    public void WorkshopOrdersPage_NoOrders_ShowsNoOrdersYet()
+    {
+        // Act
+        var page = Render<WorkshopOrdersPage>();
+
+        // Assert
+        page.WaitForAssertion(() => Assert.Contains("No orders yet", page.Find(".empty").TextContent));
+    }
 }
