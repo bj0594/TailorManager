@@ -295,4 +295,23 @@ public class OrdersApiTests : ApiTestBase
         Assert.Equal("Pending", request.Status);
         Assert.Equal(Examples.ProposedPriceAdjustment, request.ProposedPriceAdjustment);
     }
+
+    [Fact]
+    public async Task PostOrdersDecisionRequests_AlreadyWaiting_ReturnsOkStillWaiting()
+    {
+        // Arrange
+        var frontDesk = await _factory.LogInAsFrontDeskAsync();
+        var workshop = await _factory.LogInAsWorkshopAsync();
+        var order = await frontDesk.CreateOrderInProgressAsync(workshop);
+        (await workshop.RequestCustomerDecisionAsync(order.Id)).EnsureSuccessStatusCode();
+
+        // Act
+        var response = await workshop.RequestCustomerDecisionAsync(order.Id, null);
+
+        // Assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var body = await response.ReadOrderAsync();
+        Assert.Equal("WaitingForCustomer", body.Status);
+        Assert.Equal(2, body.CustomerDecisionRequests.Count);
+    }
 }
