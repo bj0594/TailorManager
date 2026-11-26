@@ -535,4 +535,20 @@ public class OrdersApiTests : ApiTestBase
         var body = await response.Content.ReadFromJsonAsync<OrderResponse>();
         Assert.Equal(earlier.Id, body!.RelatedOrderId);
     }
+
+    [Fact]
+    public async Task PostOrdersNotes_NotInProgress_ReturnsConflict()
+    {
+        // Arrange: a Submitted order
+        var frontDesk = await _factory.LogInAsFrontDeskAsync();
+        var workshop = await _factory.LogInAsWorkshopAsync();
+        var order = await frontDesk.CreateOrderAsync();
+
+        // Act
+        var response = await workshop.AddWorkNoteAsync(order.Id);
+
+        // Assert
+        Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
+        Assert.Equal("The order is not in progress.", (await response.Content.ReadAsStringAsync()).Trim('"'));
+    }
 }
