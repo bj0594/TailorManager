@@ -41,6 +41,7 @@ public class OrdersController : ControllerBase
     public IActionResult AddWorkNote(Guid orderId, AddWorkNoteRequest request) =>
         Ok(_service.AddWorkNote(orderId, request.Note, CurrentEmployee()));
 
+    [Authorize(Roles = Roles.Workshop)]
     [HttpPost("{orderId}/decision-requests")]
     public IActionResult RequestCustomerDecision(Guid orderId, RequestCustomerDecisionRequest request) =>
         Ok(_service.RequestCustomerDecision(orderId, request.ProposedWorkChange, request.ProposedPriceAdjustment, CurrentEmployee()));
