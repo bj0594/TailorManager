@@ -237,6 +237,10 @@ public class OrderService
     public Order MarkReadyForPickup(Guid id, User employee)
     {
         var order = GetOrder(id);
+        if (order.Status != OrderStatus.InProgress)
+        {
+            throw new InvalidOrderStatusException("The order is not in progress.");
+        }
         MoveTo(order, OrderStatus.ReadyForPickup, employee);
         AddHistory(order, employee, ActivityType.NotificationRequested);
         return Save(order);
