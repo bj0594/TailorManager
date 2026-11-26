@@ -250,6 +250,13 @@ erDiagram
         datetime ApprovedAt
         guid CustomerApprovalId
     }
+    Order ||--o{ FittingAppointment : "Fittings (OrderId)"
+    FittingAppointment {
+        guid Id
+        datetime ScheduledAt
+        datetime CompletedAt
+        string Outcome
+    }
     Order ||--o{ Payment : "Payments (OrderId)"
     Payment {
         guid Id
@@ -259,7 +266,7 @@ erDiagram
 ```
 
 Users is its own table. The history stores the employee's id and display name, so Order has no foreign key to User either.
-The history, the payments, the decision requests, the approvals and the price adjustments are tables of their own, with OrderId as the foreign key. They are read with the order (`Include` in `EfOrderRepository`).
+The history, the payments, the decision requests, the approvals, the price adjustments and the fittings are tables of their own, with OrderId as the foreign key. They are read with the order (`Include` in `EfOrderRepository`).
 
 ### Order status
 
@@ -778,11 +785,11 @@ No cycle, built on the module page: Register an employee and Log in (Innlogging)
 
 ### (Workshop) Schedule a fitting
 
-- [ ] Core: scheduling a fitting stores the date and time, and sets WaitingForFitting
-- [ ] API: POST /orders/{orderId}/fittings → 200 OK
-- [ ] Web: the fitting form shows the appointment and WaitingForFitting
-- [ ] Web client: ScheduleFittingAsync posts to /orders/{orderId}/fittings
-- [ ] EF: the fitting is saved with the order
+- [x] Core: scheduling a fitting stores the date and time, and sets WaitingForFitting
+- [x] API: POST /orders/{orderId}/fittings → 200 OK
+- [x] Web: the fitting form shows the appointment and WaitingForFitting
+- [x] Web client: ScheduleFittingAsync posts to /orders/{orderId}/fittings
+- [x] EF: the fitting is saved with the order
 
 ### (Workshop) Only Workshop can schedule fittings
 
