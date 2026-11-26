@@ -900,9 +900,9 @@ No cycle, built on the module page: Register an employee and Log in (Innlogging)
 
 ### (Workshop) Decision without a written response
 
-- [ ] Core: recording a decision fails when no written response is recorded
-- [ ] API: POST /orders/{orderId}/decision-requests/{requestId}/decision → 409 Conflict
-- [ ] Web: the page shows "Record the customer's written response first"
+- [x] Core: recording a decision fails when no written response is recorded
+- [x] API: POST /orders/{orderId}/decision-requests/{requestId}/decision → 409 Conflict
+- [x] Web: the page shows "Record the customer's written response first"
 
 ### (Workshop) Decide on a request that is already answered
 
