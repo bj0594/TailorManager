@@ -7,6 +7,7 @@ public class OrderHistoryEntry
     public Guid? ActorId { get; set; }
     public string? ActorDisplayName { get; set; }
     public ActivityType Type { get; set; }
+    public DateTimeOffset OccurredAt { get; set; }
     public string? Note { get; set; }
 
     // A new line by the employee who did it, shown as "Kari N.".

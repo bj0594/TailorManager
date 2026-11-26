@@ -96,6 +96,9 @@ namespace TailorManager.Infrastructure.Migrations
                     b.Property<string>("Note")
                         .HasColumnType("text");
 
+                    b.Property<DateTimeOffset>("OccurredAt")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<Guid?>("OrderId")
                         .HasColumnType("uuid");
 

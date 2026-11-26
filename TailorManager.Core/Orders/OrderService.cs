@@ -6,11 +6,14 @@ public class OrderService
 {
     private readonly IOrderRepository _repository;
     private readonly ICustomerRepository _customerRepository;
+    private readonly TimeProvider _clock;
 
-    public OrderService(IOrderRepository repository, ICustomerRepository customerRepository)
+    // The clock is TimeProvider.System in the API, and a TestClock in the tests (§4, Dependencies).
+    public OrderService(IOrderRepository repository, ICustomerRepository customerRepository, TimeProvider? clock = null)
     {
         _repository = repository;
         _customerRepository = customerRepository;
+        _clock = clock ?? TimeProvider.System;
     }
 
     public Order AddOrder(Guid customerId, OrderType type, string workDescription, decimal agreedPrice, Guid? relatedOrderId, User employee)
