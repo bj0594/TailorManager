@@ -599,4 +599,21 @@ public class OrdersApiTests : ApiTestBase
         Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
         Assert.Equal("Record the customer's written response first.", (await response.Content.ReadAsStringAsync()).Trim('"'));
     }
+
+    [Fact]
+    public async Task PostOrdersDecision_AlreadyAnswered_ReturnsConflict()
+    {
+        // Arrange: a request the customer has approved
+        var frontDesk = await _factory.LogInAsFrontDeskAsync();
+        var workshop = await _factory.LogInAsWorkshopAsync();
+        var order = await frontDesk.CreateOrderWaitingForCustomerAsync(workshop);
+        var requestId = order.CustomerDecisionRequests.Single().Id;
+        (await workshop.RecordCustomerDecisionAsync(order.Id, requestId)).EnsureSuccessStatusCode();
+
+        // Act
+        var response = await workshop.RecordCustomerDecisionAsync(order.Id, requestId, approved: false);
+
+        // Assert
+        Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
+    }
 }
