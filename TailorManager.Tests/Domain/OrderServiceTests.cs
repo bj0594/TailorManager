@@ -539,4 +539,23 @@ public class OrderServiceTests
         Assert.Equal("Record the customer's written response first.", error.Message);
         Assert.Equal(DecisionStatus.Pending, request.Status);
     }
+
+    [Fact]
+    public void RecordCustomerDecision_AlreadyAnswered_ThrowsAndChangesNothing()
+    {
+        // Arrange: a request the customer has approved
+        var order = _app.AddOrderInProgress();
+        var request = _service.RequestCustomerDecision(order.Id, Examples.ProposedWorkChange, Examples.ProposedPriceAdjustment, _app.Employee)
+            .CustomerDecisionRequests.Single();
+        _service.RecordCustomerDecision(order.Id, request.Id, _app.AddCustomerResponse(order.Id), true, _app.Employee);
+        var secondResponse = _app.AddCustomerResponse(order.Id);
+
+        // Act + Assert
+        Assert.Throws<InvalidOperationException>(() =>
+            _service.RecordCustomerDecision(order.Id, request.Id, secondResponse, false, _app.Employee));
+        var found = _service.GetOrder(order.Id);
+        Assert.Equal(DecisionStatus.Approved, request.Status);
+        Assert.Single(found.CustomerApprovals);
+        Assert.Equal(Examples.AgreedPrice + Examples.ProposedPriceAdjustment, found.CurrentAgreedPrice);
+    }
 }
