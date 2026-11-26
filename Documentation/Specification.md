@@ -833,14 +833,14 @@ No cycle, built on the module page: Register an employee and Log in (Innlogging)
 
 ### (Workshop) Only Workshop can record communication
 
-- [ ] API: POST /orders/{orderId}/communications as FrontDesk → 403 Forbidden
-- [ ] Web: the communication form is hidden for FrontDesk
+- [x] API: POST /orders/{orderId}/communications as FrontDesk → 403 Forbidden
+- [x] Web: the communication form is hidden for FrontDesk
 
 ### (Workshop) Failed communication
 
-- [ ] Core: a failed message is recorded without changing the order status
-- [ ] API: POST /orders/{orderId}/communications with outcome Failed → 200 OK, the status unchanged
-- [ ] Web: the order page shows the message as Failed
+- [x] Core: a failed message is recorded without changing the order status
+- [x] API: POST /orders/{orderId}/communications with outcome Failed → 200 OK, the status unchanged
+- [x] Web: the order page shows the message as Failed
 
 ### (FrontDesk) Record the initial approval
 
