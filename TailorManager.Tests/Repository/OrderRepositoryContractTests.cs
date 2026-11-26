@@ -186,6 +186,27 @@ public abstract class OrderRepositoryContractTests
         Assert.Equal(Examples.ProposedPriceAdjustment, request.ProposedPriceAdjustment);
         Assert.Equal(DecisionStatus.Pending, request.Status);
     }
+
+    [Fact]
+    public void Update_NewApprovalAndPriceAdjustment_AreStored()
+    {
+        // Arrange
+        var repository = CreateRepository();
+        var order = TestData.NewOrder();
+        repository.Add(order);
+        var approval = new CustomerApproval { Id = Guid.NewGuid(), Scope = ApprovalScope.WorkChange, Method = ApprovalMethod.Email, ApprovedTerms = Examples.ProposedWorkChange };
+
+        // Act
+        order.CustomerApprovals.Add(approval);
+        order.ApprovedPriceAdjustments.Add(new PriceAdjustment { Id = Guid.NewGuid(), Description = Examples.ProposedWorkChange, Amount = Examples.ProposedPriceAdjustment, CustomerApprovalId = approval.Id });
+        repository.Update(order);
+
+        // Assert
+        var found = Reopen(repository).GetById(order.Id)!;
+        Assert.Equal(ApprovalScope.WorkChange, Assert.Single(found.CustomerApprovals).Scope);
+        Assert.Equal(approval.Id, Assert.Single(found.ApprovedPriceAdjustments).CustomerApprovalId);
+        Assert.Equal(Examples.AgreedPrice + Examples.ProposedPriceAdjustment, found.CurrentAgreedPrice);
+    }
 }
 
 public class FakeOrderRepositoryTests : OrderRepositoryContractTests
