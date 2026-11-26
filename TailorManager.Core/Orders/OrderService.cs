@@ -82,8 +82,46 @@ public class OrderService
         return Save(order);
     }
 
-    public Order RecordCustomerDecision(Guid id, Guid requestId, Guid communicationId, bool approved, User employee) =>
-        throw new NotImplementedException();
+    // The customer's written answer to a request (§2). An approved change is a CustomerApproval, and its price
+    // adjustment is part of CurrentAgreedPrice from now on.
+    public Order RecordCustomerDecision(Guid id, Guid requestId, Guid communicationId, bool approved, User employee)
+    {
+        var order = GetOrder(id);
+        var request = order.CustomerDecisionRequests.Single(r => r.Id == requestId);
+        var now = _clock.GetUtcNow();
+        request.Status = DecisionStatus.Approved;
+        request.ResponseCommunicationId = communicationId;
+        request.RespondedAt = now;
+        AddHistory(order, employee, ActivityType.CustomerDecisionRecorded, relatedEntityId: request.Id);
+
+        // The method is Email until the communication it came in is recorded (§5, Record communication).
+        var approval = new CustomerApproval
+        {
+            Id = Guid.NewGuid(),
+            Scope = ApprovalScope.WorkChange,
+            Method = ApprovalMethod.Email,
+            ApprovedAt = now,
+            RelatedDecisionRequestId = request.Id,
+            CommunicationId = communicationId,
+            ApprovedAmount = request.ProposedPriceAdjustment,
+            ApprovedTerms = request.ProposedWorkChange
+        };
+        order.CustomerApprovals.Add(approval);
+
+        var adjustment = new PriceAdjustment
+        {
+            Id = Guid.NewGuid(),
+            Description = request.ProposedWorkChange,
+            Amount = request.ProposedPriceAdjustment ?? 0m,
+            ApprovedAt = now,
+            CustomerApprovalId = approval.Id
+        };
+        order.ApprovedPriceAdjustments.Add(adjustment);
+        AddHistory(order, employee, ActivityType.PriceAdjusted, relatedEntityId: adjustment.Id);
+
+        MoveTo(order, OrderStatus.InProgress, employee);
+        return Save(order);
+    }
 
     // The customer is told the order is ready: a notification request in the history (§4). Nothing is sent from Core.
     public Order MarkReadyForPickup(Guid id, User employee)

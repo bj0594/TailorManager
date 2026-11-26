@@ -19,6 +19,6 @@ public class Order
     // Calculated (§4): the agreed price with the approved adjustments. Not stored.
     public decimal CurrentAgreedPrice => InitialAgreedPrice + ApprovedPriceAdjustments.Sum(adjustment => adjustment.Amount);
 
-    // Calculated (§4): the agreed price minus what is paid. Not stored.
-    public decimal OutstandingBalance => InitialAgreedPrice - Payments.Sum(payment => payment.Amount);
+    // Calculated (§4): the current agreed price minus what is paid. Not stored.
+    public decimal OutstandingBalance => CurrentAgreedPrice - Payments.Sum(payment => payment.Amount);
 }
