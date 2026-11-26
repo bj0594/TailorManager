@@ -793,8 +793,8 @@ No cycle, built on the module page: Register an employee and Log in (Innlogging)
 
 ### (Workshop) Only Workshop can schedule fittings
 
-- [ ] API: POST /orders/{orderId}/fittings as FrontDesk → 403 Forbidden
-- [ ] Web: the fitting form is hidden for FrontDesk
+- [x] API: POST /orders/{orderId}/fittings as FrontDesk → 403 Forbidden
+- [x] Web: the fitting form is hidden for FrontDesk
 
 ### (Workshop) Complete a fitting
 
