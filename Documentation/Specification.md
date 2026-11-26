@@ -762,8 +762,8 @@ No cycle, built on the module page: Register an employee and Log in (Innlogging)
 
 ### (Workshop) Approve a change without a price
 
-- [ ] Core: an approved change without a price adjustment is Approved, and the agreed price is unchanged
-- [ ] API: POST /orders/{orderId}/decision-requests/{requestId}/decision → 200 OK, the price unchanged
+- [x] Core: an approved change without a price adjustment is Approved, and the agreed price is unchanged
+- [x] API: POST /orders/{orderId}/decision-requests/{requestId}/decision → 200 OK, the price unchanged
 
 ### (Workshop) Reject a change
 
