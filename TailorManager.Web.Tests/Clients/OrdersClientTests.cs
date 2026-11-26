@@ -300,4 +300,20 @@ public class OrdersClientTests
         Assert.Equal(Examples.InspectionFeeAmount, body.GetProperty("amount").GetDecimal());
         Assert.Equal(Examples.InspectionFeeDocumentReference, body.GetProperty("documentReference").GetString());
     }
+
+    [Fact]
+    public async Task CreateOrderAsync_WithRelatedOrder_PostsTheLink()
+    {
+        // Arrange
+        var customerId = Guid.NewGuid();
+        var relatedOrderId = Guid.NewGuid();
+        _handler.Respond("/orders", TestDtos.ToJson(TestDtos.NewOrder(customerId)), HttpStatusCode.Created);
+
+        // Act
+        await _client.CreateOrderAsync(customerId, "Repair", Examples.OtherWorkDescription, Examples.AgreedPrice, relatedOrderId);
+
+        // Assert
+        var body = JsonDocument.Parse(_handler.Bodies.Single()!).RootElement;
+        Assert.Equal(relatedOrderId, body.GetProperty("relatedOrderId").GetGuid());
+    }
 }
