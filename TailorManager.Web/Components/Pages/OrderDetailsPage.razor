@@ -44,6 +44,13 @@ else
         <button class="readyforpickup" @onclick="MarkReadyForPickup">Ready for pickup</button>
     }
 
+    @* Moves into the Workshop block in "Only Workshop can ask for customer decisions". *@
+    <form class="decisionrequest" @onsubmit="RequestCustomerDecision">
+        <input class="workchange" @bind="_newWorkChange" placeholder="Proposed change" />
+        <input class="priceadjustment" type="number" @bind="_newPriceAdjustment" placeholder="Price adjustment" />
+        <button type="submit">Ask the customer</button>
+    </form>
+
     @if (Tokens.Role == Roles.FrontDesk)
     {
         <form class="payment" @onsubmit="RegisterPayment">
@@ -65,6 +72,8 @@ else
     private string _newNote = "";
     private decimal _newAmount;
     private string _newReference = "";
+    private string _newWorkChange = "";
+    private decimal? _newPriceAdjustment;
 
     protected override async Task OnParametersSetAsync()
     {
@@ -84,6 +93,15 @@ else
         if (await Run(() => Client.AddWorkNoteAsync(Id, _newNote)))
         {
             _newNote = "";
+        }
+    }
+
+    private async Task RequestCustomerDecision()
+    {
+        if (await Run(() => Client.RequestCustomerDecisionAsync(Id, _newWorkChange, _newPriceAdjustment)))
+        {
+            _newWorkChange = "";
+            _newPriceAdjustment = null;
         }
     }
 
