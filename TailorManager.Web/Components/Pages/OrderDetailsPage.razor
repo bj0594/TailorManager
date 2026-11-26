@@ -27,9 +27,8 @@ else
         {
             <li>
                 @request.ProposedWorkChange (@request.ProposedPriceAdjustment), @request.Status
-                @if (request.Status == "Pending")
+                @if (request.Status == "Pending" && Tokens.Role == Roles.Workshop)
                 {
-                    @* Moves into a Workshop check in "Only Workshop can record customer decisions". *@
                     <button class="approve" @onclick="() => RecordCustomerDecision(request.Id, true)">Approve</button>
                 }
             </li>
