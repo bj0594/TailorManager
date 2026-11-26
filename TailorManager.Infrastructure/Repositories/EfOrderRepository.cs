@@ -39,5 +39,8 @@ public class EfOrderRepository : IOrderRepository
     }
 
     // The orders with the lists on them (history and payments), so they are read from the database too.
-    private IQueryable<Order> WithLists() => _db.Orders.Include(o => o.History).Include(o => o.Payments);
+    // The history is read oldest first (§5, Order history).
+    private IQueryable<Order> WithLists() => _db.Orders
+        .Include(o => o.History.OrderBy(h => h.OccurredAt))
+        .Include(o => o.Payments);
 }
