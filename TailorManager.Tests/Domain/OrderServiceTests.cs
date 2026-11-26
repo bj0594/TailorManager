@@ -424,4 +424,19 @@ public class OrderServiceTests
         Assert.Equal(direction, recorded.Direction);
         Assert.Contains(changed.History, h => h.Type == ActivityType.CommunicationRecorded && h.RelatedEntityId == recorded.Id);
     }
+
+    [Fact]
+    public void RecordCommunication_Failed_KeepsTheStatus()
+    {
+        // Arrange
+        var order = _app.AddOrderInProgress();
+        var failed = TestData.NewCommunication(CommunicationChannel.SMS, CommunicationDirection.Outgoing, CommunicationOutcome.Failed);
+
+        // Act
+        var changed = _service.RecordCommunication(order.Id, failed, _app.Employee);
+
+        // Assert
+        Assert.Equal(OrderStatus.InProgress, changed.Status);
+        Assert.Equal(CommunicationOutcome.Failed, Assert.Single(changed.Communications).Outcome);
+    }
 }
