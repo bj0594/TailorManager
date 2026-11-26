@@ -195,6 +195,31 @@ public class OrderDetailsPageTests : PageTestContext
         });
     }
 
+    [Fact]
+    public void OrderDetailsPage_WithHistory_ShowsItOldestFirst()
+    {
+        // Arrange: the API's list in the wrong order, so the test shows the page sorts it
+        var createdAt = new DateTimeOffset(2026, 11, 2, 9, 0, 0, TimeSpan.Zero);
+        var order = TestDtos.NewOrder() with
+        {
+            History =
+            [
+                new("StatusChanged", createdAt.AddHours(1), "Ola N.", null),
+                new("OrderCreated", createdAt, Examples.EmployeeDisplayName, null)
+            ]
+        };
+
+        // Act
+        var page = RenderOrder(order);
+
+        // Assert
+        var entries = page.FindAll("ul.history li");
+        Assert.Equal(2, entries.Count);
+        Assert.Contains("OrderCreated", entries[0].TextContent);
+        Assert.Contains(Examples.EmployeeDisplayName, entries[0].TextContent);
+        Assert.Contains("StatusChanged", entries[1].TextContent);
+    }
+
     // The order, and its customer, as the fake clients give them to the page.
     private IRenderedComponent<OrderDetailsPage> RenderOrder(OrderDto order)
     {
