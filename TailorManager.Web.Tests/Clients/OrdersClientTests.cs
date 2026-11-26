@@ -231,4 +231,21 @@ public class OrdersClientTests
         var body = JsonDocument.Parse(_handler.Bodies.Single()!).RootElement;
         Assert.Equal(scheduledAt, body.GetProperty("scheduledAt").GetDateTimeOffset());
     }
+
+    [Fact]
+    public async Task CompleteFittingAsync_Always_PatchesTheOutcome()
+    {
+        // Arrange
+        var id = Guid.NewGuid();
+        var fittingId = Guid.NewGuid();
+        _handler.Respond($"/orders/{id}/fittings/{fittingId}/complete", "{}");
+
+        // Act
+        await _client.CompleteFittingAsync(id, fittingId, Examples.FittingOutcome);
+
+        // Assert
+        _handler.AssertSent(HttpMethod.Patch, $"/orders/{id}/fittings/{fittingId}/complete");
+        var body = JsonDocument.Parse(_handler.Bodies.Single()!).RootElement;
+        Assert.Equal(Examples.FittingOutcome, body.GetProperty("outcome").GetString());
+    }
 }
