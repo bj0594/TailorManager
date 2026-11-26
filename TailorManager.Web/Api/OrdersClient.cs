@@ -34,9 +34,8 @@ public class OrdersClient : IOrdersClient
     public Task MarkReadyForPickupAsync(Guid id) =>
         _http.PatchAsync($"orders/{id}/ready-for-pickup", null).EnsureSuccessAsync();
 
-    // A stub until the client test: the page test uses FakeOrdersClient.
     public Task RequestCustomerDecisionAsync(Guid id, string proposedWorkChange, decimal? proposedPriceAdjustment) =>
-        throw new NotImplementedException();
+        _http.PostAsJsonAsync($"orders/{id}/decision-requests", new { proposedWorkChange, proposedPriceAdjustment }).EnsureSuccessAsync();
 
     public Task RegisterPaymentAsync(Guid id, decimal amount, string transactionReference) =>
         _http.PostAsJsonAsync($"orders/{id}/payments", new { amount, transactionReference }).EnsureSuccessAsync();
