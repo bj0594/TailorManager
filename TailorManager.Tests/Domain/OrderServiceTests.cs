@@ -335,4 +335,21 @@ public class OrderServiceTests
         Assert.Equal(Examples.AgreedPrice, changed.CurrentAgreedPrice);
         Assert.Equal(Examples.WorkDescription, changed.WorkDescription);
     }
+
+    [Fact]
+    public void RecordCustomerDecision_AnotherRequestPending_KeepsWaitingForCustomer()
+    {
+        // Arrange: two requests, and the customer answers the first
+        var order = _app.AddOrderInProgress();
+        _service.RequestCustomerDecision(order.Id, Examples.ProposedWorkChange, Examples.ProposedPriceAdjustment, _app.Employee);
+        var requests = _service.RequestCustomerDecision(order.Id, Examples.ProposedWorkChange, null, _app.Employee).CustomerDecisionRequests;
+
+        // Act
+        var afterFirst = _service.RecordCustomerDecision(order.Id, requests[0].Id, Guid.NewGuid(), true, _app.Employee).Status;
+        var afterSecond = _service.RecordCustomerDecision(order.Id, requests[1].Id, Guid.NewGuid(), false, _app.Employee).Status;
+
+        // Assert
+        Assert.Equal(OrderStatus.WaitingForCustomer, afterFirst);
+        Assert.Equal(OrderStatus.InProgress, afterSecond);
+    }
 }
