@@ -262,6 +262,23 @@ public abstract class OrderRepositoryContractTests
         Assert.Equal(ApprovalScope.InitialOrder, approval.Scope);
         Assert.Equal(Examples.ApprovalDocumentReference, approval.DocumentReference);
     }
+
+    [Fact]
+    public void Add_WithRelatedOrder_KeepsTheLink()
+    {
+        // Arrange
+        var repository = CreateRepository();
+        var earlier = TestData.NewOrder();
+        var order = TestData.NewOrder(earlier.CustomerId, Examples.OtherWorkDescription);
+        order.RelatedOrderId = earlier.Id;
+
+        // Act
+        repository.Add(earlier);
+        repository.Add(order);
+
+        // Assert
+        Assert.Equal(earlier.Id, Reopen(repository).GetById(order.Id)!.RelatedOrderId);
+    }
 }
 
 public class FakeOrderRepositoryTests : OrderRepositoryContractTests
