@@ -906,8 +906,8 @@ No cycle, built on the module page: Register an employee and Log in (Innlogging)
 
 ### (Workshop) Decide on a request that is already answered
 
-- [ ] Core: recording a second decision for the same request fails and changes nothing
-- [ ] API: POST /orders/{orderId}/decision-requests/{requestId}/decision → 409 Conflict
+- [x] Core: recording a second decision for the same request fails and changes nothing
+- [x] API: POST /orders/{orderId}/decision-requests/{requestId}/decision → 409 Conflict
 
 ### (Workshop) Schedule a fitting when not in progress
 
