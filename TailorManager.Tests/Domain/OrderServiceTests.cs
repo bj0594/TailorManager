@@ -211,4 +211,30 @@ public class OrderServiceTests
         var found = Assert.Single(result);
         Assert.Equal(customer.Id, found.CustomerId);
     }
+
+    [Fact]
+    public void GetOrder_TwoActions_ReturnsTheHistoryOldestFirstWithTheTime()
+    {
+        // Arrange: the order is made now, and started an hour later
+        var createdAt = _app.Clock.Now;
+        var order = _app.AddOrder();
+        _app.Clock.Advance(TimeSpan.FromHours(1));
+        _service.StartOrder(order.Id, _app.Employee);
+
+        // Act
+        var found = _service.GetOrder(order.Id);
+
+        // Assert
+        Assert.Collection(found.History,
+            entry =>
+            {
+                Assert.Equal(ActivityType.OrderCreated, entry.Type);
+                Assert.Equal(createdAt, entry.OccurredAt);
+            },
+            entry =>
+            {
+                Assert.Equal(ActivityType.StatusChanged, entry.Type);
+                Assert.Equal(createdAt.AddHours(1), entry.OccurredAt);
+            });
+    }
 }

@@ -17,10 +17,13 @@ public class FakeServices
     // The logged-in employee the order methods get, shown as "Kari N." in the history.
     public User Employee { get; } = TestData.NewEmployee();
 
+    // The clock the services read the time from. A test moves it with Clock.Advance(...).
+    public TestClock Clock { get; } = new();
+
     public FakeServices()
     {
         Customers = new CustomerService(CustomerRepository);
-        Orders = new OrderService(OrderRepository, CustomerRepository);
+        Orders = new OrderService(OrderRepository, CustomerRepository, Clock);
     }
 
     public Customer AddCustomer(string name = Examples.CustomerName) =>
