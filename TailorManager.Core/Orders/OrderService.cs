@@ -82,27 +82,32 @@ public class OrderService
         return Save(order);
     }
 
-    // The customer's written answer to a request (§2). An approved change is a CustomerApproval, and its price
-    // adjustment is part of CurrentAgreedPrice from now on.
+    // The customer's written answer to a request (§2).
     public Order RecordCustomerDecision(Guid id, Guid requestId, Guid communicationId, bool approved, User employee)
     {
         var order = GetOrder(id);
         var request = order.CustomerDecisionRequests.Single(r => r.Id == requestId);
-        var now = _clock.GetUtcNow();
         request.Status = DecisionStatus.Approved;
         request.ResponseCommunicationId = communicationId;
-        request.RespondedAt = now;
+        request.RespondedAt = _clock.GetUtcNow();
         AddHistory(order, employee, ActivityType.CustomerDecisionRecorded, relatedEntityId: request.Id);
+        ApproveChange(order, request, employee);
+        MoveTo(order, OrderStatus.InProgress, employee);
+        return Save(order);
+    }
 
-        // The method is Email until the communication it came in is recorded (§5, Record communication).
+    // An approved change is a CustomerApproval, and its price adjustment is part of CurrentAgreedPrice from now on.
+    // The method is Email until the communication it came in is recorded (§5, Record communication).
+    private void ApproveChange(Order order, CustomerDecisionRequest request, User employee)
+    {
         var approval = new CustomerApproval
         {
             Id = Guid.NewGuid(),
             Scope = ApprovalScope.WorkChange,
             Method = ApprovalMethod.Email,
-            ApprovedAt = now,
+            ApprovedAt = request.RespondedAt!.Value,
             RelatedDecisionRequestId = request.Id,
-            CommunicationId = communicationId,
+            CommunicationId = request.ResponseCommunicationId,
             ApprovedAmount = request.ProposedPriceAdjustment,
             ApprovedTerms = request.ProposedWorkChange
         };
@@ -113,14 +118,11 @@ public class OrderService
             Id = Guid.NewGuid(),
             Description = request.ProposedWorkChange,
             Amount = request.ProposedPriceAdjustment ?? 0m,
-            ApprovedAt = now,
+            ApprovedAt = approval.ApprovedAt,
             CustomerApprovalId = approval.Id
         };
         order.ApprovedPriceAdjustments.Add(adjustment);
         AddHistory(order, employee, ActivityType.PriceAdjusted, relatedEntityId: adjustment.Id);
-
-        MoveTo(order, OrderStatus.InProgress, employee);
-        return Save(order);
     }
 
     // The customer is told the order is ready: a notification request in the history (§4). Nothing is sent from Core.
