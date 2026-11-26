@@ -186,9 +186,13 @@ else
         }
     }
 
-    // The written answer is not on the page yet, so Guid.Empty stands in for it until "Record communication".
-    private Task RecordCustomerDecision(Guid requestId, bool approved) =>
-        Run(() => Client.RecordCustomerDecisionAsync(Id, requestId, Guid.Empty, approved));
+    // The decision points to the customer's latest message. Without one, the API says
+    // "Record the customer's written response first.", and the page shows it.
+    private Task RecordCustomerDecision(Guid requestId, bool approved)
+    {
+        var answer = (_item!.Communications ?? []).Where(c => c.Direction == "Incoming").OrderBy(c => c.OccurredAt).LastOrDefault();
+        return Run(() => Client.RecordCustomerDecisionAsync(Id, requestId, answer?.Id ?? Guid.Empty, approved));
+    }
 
     // The date and time from the datetime-local field, like "2026-11-26T10:00", in the browser's time zone.
     // The field uses value and @onchange, not @bind: @bind on a datetime-local field needs a DateTime, not a string.
