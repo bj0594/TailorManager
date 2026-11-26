@@ -844,11 +844,11 @@ No cycle, built on the module page: Register an employee and Log in (Innlogging)
 
 ### (FrontDesk) Record the initial approval
 
-- [ ] Core: the signed intake form is recorded as the initial approval
-- [ ] API: POST /orders/{orderId}/approvals → 201 Created
-- [ ] Web: the intake form records the reference to the signed form
-- [ ] Web client: RecordInitialApprovalAsync posts to /orders/{orderId}/approvals
-- [ ] EF: the approval is saved with the order
+- [x] Core: the signed intake form is recorded as the initial approval
+- [x] API: POST /orders/{orderId}/approvals → 201 Created
+- [x] Web: the intake form records the reference to the signed form
+- [x] Web client: RecordInitialApprovalAsync posts to /orders/{orderId}/approvals
+- [x] EF: the approval is saved with the order
 
 ### (FrontDesk) Only FrontDesk can record the initial approval
 
