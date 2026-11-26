@@ -41,6 +41,10 @@ public class OrdersController : ControllerBase
     public IActionResult AddWorkNote(Guid orderId, AddWorkNoteRequest request) =>
         Ok(_service.AddWorkNote(orderId, request.Note, CurrentEmployee()));
 
+    [HttpPost("{orderId}/decision-requests")]
+    public IActionResult RequestCustomerDecision(Guid orderId, RequestCustomerDecisionRequest request) =>
+        Ok(_service.RequestCustomerDecision(orderId, request.ProposedWorkChange, request.ProposedPriceAdjustment, CurrentEmployee()));
+
     [Authorize(Roles = Roles.Workshop)]
     [HttpPatch("{orderId}/ready-for-pickup")]
     public IActionResult MarkReadyForPickup(Guid orderId) => Ok(_service.MarkReadyForPickup(orderId, CurrentEmployee()));
