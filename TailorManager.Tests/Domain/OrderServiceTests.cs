@@ -490,4 +490,15 @@ public class OrderServiceTests
         // Assert
         Assert.Equal(earlier.Id, _service.GetOrder(order.Id).RelatedOrderId);
     }
+
+    [Fact]
+    public void AddWorkNote_NotInProgress_ThrowsInvalidOrderStatusException()
+    {
+        // Arrange: a Submitted order
+        var order = _app.AddOrder();
+
+        // Act + Assert
+        var error = Assert.Throws<InvalidOrderStatusException>(() => _service.AddWorkNote(order.Id, Examples.WorkNote, _app.Employee));
+        Assert.Equal("The order is not in progress.", error.Message);
+    }
 }
