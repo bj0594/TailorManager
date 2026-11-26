@@ -274,4 +274,24 @@ public class OrdersApiTests : ApiTestBase
         Assert.NotEqual(default, body.History[0].OccurredAt);
         Assert.True(body.History[0].OccurredAt <= body.History[1].OccurredAt);
     }
+
+    [Fact]
+    public async Task PostOrdersDecisionRequests_OrderInProgress_ReturnsOk()
+    {
+        // Arrange
+        var frontDesk = await _factory.LogInAsFrontDeskAsync();
+        var workshop = await _factory.LogInAsWorkshopAsync();
+        var order = await frontDesk.CreateOrderInProgressAsync(workshop);
+
+        // Act
+        var response = await workshop.RequestCustomerDecisionAsync(order.Id);
+
+        // Assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var body = await response.ReadOrderAsync();
+        Assert.Equal("WaitingForCustomer", body.Status);
+        var request = Assert.Single(body.CustomerDecisionRequests);
+        Assert.Equal("Pending", request.Status);
+        Assert.Equal(Examples.ProposedPriceAdjustment, request.ProposedPriceAdjustment);
+    }
 }

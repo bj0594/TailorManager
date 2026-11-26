@@ -58,6 +58,14 @@ public static class ApiTestData
         return (await response.Content.ReadFromJsonAsync<OrderResponse>())!;
     }
 
+    // An order that is InProgress: Kari (frontDesk) makes it, and Ola (workshop) starts it.
+    public static async Task<OrderResponse> CreateOrderInProgressAsync(this HttpClient frontDesk, HttpClient workshop)
+    {
+        var order = await frontDesk.CreateOrderAsync();
+        (await workshop.StartWorkAsync(order.Id)).EnsureSuccessStatusCode();
+        return order;
+    }
+
     // An order that is ReadyForPickup: Kari (frontDesk) makes it, and Ola (workshop) starts it and marks it.
     public static async Task<OrderResponse> CreateOrderReadyForPickupAsync(this HttpClient frontDesk, HttpClient workshop, decimal agreedPrice = Examples.AgreedPrice)
     {
@@ -82,10 +90,22 @@ public static class ApiTestData
 
     public static Task<HttpResponseMessage> RegisterPaymentAsync(this HttpClient client, Guid orderId, decimal amount = Examples.PaymentAmount) =>
         client.PostAsJsonAsync($"/orders/{orderId}/payments", NewPaymentRequest(amount));
+
+    public static Task<HttpResponseMessage> RequestCustomerDecisionAsync(this HttpClient client, Guid orderId, decimal? proposedPriceAdjustment = Examples.ProposedPriceAdjustment) =>
+        client.PostAsJsonAsync($"/orders/{orderId}/decision-requests", new { proposedWorkChange = Examples.ProposedWorkChange, proposedPriceAdjustment });
+
+    // The answer as an OrderResponse, after checking it is 200 OK: var body = await response.ReadOrderAsync();
+    public static async Task<OrderResponse> ReadOrderAsync(this HttpResponseMessage response)
+    {
+        response.EnsureSuccessStatusCode();
+        return (await response.Content.ReadFromJsonAsync<OrderResponse>())!;
+    }
 }
 
 // The answers as the API tests read them. Add a field when a test checks it, with the name from the response in api.md.
 public record CustomerResponse(Guid Id, string Name, string Phone, string Email, string Address);
-public record OrderResponse(Guid Id, Guid CustomerId, string WorkDescription, decimal InitialAgreedPrice, decimal OutstandingBalance, string Status, List<OrderHistoryResponse> History, List<PaymentResponse> Payments);
+public record OrderResponse(Guid Id, Guid CustomerId, string WorkDescription, decimal InitialAgreedPrice, decimal OutstandingBalance, string Status, List<OrderHistoryResponse> History, List<PaymentResponse> Payments,
+    List<CustomerDecisionRequestResponse> CustomerDecisionRequests);
 public record OrderHistoryResponse(string? ActorDisplayName, string Type, string? Note, DateTimeOffset OccurredAt);
 public record PaymentResponse(Guid Id, decimal Amount, string TransactionReference);
+public record CustomerDecisionRequestResponse(Guid Id, string ProposedWorkChange, decimal? ProposedPriceAdjustment, string Status);
