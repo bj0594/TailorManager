@@ -6,6 +6,20 @@ namespace TailorManager.Tests;
 // Change a value with an argument: TestData.NewOrder(workDescription: Examples.OtherWorkDescription).
 public static class TestData
 {
+    // The communication in §4: an email from the customer, received now.
+    public static CommunicationEntry NewCommunication(
+        CommunicationChannel channel = CommunicationChannel.Email,
+        CommunicationDirection direction = CommunicationDirection.Incoming,
+        CommunicationOutcome outcome = CommunicationOutcome.Received) => new()
+    {
+        Id = Guid.NewGuid(),
+        Channel = channel,
+        Direction = direction,
+        Source = direction == CommunicationDirection.Incoming ? CommunicationSource.Customer : CommunicationSource.Manual,
+        Content = Examples.CommunicationContent,
+        Outcome = outcome,
+        OccurredAt = new DateTimeOffset(2026, 11, 3, 14, 0, 0, TimeSpan.Zero)
+    };
     public static Customer NewCustomer(string name = Examples.CustomerName) => new()
     {
         Id = Guid.NewGuid(),

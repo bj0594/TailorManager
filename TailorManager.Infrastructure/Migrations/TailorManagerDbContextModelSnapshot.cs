@@ -22,6 +22,40 @@ namespace TailorManager.Infrastructure.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("TailorManager.Core.CommunicationEntry", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Channel")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("Direction")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTimeOffset>("OccurredAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("OrderId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Outcome")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Source")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OrderId");
+
+                    b.ToTable("CommunicationEntry");
+                });
+
             modelBuilder.Entity("TailorManager.Core.Customer", b =>
                 {
                     b.Property<Guid>("Id")
@@ -293,6 +327,13 @@ namespace TailorManager.Infrastructure.Migrations
                     b.ToTable("Users");
                 });
 
+            modelBuilder.Entity("TailorManager.Core.CommunicationEntry", b =>
+                {
+                    b.HasOne("TailorManager.Core.Order", null)
+                        .WithMany("Communications")
+                        .HasForeignKey("OrderId");
+                });
+
             modelBuilder.Entity("TailorManager.Core.CustomerApproval", b =>
                 {
                     b.HasOne("TailorManager.Core.Order", null)
@@ -338,6 +379,8 @@ namespace TailorManager.Infrastructure.Migrations
             modelBuilder.Entity("TailorManager.Core.Order", b =>
                 {
                     b.Navigation("ApprovedPriceAdjustments");
+
+                    b.Navigation("Communications");
 
                     b.Navigation("CustomerApprovals");
 

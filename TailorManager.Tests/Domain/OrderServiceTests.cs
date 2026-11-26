@@ -405,4 +405,23 @@ public class OrderServiceTests
         Assert.Equal(OrderStatus.WaitingForFitting, afterFirst);
         Assert.Equal(OrderStatus.InProgress, afterSecond);
     }
+
+    [Theory]
+    [InlineData(CommunicationChannel.Email, CommunicationDirection.Incoming)]
+    [InlineData(CommunicationChannel.SMS, CommunicationDirection.Outgoing)]
+    public void RecordCommunication_Message_AddsItToTheHistory(CommunicationChannel channel, CommunicationDirection direction)
+    {
+        // Arrange
+        var order = _app.AddOrderInProgress();
+        var communication = TestData.NewCommunication(channel, direction);
+
+        // Act
+        var changed = _service.RecordCommunication(order.Id, communication, _app.Employee);
+
+        // Assert
+        var recorded = Assert.Single(changed.Communications);
+        Assert.Equal(channel, recorded.Channel);
+        Assert.Equal(direction, recorded.Direction);
+        Assert.Contains(changed.History, h => h.Type == ActivityType.CommunicationRecorded && h.RelatedEntityId == recorded.Id);
+    }
 }
