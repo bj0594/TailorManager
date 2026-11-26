@@ -889,9 +889,9 @@ No cycle, built on the module page: Register an employee and Log in (Innlogging)
 
 ### (Workshop) Mark ready for pickup when not in progress
 
-- [ ] Core: marking ReadyForPickup fails when the order is not InProgress
-- [ ] API: PATCH /orders/{orderId}/ready-for-pickup → 409 Conflict
-- [ ] Web: the page shows "The order is not in progress"
+- [x] Core: marking ReadyForPickup fails when the order is not InProgress
+- [x] API: PATCH /orders/{orderId}/ready-for-pickup → 409 Conflict
+- [x] Web: the page shows "The order is not in progress"
 
 ### (Workshop) Ask for a decision when not in progress
 
