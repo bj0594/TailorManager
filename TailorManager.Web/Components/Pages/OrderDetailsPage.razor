@@ -42,14 +42,13 @@ else
         </form>
 
         <button class="readyforpickup" @onclick="MarkReadyForPickup">Ready for pickup</button>
-    }
 
-    @* Moves into the Workshop block in "Only Workshop can ask for customer decisions". *@
-    <form class="decisionrequest" @onsubmit="RequestCustomerDecision">
-        <input class="workchange" @bind="_newWorkChange" placeholder="Proposed change" />
-        <input class="priceadjustment" type="number" @bind="_newPriceAdjustment" placeholder="Price adjustment" />
-        <button type="submit">Ask the customer</button>
-    </form>
+        <form class="decisionrequest" @onsubmit="RequestCustomerDecision">
+            <input class="workchange" @bind="_newWorkChange" placeholder="Proposed change" />
+            <input class="priceadjustment" type="number" @bind="_newPriceAdjustment" placeholder="Price adjustment" />
+            <button type="submit">Ask the customer</button>
+        </form>
+    }
 
     @if (Tokens.Role == Roles.FrontDesk)
     {
