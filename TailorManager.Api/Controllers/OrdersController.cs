@@ -46,6 +46,7 @@ public class OrdersController : ControllerBase
     public IActionResult RequestCustomerDecision(Guid orderId, RequestCustomerDecisionRequest request) =>
         Ok(_service.RequestCustomerDecision(orderId, request.ProposedWorkChange, request.ProposedPriceAdjustment, CurrentEmployee()));
 
+    [Authorize(Roles = Roles.Workshop)]
     [HttpPost("{orderId}/decision-requests/{requestId}/decision")]
     public IActionResult RecordCustomerDecision(Guid orderId, Guid requestId, RecordCustomerDecisionRequest request) =>
         Ok(_service.RecordCustomerDecision(orderId, requestId, request.CommunicationId, request.Approved, CurrentEmployee()));
