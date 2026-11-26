@@ -14,6 +14,7 @@ public interface IOrdersClient
     Task RecordCustomerDecisionAsync(Guid id, Guid requestId, Guid communicationId, bool approved);
     Task ScheduleFittingAsync(Guid id, DateTimeOffset scheduledAt);
     Task CompleteFittingAsync(Guid id, Guid fittingId, string outcome);
+    Task RecordCommunicationAsync(Guid id, CommunicationInput communication);
     Task RegisterPaymentAsync(Guid id, decimal amount, string transactionReference);
     Task MarkDeliveredAsync(Guid id);
 }

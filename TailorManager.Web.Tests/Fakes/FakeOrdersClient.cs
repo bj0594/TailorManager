@@ -19,6 +19,7 @@ public class FakeOrdersClient : IOrdersClient
     public List<(Guid Id, Guid RequestId, Guid CommunicationId, bool Approved)> Decisions { get; } = [];
     public List<(Guid Id, DateTimeOffset ScheduledAt)> ScheduledFittings { get; } = [];
     public List<(Guid Id, Guid FittingId, string Outcome)> CompletedFittings { get; } = [];
+    public List<(Guid Id, CommunicationInput Communication)> RecordedCommunications { get; } = [];
 
     public Task<List<OrderDto>> GetOrdersAsync() => Task.FromResult(Items);
 
@@ -56,6 +57,14 @@ public class FakeOrdersClient : IOrdersClient
             order => order with
             {
                 Fittings = (order.Fittings ?? []).Select(f => f.Id == fittingId ? f with { Outcome = outcome, CompletedAt = DateTimeOffset.Now } : f).ToList()
+            });
+
+    public Task RecordCommunicationAsync(Guid id, CommunicationInput communication) =>
+        Record(() => RecordedCommunications.Add((id, communication)), id, null,
+            order => order with
+            {
+                Communications = (order.Communications ?? []).Append(new CommunicationDto(Guid.NewGuid(), communication.Channel, communication.Direction,
+                    communication.Source, communication.Content, communication.Outcome, communication.OccurredAt)).ToList()
             });
 
     public Task RegisterPaymentAsync(Guid id, decimal amount, string transactionReference) =>

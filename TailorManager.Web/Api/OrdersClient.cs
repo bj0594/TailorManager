@@ -46,6 +46,10 @@ public class OrdersClient : IOrdersClient
     public Task CompleteFittingAsync(Guid id, Guid fittingId, string outcome) =>
         _http.PatchAsJsonAsync($"orders/{id}/fittings/{fittingId}/complete", new { outcome }).EnsureSuccessAsync();
 
+    // A stub until the client test: the page test uses FakeOrdersClient.
+    public Task RecordCommunicationAsync(Guid id, CommunicationInput communication) =>
+        throw new NotImplementedException();
+
     public Task RegisterPaymentAsync(Guid id, decimal amount, string transactionReference) =>
         _http.PostAsJsonAsync($"orders/{id}/payments", new { amount, transactionReference }).EnsureSuccessAsync();
 

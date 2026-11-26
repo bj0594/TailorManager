@@ -330,6 +330,31 @@ public class OrderDetailsPageTests : PageTestContext
         });
     }
 
+    [Fact]
+    public void OrderDetailsPage_RecordCommunication_ShowsTheMessage()
+    {
+        // Arrange
+        _tokens.Role = Roles.Workshop;
+        var order = TestDtos.NewOrder() with { Status = "WaitingForCustomer" };
+        var page = RenderOrder(order);
+
+        // Act
+        page.Find("form.communication select.channel").Change("Email");
+        page.Find("form.communication select.direction").Change("Incoming");
+        page.Find("form.communication input.content").Change(Examples.CommunicationContent);
+        page.Find("form.communication").Submit();
+
+        // Assert
+        page.WaitForAssertion(() =>
+        {
+            var (id, communication) = Assert.Single(_orders.RecordedCommunications);
+            Assert.Equal(order.Id, id);
+            Assert.Equal(("Email", "Incoming", "Customer", Examples.CommunicationContent, "Received"),
+                (communication.Channel, communication.Direction, communication.Source, communication.Content, communication.Outcome));
+            Assert.Contains(Examples.CommunicationContent, page.Find("ul.communications").TextContent);
+        });
+    }
+
     // The order, and its customer, as the fake clients give them to the page.
     private IRenderedComponent<OrderDetailsPage> RenderOrder(OrderDto order)
     {
