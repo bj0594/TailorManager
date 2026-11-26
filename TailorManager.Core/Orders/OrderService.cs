@@ -209,8 +209,25 @@ public class OrderService
         return approval;
     }
 
-    public CustomerApproval RecordInspectionFeeAgreement(Guid id, decimal amount, string documentReference, User employee) =>
-        throw new NotImplementedException();
+    // The customer's written agreement to a possible inspection fee, at intake (§2). It does not change the price:
+    // charging the fee is Later (§6).
+    public CustomerApproval RecordInspectionFeeAgreement(Guid id, decimal amount, string documentReference, User employee)
+    {
+        var order = GetOrder(id);
+        var approval = new CustomerApproval
+        {
+            Id = Guid.NewGuid(),
+            Scope = ApprovalScope.InspectionFee,
+            Method = ApprovalMethod.SignedForm,
+            ApprovedAt = _clock.GetUtcNow(),
+            DocumentReference = documentReference,
+            ApprovedAmount = amount
+        };
+        order.CustomerApprovals.Add(approval);
+        AddHistory(order, employee, ActivityType.InspectionFeeAgreementRecorded, relatedEntityId: approval.Id);
+        Save(order);
+        return approval;
+    }
 
     // The customer is told the order is ready: a notification request in the history (§4). Nothing is sent from Core.
     public Order MarkReadyForPickup(Guid id, User employee)
