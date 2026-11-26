@@ -911,8 +911,8 @@ No cycle, built on the module page: Register an employee and Log in (Innlogging)
 
 ### (Workshop) Schedule a fitting when not in progress
 
-- [ ] Core: scheduling a fitting fails when the order is not InProgress or WaitingForFitting
-- [ ] API: POST /orders/{orderId}/fittings → 409 Conflict
+- [x] Core: scheduling a fitting fails when the order is not InProgress or WaitingForFitting
+- [x] API: POST /orders/{orderId}/fittings → 409 Conflict
 
 ### (Workshop) Complete a fitting on an order that is not waiting
 
