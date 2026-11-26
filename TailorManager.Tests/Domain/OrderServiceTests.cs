@@ -477,4 +477,17 @@ public class OrderServiceTests
         Assert.Contains(found.History, h => h.Type == ActivityType.InspectionFeeAgreementRecorded && h.RelatedEntityId == approval.Id);
         Assert.Equal(Examples.AgreedPrice, found.CurrentAgreedPrice);
     }
+
+    [Fact]
+    public void AddOrder_EarlierOrderFromTheSameCustomer_LinksIt()
+    {
+        // Arrange: a repair of an earlier order
+        var earlier = _app.AddOrder();
+
+        // Act
+        var order = _service.AddOrder(earlier.CustomerId, OrderType.Repair, Examples.OtherWorkDescription, Examples.AgreedPrice, earlier.Id, _app.Employee);
+
+        // Assert
+        Assert.Equal(earlier.Id, _service.GetOrder(order.Id).RelatedOrderId);
+    }
 }
