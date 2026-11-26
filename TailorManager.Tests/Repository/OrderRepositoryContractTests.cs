@@ -226,6 +226,24 @@ public abstract class OrderRepositoryContractTests
         Assert.Equal(scheduledAt, fitting.ScheduledAt);
         Assert.Null(fitting.Outcome);
     }
+
+    [Fact]
+    public void Update_NewCommunication_IsStored()
+    {
+        // Arrange
+        var repository = CreateRepository();
+        var order = TestData.NewOrder();
+        repository.Add(order);
+
+        // Act
+        order.Communications.Add(TestData.NewCommunication());
+        repository.Update(order);
+
+        // Assert
+        var communication = Assert.Single(Reopen(repository).GetById(order.Id)!.Communications);
+        Assert.Equal(Examples.CommunicationContent, communication.Content);
+        Assert.Equal(CommunicationDirection.Incoming, communication.Direction);
+    }
 }
 
 public class FakeOrderRepositoryTests : OrderRepositoryContractTests
