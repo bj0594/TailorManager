@@ -512,4 +512,16 @@ public class OrderServiceTests
         var error = Assert.Throws<InvalidOrderStatusException>(() => _service.MarkReadyForPickup(order.Id, _app.Employee));
         Assert.Equal("The order is not in progress.", error.Message);
     }
+
+    [Fact]
+    public void RequestCustomerDecision_NotInProgress_ThrowsInvalidOrderStatusException()
+    {
+        // Arrange: a Submitted order
+        var order = _app.AddOrder();
+
+        // Act + Assert
+        Assert.Throws<InvalidOrderStatusException>(() =>
+            _service.RequestCustomerDecision(order.Id, Examples.ProposedWorkChange, Examples.ProposedPriceAdjustment, _app.Employee));
+        Assert.Empty(_service.GetOrder(order.Id).CustomerDecisionRequests);
+    }
 }
