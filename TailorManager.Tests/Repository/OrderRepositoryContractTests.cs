@@ -167,6 +167,25 @@ public abstract class OrderRepositoryContractTests
         // Assert
         Assert.Equal(new[] { ActivityType.OrderCreated, ActivityType.StatusChanged }, found!.History.Select(h => h.Type));
     }
+
+    [Fact]
+    public void Update_NewCustomerDecisionRequest_IsStored()
+    {
+        // Arrange
+        var repository = CreateRepository();
+        var order = TestData.NewOrder();
+        repository.Add(order);
+
+        // Act
+        order.CustomerDecisionRequests.Add(new CustomerDecisionRequest { Id = Guid.NewGuid(), ProposedWorkChange = Examples.ProposedWorkChange, ProposedPriceAdjustment = Examples.ProposedPriceAdjustment });
+        repository.Update(order);
+
+        // Assert
+        var request = Assert.Single(Reopen(repository).GetById(order.Id)!.CustomerDecisionRequests);
+        Assert.Equal(Examples.ProposedWorkChange, request.ProposedWorkChange);
+        Assert.Equal(Examples.ProposedPriceAdjustment, request.ProposedPriceAdjustment);
+        Assert.Equal(DecisionStatus.Pending, request.Status);
+    }
 }
 
 public class FakeOrderRepositoryTests : OrderRepositoryContractTests
