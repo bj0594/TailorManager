@@ -220,6 +220,27 @@ public class OrderDetailsPageTests : PageTestContext
         Assert.Contains("StatusChanged", entries[1].TextContent);
     }
 
+    [Fact]
+    public void OrderDetailsPage_SubmitDecisionRequest_ShowsWaitingForCustomer()
+    {
+        // Arrange
+        _tokens.Role = Roles.Workshop;
+        var order = TestDtos.NewOrder() with { Status = "InProgress" };
+        var page = RenderOrder(order);
+
+        // Act
+        page.Find("form.decisionrequest input.workchange").Change(Examples.ProposedWorkChange);
+        page.Find("form.decisionrequest input.priceadjustment").Change(Examples.ProposedPriceAdjustment.ToString());
+        page.Find("form.decisionrequest").Submit();
+
+        // Assert
+        page.WaitForAssertion(() =>
+        {
+            Assert.Contains((order.Id, Examples.ProposedWorkChange, (decimal?)Examples.ProposedPriceAdjustment), _orders.DecisionRequests);
+            Assert.Contains("WaitingForCustomer", page.Find(".status").TextContent);
+        });
+    }
+
     // The order, and its customer, as the fake clients give them to the page.
     private IRenderedComponent<OrderDetailsPage> RenderOrder(OrderDto order)
     {
