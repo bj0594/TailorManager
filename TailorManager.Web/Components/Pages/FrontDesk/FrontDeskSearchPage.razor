@@ -37,6 +37,13 @@
         </select>
         <input id="workDescription" @bind="_newWorkDescription" placeholder="Work description" />
         <input id="agreedPrice" type="number" @bind="_newAgreedPrice" />
+        <select id="relatedOrder" @bind="_newRelatedOrderId">
+            <option value="">No earlier order</option>
+            @foreach (var earlier in _customerOrders)
+            {
+                <option value="@earlier.Id">@earlier.WorkDescription (@earlier.Status)</option>
+            }
+        </select>
         <button type="submit">Create order</button>
     </form>
 }
@@ -64,12 +71,22 @@
     private string _newWorkDescription = "";
     private decimal _newAgreedPrice;
 
-    private void ChooseCustomer(CustomerDto customer) => _orderCustomer = customer;
+    // The customer's earlier orders, so a repair or a reclamation can be linked to one of them.
+    private List<OrderDto> _customerOrders = [];
+    private string _newRelatedOrderId = "";
+
+    private async Task ChooseCustomer(CustomerDto customer)
+    {
+        _orderCustomer = customer;
+        _customerOrders = await Orders.ListOrdersAsync(customerId: customer.Id);
+    }
 
     private async Task CreateOrder()
     {
-        await Orders.CreateOrderAsync(_orderCustomer!.Id, _newType, _newWorkDescription, _newAgreedPrice);
+        Guid? relatedOrderId = _newRelatedOrderId == "" ? null : Guid.Parse(_newRelatedOrderId);
+        await Orders.CreateOrderAsync(_orderCustomer!.Id, _newType, _newWorkDescription, _newAgreedPrice, relatedOrderId);
         _orderCustomer = null;
+        _newRelatedOrderId = "";
         _newType = "NewGarment";
         _newWorkDescription = "";
         _newAgreedPrice = 0;
