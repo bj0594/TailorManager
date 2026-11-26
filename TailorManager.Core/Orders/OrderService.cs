@@ -60,8 +60,22 @@ public class OrderService
         return Save(order);
     }
 
-    public Order RequestCustomerDecision(Guid id, string proposedWorkChange, decimal? proposedPriceAdjustment, User employee) =>
-        throw new NotImplementedException();
+    // The workshop asks the customer about a change (§2). The price stays until the customer approves it (RecordCustomerDecision).
+    public Order RequestCustomerDecision(Guid id, string proposedWorkChange, decimal? proposedPriceAdjustment, User employee)
+    {
+        var order = GetOrder(id);
+        var request = new CustomerDecisionRequest
+        {
+            Id = Guid.NewGuid(),
+            ProposedWorkChange = proposedWorkChange,
+            ProposedPriceAdjustment = proposedPriceAdjustment
+        };
+        order.CustomerDecisionRequests.Add(request);
+        AddHistory(order, employee, ActivityType.CustomerDecisionRequested, relatedEntityId: request.Id);
+        MoveTo(order, OrderStatus.WaitingForCustomer, employee);
+        AddHistory(order, employee, ActivityType.NotificationRequested);
+        return Save(order);
+    }
 
     // The customer is told the order is ready: a notification request in the history (§4). Nothing is sent from Core.
     public Order MarkReadyForPickup(Guid id, User employee)
@@ -97,11 +111,12 @@ public class OrderService
     }
 
     // A new line in the history, by the employee who did it, at the time on the clock. The history is append-only.
-    private void AddHistory(Order order, User employee, ActivityType type, string? note = null)
+    private void AddHistory(Order order, User employee, ActivityType type, string? note = null, Guid? relatedEntityId = null)
     {
         var entry = OrderHistoryEntry.By(employee);
         entry.Type = type;
         entry.Note = note;
+        entry.RelatedEntityId = relatedEntityId;
         entry.OccurredAt = _clock.GetUtcNow();
         order.History.Add(entry);
     }
