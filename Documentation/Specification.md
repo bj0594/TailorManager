@@ -926,9 +926,9 @@ No cycle, built on the module page: Register an employee and Log in (Innlogging)
 
 ### (FrontDesk) Pay before the order is ready
 
-- [ ] Core: payment fails when the order is not ReadyForPickup
-- [ ] API: POST /orders/{orderId}/payments → 409 Conflict
-- [ ] Web: the page shows "The order is not ready for pickup"
+- [x] Core: payment fails when the order is not ReadyForPickup
+- [x] API: POST /orders/{orderId}/payments → 409 Conflict
+- [x] Web: the page shows "The order is not ready for pickup"
 
 ### (FrontDesk) Pay the wrong amount
 
