@@ -647,4 +647,16 @@ public class OrderServiceTests
         // Act + Assert
         Assert.Throws<InvalidOrderStatusException>(() => _service.MarkDelivered(order.Id, _app.Employee));
     }
+
+    [Fact]
+    public void MarkDelivered_OutstandingBalance_ThrowsPaymentRequiredException()
+    {
+        // Arrange: ready for pickup, and nothing paid
+        var order = _app.AddOrderReadyForPickup();
+
+        // Act + Assert
+        var error = Assert.Throws<PaymentRequiredException>(() => _service.MarkDelivered(order.Id, _app.Employee));
+        Assert.Equal("Register the payment first.", error.Message);
+        Assert.Equal(OrderStatus.ReadyForPickup, _service.GetOrder(order.Id).Status);
+    }
 }
