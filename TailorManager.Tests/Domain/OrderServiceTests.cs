@@ -637,4 +637,14 @@ public class OrderServiceTests
         Assert.Empty(found.Payments);
         Assert.Equal(OrderStatus.ReadyForPickup, found.Status);
     }
+
+    [Fact]
+    public void MarkDelivered_NotReadyForPickup_ThrowsInvalidOrderStatusException()
+    {
+        // Arrange: a free order in progress
+        var order = _app.AddOrderInProgress(agreedPrice: 0m);
+
+        // Act + Assert
+        Assert.Throws<InvalidOrderStatusException>(() => _service.MarkDelivered(order.Id, _app.Employee));
+    }
 }
