@@ -713,4 +713,20 @@ public class OrdersApiTests : ApiTestBase
         // Assert
         Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
     }
+
+    [Fact]
+    public async Task PatchOrdersDelivered_NotReadyForPickup_ReturnsConflict()
+    {
+        // Arrange: a free order in progress
+        var frontDesk = await _factory.LogInAsFrontDeskAsync();
+        var workshop = await _factory.LogInAsWorkshopAsync();
+        var order = await frontDesk.CreateOrderAsync(agreedPrice: 0m);
+        (await workshop.StartWorkAsync(order.Id)).EnsureSuccessStatusCode();
+
+        // Act
+        var response = await frontDesk.MarkDeliveredAsync(order.Id);
+
+        // Assert
+        Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
+    }
 }
