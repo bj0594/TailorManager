@@ -659,4 +659,35 @@ public class OrderServiceTests
         Assert.Equal("Register the payment first.", error.Message);
         Assert.Equal(OrderStatus.ReadyForPickup, _service.GetOrder(order.Id).Status);
     }
+
+    [Theory]
+    [InlineData("StartOrder")]
+    [InlineData("AddWorkNote")]
+    [InlineData("MarkReadyForPickup")]
+    [InlineData("RequestCustomerDecision")]
+    [InlineData("ScheduleFitting")]
+    [InlineData("CompleteFitting")]
+    [InlineData("RegisterPayment")]
+    [InlineData("MarkDelivered")]
+    public void OrderAction_DeliveredOrder_ThrowsInvalidOrderStatusException(string action)
+    {
+        // Arrange: a free order that is delivered
+        var order = _app.AddOrderReadyForPickup(agreedPrice: 0m);
+        _service.MarkDelivered(order.Id, _app.Employee);
+        var employee = _app.Employee;
+        Action act = action switch
+        {
+            "StartOrder" => () => _service.StartOrder(order.Id, employee),
+            "AddWorkNote" => () => _service.AddWorkNote(order.Id, Examples.WorkNote, employee),
+            "MarkReadyForPickup" => () => _service.MarkReadyForPickup(order.Id, employee),
+            "RequestCustomerDecision" => () => _service.RequestCustomerDecision(order.Id, Examples.ProposedWorkChange, Examples.ProposedPriceAdjustment, employee),
+            "ScheduleFitting" => () => _service.ScheduleFitting(order.Id, _app.Clock.Now.AddDays(2), employee),
+            "CompleteFitting" => () => _service.CompleteFitting(order.Id, Guid.NewGuid(), Examples.FittingOutcome, employee),
+            "RegisterPayment" => () => _service.RegisterPayment(order.Id, 0m, Examples.TransactionReference, employee),
+            _ => () => _service.MarkDelivered(order.Id, employee)
+        };
+
+        // Act + Assert
+        Assert.Throws<InvalidOrderStatusException>(act);
+    }
 }
