@@ -954,8 +954,8 @@ No cycle, built on the module page: Register an employee and Log in (Innlogging)
 
 ### (Workshop) Act on a delivered order
 
-- [ ] Core: every order action with a status rule fails with InvalidOrderStatusException on a Delivered order (one test per method, as a Theory)
-- [ ] API: PATCH /orders/{orderId}/start on a Delivered order → 409 Conflict
+- [x] Core: every order action with a status rule fails with InvalidOrderStatusException on a Delivered order (one test per method, as a Theory)
+- [x] API: PATCH /orders/{orderId}/start on a Delivered order → 409 Conflict
 
 ### (FrontDesk) Link to another customer's order
 
