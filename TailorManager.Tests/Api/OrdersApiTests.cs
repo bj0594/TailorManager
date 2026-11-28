@@ -647,4 +647,21 @@ public class OrdersApiTests : ApiTestBase
         Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
         Assert.Equal("The order is not waiting for a fitting.", (await response.Content.ReadAsStringAsync()).Trim('"'));
     }
+
+    [Fact]
+    public async Task PatchOrdersFittingsComplete_AlreadyCompleted_ReturnsConflict()
+    {
+        // Arrange: two fittings, and the first is completed
+        var frontDesk = await _factory.LogInAsFrontDeskAsync();
+        var workshop = await _factory.LogInAsWorkshopAsync();
+        var order = await frontDesk.CreateOrderWaitingForFittingAsync(workshop);
+        var fittings = (await (await workshop.ScheduleFittingAsync(order.Id)).ReadOrderAsync()).Fittings;
+        (await workshop.CompleteFittingAsync(order.Id, fittings[0].Id)).EnsureSuccessStatusCode();
+
+        // Act
+        var response = await workshop.CompleteFittingAsync(order.Id, fittings[0].Id);
+
+        // Assert
+        Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
+    }
 }
