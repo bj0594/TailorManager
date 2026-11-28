@@ -593,4 +593,17 @@ public class OrderServiceTests
         Assert.Throws<InvalidOperationException>(() => _service.CompleteFitting(order.Id, fittings[0].Id, "Another outcome", _app.Employee));
         Assert.Equal(Examples.FittingOutcome, _service.GetOrder(order.Id).Fittings[0].Outcome);
     }
+
+    [Fact]
+    public void RegisterPayment_NotReadyForPickup_ThrowsInvalidOrderStatusException()
+    {
+        // Arrange: an order in progress
+        var order = _app.AddOrderInProgress();
+
+        // Act + Assert
+        var error = Assert.Throws<InvalidOrderStatusException>(() =>
+            _service.RegisterPayment(order.Id, Examples.PaymentAmount, Examples.TransactionReference, _app.Employee));
+        Assert.Equal("The order is not ready for pickup.", error.Message);
+        Assert.Empty(_service.GetOrder(order.Id).Payments);
+    }
 }
