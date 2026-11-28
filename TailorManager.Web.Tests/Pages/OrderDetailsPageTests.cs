@@ -501,6 +501,25 @@ public class OrderDetailsPageTests : PageTestContext
             Assert.Contains("The order is not ready for pickup.", page.Find(".error").TextContent));
     }
 
+    [Fact]
+    public void OrderDetailsPage_WrongAmount_ShowsNotTheOutstandingBalance()
+    {
+        // Arrange
+        _tokens.Role = Roles.FrontDesk;
+        var order = TestDtos.NewOrder();
+        _orders.Fail = new HttpRequestException("The amount is not the outstanding balance.");
+        var page = RenderOrder(order);
+
+        // Act
+        page.Find("form.payment input.amount").Change(Examples.PaymentAmount.ToString());
+        page.Find("form.payment input.reference").Change(Examples.TransactionReference);
+        page.Find("form.payment").Submit();
+
+        // Assert
+        page.WaitForAssertion(() =>
+            Assert.Contains("The amount is not the outstanding balance.", page.Find(".error").TextContent));
+    }
+
     // The order, and its customer, as the fake clients give them to the page.
     private IRenderedComponent<OrderDetailsPage> RenderOrder(OrderDto order)
     {
