@@ -745,4 +745,20 @@ public class OrdersApiTests : ApiTestBase
         Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
         Assert.Equal("Register the payment first.", (await response.Content.ReadAsStringAsync()).Trim('"'));
     }
+
+    [Fact]
+    public async Task PatchOrdersStart_DeliveredOrder_ReturnsConflict()
+    {
+        // Arrange: a free order that is delivered
+        var frontDesk = await _factory.LogInAsFrontDeskAsync();
+        var workshop = await _factory.LogInAsWorkshopAsync();
+        var order = await frontDesk.CreateOrderReadyForPickupAsync(workshop, agreedPrice: 0m);
+        (await frontDesk.MarkDeliveredAsync(order.Id)).EnsureSuccessStatusCode();
+
+        // Act
+        var response = await workshop.StartWorkAsync(order.Id);
+
+        // Assert
+        Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
+    }
 }
