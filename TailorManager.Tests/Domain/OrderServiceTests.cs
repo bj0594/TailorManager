@@ -606,4 +606,19 @@ public class OrderServiceTests
         Assert.Equal("The order is not ready for pickup.", error.Message);
         Assert.Empty(_service.GetOrder(order.Id).Payments);
     }
+
+    [Fact]
+    public void RegisterPayment_WrongAmount_ThrowsAndChangesNothing()
+    {
+        // Arrange
+        var order = _app.AddOrderReadyForPickup();
+
+        // Act + Assert
+        var error = Assert.Throws<PaymentAmountMismatchException>(() =>
+            _service.RegisterPayment(order.Id, Examples.PaymentAmount - 1, Examples.TransactionReference, _app.Employee));
+        Assert.Equal("The amount is not the outstanding balance.", error.Message);
+        var found = _service.GetOrder(order.Id);
+        Assert.Empty(found.Payments);
+        Assert.Equal(OrderStatus.ReadyForPickup, found.Status);
+    }
 }
