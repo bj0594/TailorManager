@@ -579,4 +579,18 @@ public class OrderServiceTests
         // Act + Assert
         Assert.Throws<InvalidOrderStatusException>(() => _service.CompleteFitting(order.Id, Guid.NewGuid(), Examples.FittingOutcome, _app.Employee));
     }
+
+    [Fact]
+    public void CompleteFitting_AlreadyCompleted_ThrowsAndKeepsTheFirstOutcome()
+    {
+        // Arrange: two fittings, so the order still waits after the first is completed
+        var order = _app.AddOrderInProgress();
+        _service.ScheduleFitting(order.Id, _app.Clock.Now.AddDays(2), _app.Employee);
+        var fittings = _service.ScheduleFitting(order.Id, _app.Clock.Now.AddDays(4), _app.Employee).Fittings;
+        _service.CompleteFitting(order.Id, fittings[0].Id, Examples.FittingOutcome, _app.Employee);
+
+        // Act + Assert
+        Assert.Throws<InvalidOperationException>(() => _service.CompleteFitting(order.Id, fittings[0].Id, "Another outcome", _app.Employee));
+        Assert.Equal(Examples.FittingOutcome, _service.GetOrder(order.Id).Fittings[0].Outcome);
+    }
 }
