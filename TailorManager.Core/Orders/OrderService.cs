@@ -20,6 +20,11 @@ public class OrderService
 
     public Order AddOrder(Guid customerId, OrderType type, string workDescription, decimal agreedPrice, Guid? relatedOrderId, User employee)
     {
+        // A linked order (like a reclamation) must belong to the same customer (§6).
+        if (relatedOrderId is not null && _repository.GetById(relatedOrderId.Value) is { } related && related.CustomerId != customerId)
+        {
+            throw new InvalidOperationException("The earlier order belongs to another customer.");
+        }
         var order = new Order
         {
             Id = Guid.NewGuid(),
