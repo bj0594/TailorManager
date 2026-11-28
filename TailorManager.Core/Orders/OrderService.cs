@@ -264,6 +264,12 @@ public class OrderService
     {
         var order = GetOrder(id);
         RequireStatus(order, "The order is not ready for pickup.", OrderStatus.ReadyForPickup);
+
+        // One full payment per order in the first version (§6).
+        if (amount != order.OutstandingBalance)
+        {
+            throw new PaymentAmountMismatchException("The amount is not the outstanding balance.");
+        }
         order.Payments.Add(new Payment { Id = Guid.NewGuid(), Amount = amount, TransactionReference = transactionReference });
         AddHistory(order, employee, ActivityType.PaymentReceived);
         MoveTo(order, OrderStatus.Delivered, employee);
