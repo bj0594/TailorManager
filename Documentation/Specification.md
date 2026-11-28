@@ -943,8 +943,8 @@ No cycle, built on the module page: Register an employee and Log in (Innlogging)
 
 ### (FrontDesk) Deliver before the order is ready
 
-- [ ] Core: marking Delivered fails when the order is not ReadyForPickup
-- [ ] API: PATCH /orders/{orderId}/delivered → 409 Conflict
+- [x] Core: marking Delivered fails when the order is not ReadyForPickup
+- [x] API: PATCH /orders/{orderId}/delivered → 409 Conflict
 
 ### (FrontDesk) Deliver with an outstanding balance
 
