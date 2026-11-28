@@ -680,4 +680,20 @@ public class OrdersApiTests : ApiTestBase
         Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
         Assert.Equal("The order is not ready for pickup.", (await response.Content.ReadAsStringAsync()).Trim('"'));
     }
+
+    [Fact]
+    public async Task PostOrdersPayments_WrongAmount_ReturnsConflict()
+    {
+        // Arrange
+        var frontDesk = await _factory.LogInAsFrontDeskAsync();
+        var workshop = await _factory.LogInAsWorkshopAsync();
+        var order = await frontDesk.CreateOrderReadyForPickupAsync(workshop);
+
+        // Act
+        var response = await frontDesk.RegisterPaymentAsync(order.Id, Examples.PaymentAmount - 1);
+
+        // Assert
+        Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
+        Assert.Equal("The amount is not the outstanding balance.", (await response.Content.ReadAsStringAsync()).Trim('"'));
+    }
 }
