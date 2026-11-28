@@ -177,6 +177,12 @@ public class OrderService
         var order = GetOrder(id);
         RequireStatus(order, "The order is not waiting for a fitting.", OrderStatus.WaitingForFitting);
         var fitting = order.Fittings.Single(f => f.Id == fittingId);
+
+        // A completed fitting cannot be completed again: the history is append-only (§6).
+        if (fitting.CompletedAt is not null)
+        {
+            throw new InvalidOperationException("The fitting is already completed.");
+        }
         fitting.Outcome = outcome;
         fitting.CompletedAt = _clock.GetUtcNow();
         AddHistory(order, employee, ActivityType.FittingCompleted, outcome, fitting.Id);
