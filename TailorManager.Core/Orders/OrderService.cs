@@ -175,6 +175,7 @@ public class OrderService
     public Order CompleteFitting(Guid id, Guid fittingId, string outcome, User employee)
     {
         var order = GetOrder(id);
+        RequireStatus(order, "The order is not waiting for a fitting.", OrderStatus.WaitingForFitting);
         var fitting = order.Fittings.Single(f => f.Id == fittingId);
         fitting.Outcome = outcome;
         fitting.CompletedAt = _clock.GetUtcNow();
