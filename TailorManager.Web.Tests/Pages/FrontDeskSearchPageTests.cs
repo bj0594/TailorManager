@@ -129,4 +129,25 @@ public class FrontDeskSearchPageTests : PageTestContext
         // Assert
         page.WaitForAssertion(() => Assert.Contains("Could not load customers", page.Find(".error").TextContent));
     }
+
+    [Fact]
+    public void FrontDeskSearchPage_CreateOrderRejected_ShowsTheMessage()
+    {
+        // Arrange
+        _customers.Items.Add(TestDtos.NewCustomer());
+        _orders.Fail = new HttpRequestException("The earlier order belongs to another customer.");
+        var page = Render<FrontDeskSearchPage>();
+        page.Find("#search").Change(Examples.CustomerName);
+        page.Find("#search-button").Click();
+
+        // Act
+        page.WaitForElement(".results button.neworder").Click();
+        page.Find("#workDescription").Change(Examples.WorkDescription);
+        page.Find("#agreedPrice").Change(Examples.AgreedPrice.ToString());
+        page.Find("form.order").Submit();
+
+        // Assert
+        page.WaitForAssertion(() =>
+            Assert.Contains("The earlier order belongs to another customer.", page.Find(".error").TextContent));
+    }
 }
