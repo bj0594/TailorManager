@@ -690,4 +690,17 @@ public class OrderServiceTests
         // Act + Assert
         Assert.Throws<InvalidOrderStatusException>(act);
     }
+
+    [Fact]
+    public void AddOrder_EarlierOrderFromAnotherCustomer_ThrowsInvalidOperationException()
+    {
+        // Arrange: an order for another customer
+        var otherCustomersOrder = _app.AddOrder();
+        var customer = _app.AddCustomer(Examples.OtherCustomerName);
+
+        // Act + Assert
+        var error = Assert.Throws<InvalidOperationException>(() =>
+            _service.AddOrder(customer.Id, OrderType.Repair, Examples.OtherWorkDescription, Examples.AgreedPrice, otherCustomersOrder.Id, _app.Employee));
+        Assert.Equal("The earlier order belongs to another customer.", error.Message);
+    }
 }
