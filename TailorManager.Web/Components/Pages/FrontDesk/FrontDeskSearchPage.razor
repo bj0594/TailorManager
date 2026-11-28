@@ -97,7 +97,17 @@ else if (_searched && _results.Count == 0)
     private async Task CreateOrder()
     {
         Guid? relatedOrderId = _newRelatedOrderId == "" ? null : Guid.Parse(_newRelatedOrderId);
-        await Orders.CreateOrderAsync(_orderCustomer!.Id, _newType, _newWorkDescription, _newAgreedPrice, relatedOrderId);
+        _error = null;
+        try
+        {
+            await Orders.CreateOrderAsync(_orderCustomer!.Id, _newType, _newWorkDescription, _newAgreedPrice, relatedOrderId);
+        }
+        catch (HttpRequestException e)
+        {
+            // The API's message, like "The earlier order belongs to another customer.": the form stays open.
+            _error = e.Message;
+            return;
+        }
         _orderCustomer = null;
         _newRelatedOrderId = "";
         _newType = "NewGarment";
