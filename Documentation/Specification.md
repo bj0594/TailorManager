@@ -921,8 +921,8 @@ No cycle, built on the module page: Register an employee and Log in (Innlogging)
 
 ### (Workshop) Complete a fitting twice
 
-- [ ] Core: completing a fitting that is already completed fails and keeps the first outcome
-- [ ] API: PATCH /orders/{orderId}/fittings/{fittingId}/complete → 409 Conflict
+- [x] Core: completing a fitting that is already completed fails and keeps the first outcome
+- [x] API: PATCH /orders/{orderId}/fittings/{fittingId}/complete → 409 Conflict
 
 ### (FrontDesk) Pay before the order is ready
 
