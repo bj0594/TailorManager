@@ -285,6 +285,7 @@ public class OrderService
     public Order MarkDelivered(Guid id, User employee)
     {
         var order = GetOrder(id);
+        RequireStatus(order, "The order is not ready for pickup.", OrderStatus.ReadyForPickup);
         MoveTo(order, OrderStatus.Delivered, employee);
         return Save(order);
     }
