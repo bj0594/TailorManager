@@ -263,6 +263,7 @@ public class OrderService
     public Order RegisterPayment(Guid id, decimal amount, string transactionReference, User employee)
     {
         var order = GetOrder(id);
+        RequireStatus(order, "The order is not ready for pickup.", OrderStatus.ReadyForPickup);
         order.Payments.Add(new Payment { Id = Guid.NewGuid(), Amount = amount, TransactionReference = transactionReference });
         AddHistory(order, employee, ActivityType.PaymentReceived);
         MoveTo(order, OrderStatus.Delivered, employee);
