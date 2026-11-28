@@ -761,4 +761,19 @@ public class OrdersApiTests : ApiTestBase
         // Assert
         Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
     }
+
+    [Fact]
+    public async Task PostOrders_EarlierOrderFromAnotherCustomer_ReturnsConflict()
+    {
+        // Arrange: an order for another customer
+        var frontDesk = await _factory.LogInAsFrontDeskAsync();
+        var otherCustomersOrder = await frontDesk.CreateOrderAsync();
+        var customer = await frontDesk.CreateCustomerAsync(Examples.OtherCustomerName);
+
+        // Act
+        var response = await frontDesk.PostOrderAsync(customer.Id, Examples.OtherWorkDescription, relatedOrderId: otherCustomersOrder.Id);
+
+        // Assert
+        Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
+    }
 }
