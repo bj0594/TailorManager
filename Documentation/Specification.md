@@ -932,14 +932,14 @@ No cycle, built on the module page: Register an employee and Log in (Innlogging)
 
 ### (FrontDesk) Pay the wrong amount
 
-- [ ] Core: a payment with the wrong amount fails and changes nothing
-- [ ] API: POST /orders/{orderId}/payments → 409 Conflict
-- [ ] Web: the page shows "The amount is not the outstanding balance"
+- [x] Core: a payment with the wrong amount fails and changes nothing
+- [x] API: POST /orders/{orderId}/payments → 409 Conflict
+- [x] Web: the page shows "The amount is not the outstanding balance"
 
 ### (FrontDesk) Pay with a transaction that is already registered
 
-- [ ] Core: a payment with a transaction reference that is already registered fails and changes nothing
-- [ ] API: POST /orders/{orderId}/payments → 409 Conflict
+- [x] Core: a payment with a transaction reference that is already registered fails and changes nothing
+- [x] API: POST /orders/{orderId}/payments → 409 Conflict
 
 ### (FrontDesk) Deliver before the order is ready
 
