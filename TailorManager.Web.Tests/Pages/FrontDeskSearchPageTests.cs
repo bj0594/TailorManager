@@ -32,6 +32,8 @@ public class FrontDeskSearchPageTests : PageTestContext
         // Act
         page.Find("#name").Change(Examples.CustomerName);
         page.Find("#phone").Change(Examples.CustomerPhone);
+        page.Find("#email").Change(Examples.CustomerEmail);
+        page.Find("#address").Change(Examples.CustomerAddress);
         page.Find("form").Submit();
 
         // Assert
@@ -149,5 +151,22 @@ public class FrontDeskSearchPageTests : PageTestContext
         // Assert
         page.WaitForAssertion(() =>
             Assert.Contains("The earlier order belongs to another customer.", page.Find(".error").TextContent));
+    }
+
+    [Fact]
+    public void FrontDeskSearchPage_AddCustomerWithoutPhone_ShowsTheMissingField()
+    {
+        // Arrange
+        var page = Render<FrontDeskSearchPage>();
+
+        // Act: everything but the phone number
+        page.Find("#name").Change(Examples.CustomerName);
+        page.Find("#email").Change(Examples.CustomerEmail);
+        page.Find("#address").Change(Examples.CustomerAddress);
+        page.Find("form").Submit();
+
+        // Assert
+        page.WaitForAssertion(() => Assert.Contains("The phone is required.", page.Find(".error").TextContent));
+        Assert.Empty(_customers.Items);
     }
 }
