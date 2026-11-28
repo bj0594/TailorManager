@@ -959,15 +959,15 @@ No cycle, built on the module page: Register an employee and Log in (Innlogging)
 
 ### (FrontDesk) Link to another customer's order
 
-- [ ] Core: linking fails when the earlier order belongs to another customer
-- [ ] API: POST /orders → 409 Conflict
-- [ ] Web: the order form shows "The earlier order belongs to another customer"
+- [x] Core: linking fails when the earlier order belongs to another customer
+- [x] API: POST /orders → 409 Conflict
+- [x] Web: the order form shows "The earlier order belongs to another customer"
 
 ### (FrontDesk) Add a customer with missing details
 
-- [ ] Core: adding a customer fails when the name, phone number, email or address is empty
-- [ ] API: POST /customers → 400 Bad Request
-- [ ] Web: the customer form shows which field is missing
+- [x] Core: adding a customer fails when the name, phone number, email or address is empty
+- [x] API: POST /customers → 400 Bad Request
+- [x] Web: the customer form shows which field is missing
 
 ### (FrontDesk) Create an order with a negative price
 
