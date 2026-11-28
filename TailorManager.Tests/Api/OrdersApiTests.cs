@@ -696,4 +696,21 @@ public class OrdersApiTests : ApiTestBase
         Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
         Assert.Equal("The amount is not the outstanding balance.", (await response.Content.ReadAsStringAsync()).Trim('"'));
     }
+
+    [Fact]
+    public async Task PostOrdersPayments_TransactionAlreadyRegistered_ReturnsConflict()
+    {
+        // Arrange: the transaction is already registered on another order
+        var frontDesk = await _factory.LogInAsFrontDeskAsync();
+        var workshop = await _factory.LogInAsWorkshopAsync();
+        var paid = await frontDesk.CreateOrderReadyForPickupAsync(workshop);
+        (await frontDesk.RegisterPaymentAsync(paid.Id)).EnsureSuccessStatusCode();
+        var order = await frontDesk.CreateOrderReadyForPickupAsync(workshop);
+
+        // Act
+        var response = await frontDesk.RegisterPaymentAsync(order.Id);
+
+        // Assert
+        Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
+    }
 }
