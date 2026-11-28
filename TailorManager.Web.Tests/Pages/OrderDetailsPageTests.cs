@@ -520,6 +520,23 @@ public class OrderDetailsPageTests : PageTestContext
             Assert.Contains("The amount is not the outstanding balance.", page.Find(".error").TextContent));
     }
 
+    [Fact]
+    public void OrderDetailsPage_DeliverWithBalance_ShowsRegisterThePaymentFirst()
+    {
+        // Arrange
+        _tokens.Role = Roles.FrontDesk;
+        var order = TestDtos.NewOrder();
+        _orders.Fail = new HttpRequestException("Register the payment first.");
+        var page = RenderOrder(order);
+
+        // Act
+        page.Find("button.deliver").Click();
+
+        // Assert
+        page.WaitForAssertion(() =>
+            Assert.Contains("Register the payment first.", page.Find(".error").TextContent));
+    }
+
     // The order, and its customer, as the fake clients give them to the page.
     private IRenderedComponent<OrderDetailsPage> RenderOrder(OrderDto order)
     {
