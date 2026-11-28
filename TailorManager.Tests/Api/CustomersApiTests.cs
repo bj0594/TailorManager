@@ -76,4 +76,17 @@ public class CustomersApiTests : ApiTestBase
         var body = await response.Content.ReadFromJsonAsync<List<CustomerResponse>>();
         Assert.Equal(match.Id, Assert.Single(body!).Id);
     }
+
+    [Fact]
+    public async Task PostCustomers_EmptyName_ReturnsBadRequest()
+    {
+        // Arrange
+        var client = await _factory.LogInAsFrontDeskAsync();
+
+        // Act
+        var response = await client.PostAsJsonAsync("/customers", ApiTestData.NewCustomerRequest(name: ""));
+
+        // Assert
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
 }
