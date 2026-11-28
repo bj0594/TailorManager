@@ -53,4 +53,22 @@ public class CustomerServiceTests
         // Assert
         Assert.Equal(match.Id, Assert.Single(result).Id);
     }
+
+    [Theory]
+    [InlineData("name")]
+    [InlineData("phone")]
+    [InlineData("email")]
+    [InlineData("address")]
+    public void AddCustomer_MissingField_ThrowsArgumentException(string field)
+    {
+        // Arrange: the example customer, with one field empty
+        var name = field == "name" ? "" : Examples.CustomerName;
+        var phone = field == "phone" ? "" : Examples.CustomerPhone;
+        var email = field == "email" ? "" : Examples.CustomerEmail;
+        var address = field == "address" ? "" : Examples.CustomerAddress;
+
+        // Act + Assert
+        var error = Assert.Throws<ArgumentException>(() => _service.AddCustomer(name, phone, email, address));
+        Assert.Equal($"The {field} is required.", error.Message);
+    }
 }
