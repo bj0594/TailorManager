@@ -948,9 +948,9 @@ No cycle, built on the module page: Register an employee and Log in (Innlogging)
 
 ### (FrontDesk) Deliver with an outstanding balance
 
-- [ ] Core: marking Delivered fails while there is an outstanding balance
-- [ ] API: PATCH /orders/{orderId}/delivered → 409 Conflict
-- [ ] Web: the page shows "Register the payment first"
+- [x] Core: marking Delivered fails while there is an outstanding balance
+- [x] API: PATCH /orders/{orderId}/delivered → 409 Conflict
+- [x] Web: the page shows "Register the payment first"
 
 ### (Workshop) Act on a delivered order
 
