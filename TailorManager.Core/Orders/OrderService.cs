@@ -286,6 +286,10 @@ public class OrderService
     {
         var order = GetOrder(id);
         RequireStatus(order, "The order is not ready for pickup.", OrderStatus.ReadyForPickup);
+        if (order.OutstandingBalance != 0)
+        {
+            throw new PaymentRequiredException("Register the payment first.");
+        }
         MoveTo(order, OrderStatus.Delivered, employee);
         return Save(order);
     }
