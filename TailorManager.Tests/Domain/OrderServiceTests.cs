@@ -569,4 +569,14 @@ public class OrderServiceTests
         Assert.Throws<InvalidOrderStatusException>(() => _service.ScheduleFitting(order.Id, _app.Clock.Now.AddDays(2), _app.Employee));
         Assert.Empty(_service.GetOrder(order.Id).Fittings);
     }
+
+    [Fact]
+    public void CompleteFitting_OrderNotWaiting_ThrowsInvalidOrderStatusException()
+    {
+        // Arrange: an order in progress, with no fitting
+        var order = _app.AddOrderInProgress();
+
+        // Act + Assert
+        Assert.Throws<InvalidOrderStatusException>(() => _service.CompleteFitting(order.Id, Guid.NewGuid(), Examples.FittingOutcome, _app.Employee));
+    }
 }
