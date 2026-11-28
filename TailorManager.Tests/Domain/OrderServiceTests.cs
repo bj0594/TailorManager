@@ -621,4 +621,20 @@ public class OrderServiceTests
         Assert.Empty(found.Payments);
         Assert.Equal(OrderStatus.ReadyForPickup, found.Status);
     }
+
+    [Fact]
+    public void RegisterPayment_TransactionAlreadyRegistered_ThrowsAndChangesNothing()
+    {
+        // Arrange: the transaction is already registered on another order
+        var paid = _app.AddOrderReadyForPickup();
+        _service.RegisterPayment(paid.Id, Examples.PaymentAmount, Examples.TransactionReference, _app.Employee);
+        var order = _app.AddOrderReadyForPickup();
+
+        // Act + Assert
+        Assert.Throws<DuplicatePaymentException>(() =>
+            _service.RegisterPayment(order.Id, Examples.PaymentAmount, Examples.TransactionReference, _app.Employee));
+        var found = _service.GetOrder(order.Id);
+        Assert.Empty(found.Payments);
+        Assert.Equal(OrderStatus.ReadyForPickup, found.Status);
+    }
 }
