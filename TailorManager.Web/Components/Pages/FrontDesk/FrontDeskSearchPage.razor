@@ -66,8 +66,17 @@ else if (_searched && _results.Count == 0)
     private string _newEmail = "";
     private string _newAddress = "";
 
+    // Checks the four fields before the API does, and names the first one that is empty, like Core does.
     private async Task Add()
     {
+        var missing = new[] { ("name", _newName), ("phone", _newPhone), ("email", _newEmail), ("address", _newAddress) }
+            .FirstOrDefault(f => string.IsNullOrWhiteSpace(f.Item2)).Item1;
+        if (missing is not null)
+        {
+            _error = $"The {missing} is required.";
+            return;
+        }
+        _error = null;
         _results.Add(await Client.AddCustomerAsync(_newName, _newPhone, _newEmail, _newAddress));
         _newName = _newPhone = _newEmail = _newAddress = "";
     }
