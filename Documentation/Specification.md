@@ -916,8 +916,8 @@ No cycle, built on the module page: Register an employee and Log in (Innlogging)
 
 ### (Workshop) Complete a fitting on an order that is not waiting
 
-- [ ] Core: completing a fitting fails when the order is not WaitingForFitting
-- [ ] API: PATCH /orders/{orderId}/fittings/{fittingId}/complete → 409 Conflict
+- [x] Core: completing a fitting fails when the order is not WaitingForFitting
+- [x] API: PATCH /orders/{orderId}/fittings/{fittingId}/complete → 409 Conflict
 
 ### (Workshop) Complete a fitting twice
 
